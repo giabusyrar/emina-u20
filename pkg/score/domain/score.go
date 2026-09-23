@@ -73,4 +73,9 @@ type ScoreModuleResponse struct {
 	SkinGradingTiers  []SkinGradingTier `json:"skin_grading_tiers"`
 	CustomerCondition map[string]bool   `json:"customer_conditions"`
 	AppliedRules      []string          `json:"applied_rules,omitempty"`
+
+	// SubClassification carries ruleset-defined refinement fields that don't fit
+	// axis_values/traits/skin_profile (e.g. sub_sensitive: "Sensitive Acne"),
+	// written by a JDM decisionTableNode targeting sub_classification.<key>.
+	SubClassification map[string]interface{} `json:"sub_classification,omitempty"`
 }

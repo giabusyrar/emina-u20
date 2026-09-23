@@ -382,6 +382,13 @@ func (s *ScoreService) Evaluate(ctx context.Context, req domain.ScoreModuleReque
 		}
 	}
 
+	// Extract ruleset-defined sub-classification fields (e.g. sub_sensitive),
+	// written by a decisionTableNode to sub_classification.<key>.
+	var subClassification map[string]interface{}
+	if sc, ok := evalResult["sub_classification"].(map[string]interface{}); ok {
+		subClassification = sc
+	}
+
 	// Extract Traits
 	traitsList := make([]string, 0)
 	if tr, ok := evalResult["traits"].(map[string]interface{}); ok {
@@ -492,6 +499,7 @@ func (s *ScoreService) Evaluate(ctx context.Context, req domain.ScoreModuleReque
 		SkinProfile:       skinProfile,
 		SkinGradingTiers:  skinGradingTiers,
 		CustomerCondition: req.CustomerCondition,
+		SubClassification: subClassification,
 	}, nil
 }
 
