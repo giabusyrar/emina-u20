@@ -40,7 +40,7 @@ func TestSurveyService_Evaluate(t *testing.T) {
 	model.ApplicationID = "skin_app"
 	model.Code = "wardah-quiz"
 
-	svc := service.NewSurveyService(nil, nil, nil)
+	svc := service.NewSurveyService(nil, nil, nil, nil)
 	ctx := context.Background()
 
 	evalOut, err := svc.EvaluateWithModel(ctx, model, domain.SurveyEvaluateRequest{

@@ -20,9 +20,9 @@ type DimensionRef struct {
 
 // SkinProfileType represents a parameterized diagnostic skin profile computed dynamically from active axes
 type SkinProfileType struct {
-	Code        string            `json:"code"`                  // e.g. "OSPT", "DRNW", "LONGEVITY-A"
-	Name        string            `json:"name"`                  // e.g. "Oily, Sensitive, Pigmented, Tight"
-	Description string            `json:"description"`           // Diagnostic clinical overview
+	Code        string            `json:"code"`        // e.g. "OSPT", "DRNW", "LONGEVITY-A"
+	Name        string            `json:"name"`        // e.g. "Oily, Sensitive, Pigmented, Tight"
+	Description string            `json:"description"` // Diagnostic clinical overview
 	Category    string            `json:"category,omitempty"`
 	AxisValues  map[string]string `json:"axis_values,omitempty"` // dynamic map: {"OILINESS": "O", "SENSITIVITY": "S", ...}
 	Traits      []string          `json:"traits,omitempty"`      // ["Oily", "Sensitive", "Pigmented", "Tight"]
@@ -32,9 +32,9 @@ type SkinProfileType struct {
 // score (100 = optimal) plus its Score Range bucket.
 type SkinGradingTier struct {
 	DimensionKey string  `json:"dimension_key"`
-	Score        float64 `json:"score"`       // 100 = optimal, 0 = critical
-	GradeName    string  `json:"grade_name"`  // Score Range label: Optimal | Sedang | Perlu Perhatian Khusus
-	Severity     string  `json:"severity"`    // same Score Range label, kept for backward compatibility
+	Score        float64 `json:"score"`      // 100 = optimal, 0 = critical
+	GradeName    string  `json:"grade_name"` // Score Range label: Optimal | Sedang | Perlu Perhatian Khusus
+	Severity     string  `json:"severity"`   // same Score Range label, kept for backward compatibility
 }
 
 // SkinConcernFocus is the single weakest dimension (argmin of dimension scores),
@@ -78,4 +78,10 @@ type ScoreModuleResponse struct {
 	// axis_values/traits/skin_profile (e.g. sub_sensitive: "Sensitive Acne"),
 	// written by a JDM decisionTableNode targeting sub_classification.<key>.
 	SubClassification map[string]interface{} `json:"sub_classification,omitempty"`
+
+	// RawDimensionScores is each dimension's aggregate BEFORE min-max
+	// normalisation into the 0-100 concern figure DimensionScores carries —
+	// e.g. Q1's raw answer sum. A hypothesis band (Sub Oily) needs this raw
+	// total directly, not the normalised value.
+	RawDimensionScores map[string]float64 `json:"raw_dimension_scores,omitempty"`
 }

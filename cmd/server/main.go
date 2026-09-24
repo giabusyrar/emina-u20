@@ -20,6 +20,7 @@ import (
 	formCache "github.com/experience-gateway/apps/core-engine/pkg/form/adapters/cache"
 	formControllers "github.com/experience-gateway/apps/core-engine/pkg/form/adapters/controllers"
 	formScoreClient "github.com/experience-gateway/apps/core-engine/pkg/form/adapters/scoreclient"
+	formVisionClient "github.com/experience-gateway/apps/core-engine/pkg/form/adapters/visionclient"
 	formEntity "github.com/experience-gateway/apps/core-engine/pkg/form/entity"
 	formRepo "github.com/experience-gateway/apps/core-engine/pkg/form/repository"
 	formService "github.com/experience-gateway/apps/core-engine/pkg/form/service"
@@ -111,7 +112,8 @@ func main() {
 	fRepo := formRepo.NewSurveyRepo(db)
 	// scoreclient appends /api/scoring/evaluate, so the base must be the host only.
 	scoreClient := formScoreClient.New("http://127.0.0.1:" + cfg.Port)
-	fService := formService.NewSurveyService(fRepo, formC, scoreClient)
+	paradevClient := formVisionClient.New(cfg.ParadevGatewayURL, cfg.ParadevGatewayAPIKey, 50*time.Second)
+	fService := formService.NewSurveyService(fRepo, formC, scoreClient, paradevClient)
 	formHandler := formControllers.NewSurveyHandler(fService)
 
 	// Score Engine
@@ -181,6 +183,7 @@ func main() {
 		g.PUT("/survey/:code", formHandler.Save)
 		g.POST("/evaluate", formHandler.Evaluate)
 		g.POST("/survey/:code/evaluate", formHandler.Evaluate)
+		g.POST("/survey/:code/evaluate-with-photos", formHandler.EvaluateWithPhotos)
 	}
 	mountFormRoutes(e.Group("/core/form-engine"))
 	mountFormRoutes(e.Group("/api/forms"))
@@ -195,6 +198,7 @@ func main() {
 		g.POST("/evaluate", scoreHandler.Evaluate)
 		g.POST("/simulate", scoreHandler.Simulate)
 		g.GET("/rulesets", scoreHandler.ListRulesets)
+		g.GET("/rulesets/active", scoreHandler.GetActiveRuleset)
 		g.GET("/rulesets/:id", scoreHandler.GetRuleset)
 		g.POST("/rulesets", scoreHandler.CreateRuleset)
 		g.PUT("/rulesets/:id", scoreHandler.UpdateRuleset)

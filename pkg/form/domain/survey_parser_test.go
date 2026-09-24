@@ -59,7 +59,7 @@ func TestParseSurveyAndExtractMetadata(t *testing.T) {
 		"water_glasses":      8.0,
 	}
 
-	answerList, dims, conds, err := domain.ExtractEvaluationData(model, answers)
+	answerList, dims, conds, _, err := domain.ExtractEvaluationData(model, answers)
 	if err != nil {
 		t.Fatalf("unexpected error extracting evaluation data: %v", err)
 	}
@@ -120,7 +120,7 @@ func TestExtractEvaluationData_NewTypesAndCalcMethods(t *testing.T) {
 		"k1": []interface{}{"y", "x"},
 	}
 
-	_, dims, _, err := domain.ExtractEvaluationData(model, answers)
+	_, dims, _, _, err := domain.ExtractEvaluationData(model, answers)
 	if err != nil {
 		t.Fatalf("extract: %v", err)
 	}
@@ -158,7 +158,7 @@ func TestExtractEvaluationData_Matrix(t *testing.T) {
 	answers := map[string]interface{}{
 		"m1": map[string]interface{}{"dryness": "high", "oil": "low"},
 	}
-	_, dims, _, err := domain.ExtractEvaluationData(model, answers)
+	_, dims, _, _, err := domain.ExtractEvaluationData(model, answers)
 	if err != nil {
 		t.Fatalf("extract: %v", err)
 	}
@@ -215,7 +215,7 @@ func TestExtractEvaluationData_TheoreticalBounds(t *testing.T) {
 		"pig_b":   "3",
 		"ds_q":    "yes",
 	}
-	_, dims, _, err := domain.ExtractEvaluationData(model, answers)
+	_, dims, _, _, err := domain.ExtractEvaluationData(model, answers)
 	if err != nil {
 		t.Fatalf("extract: %v", err)
 	}

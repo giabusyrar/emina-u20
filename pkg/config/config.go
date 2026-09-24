@@ -10,6 +10,12 @@ type Config struct {
 	RedisURL            string
 	ReferenceServiceURL string
 	VisionAIWorkerURL   string
+	// ParadevGatewayURL/APIKey reach the Paradev Skin Analyzer vendor call
+	// through our own gateway (its route already injects the vendor's own
+	// secret) — core-engine only needs its own gateway collection key, never
+	// the vendor's, keeping that key out of the brand-facing surface.
+	ParadevGatewayURL    string
+	ParadevGatewayAPIKey string
 }
 
 func Load() (*Config, error) {
@@ -34,11 +40,19 @@ func Load() (*Config, error) {
 		visionAIWorkerURL = "http://127.0.0.1:8088"
 	}
 
+	paradevGatewayURL := goenv.First("PARADEV_GATEWAY_URL")
+	if paradevGatewayURL == "" {
+		paradevGatewayURL = "http://127.0.0.1:9080/paradev/scoring"
+	}
+	paradevGatewayAPIKey := goenv.First("PARADEV_GATEWAY_API_KEY")
+
 	return &Config{
-		Port:                port,
-		DatabaseURL:         dbURL,
-		RedisURL:            redisURL,
-		ReferenceServiceURL: referenceServiceURL,
-		VisionAIWorkerURL:   visionAIWorkerURL,
+		Port:                 port,
+		DatabaseURL:          dbURL,
+		RedisURL:             redisURL,
+		ReferenceServiceURL:  referenceServiceURL,
+		VisionAIWorkerURL:    visionAIWorkerURL,
+		ParadevGatewayURL:    paradevGatewayURL,
+		ParadevGatewayAPIKey: paradevGatewayAPIKey,
 	}, nil
 }

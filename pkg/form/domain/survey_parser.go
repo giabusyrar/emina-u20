@@ -177,7 +177,7 @@ var choiceTypeSingle = map[string]bool{
 // "sum"); the Score Module performs the actual aggregation. Supported question
 // types: radiogroup, dropdown, buttongroup, imagepicker, checkbox, tagbox,
 // ranking, boolean, rating, slider, and text(number).
-func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) ([]AnswerEntry, []DimensionRef, map[string]bool, error) {
+func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) ([]AnswerEntry, []DimensionRef, map[string]bool, map[string][]string, error) {
 	questions := survey.GetAllQuestions()
 	questionsByName := make(map[string]SurveyQuestion, len(questions))
 	for _, q := range questions {
@@ -187,16 +187,27 @@ func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) 
 	var answerList []AnswerEntry
 	customerCondition := make(map[string]bool)
 	dimensionAnswers := make(map[string][]int)
+	// labels collects the selected text of every question that carries no
+	// dimension binding at all (question or choice) — e.g. Q6's main concern,
+	// or a lifestyle checklist not yet wired into any scored axis. These
+	// still answer_list (for audit/debug), but are metadata, not a score
+	// contributing to any dimension, so they're also surfaced here by
+	// question name for a caller that wants them cleanly, not mixed in with
+	// real scored answers.
+	labels := make(map[string][]string)
 
 	// record files one resolved score under its dimension (choice dimension wins
-	// over question dimension). Dimension score bounds come from the schema as a
-	// whole (dimensionTheoreticalBounds), not from what was answered.
-	record := func(qDim, choiceDim *string, score, _, _ int) {
+	// over question dimension), or — when the question/choice declares no
+	// dimension at all — files its text as a label instead. Dimension score
+	// bounds come from the schema as a whole (dimensionTheoreticalBounds),
+	// not from what was answered.
+	record := func(qDim, choiceDim *string, score, _, _ int, qName, text string) {
 		dim := qDim
 		if choiceDim != nil && *choiceDim != "" {
 			dim = choiceDim
 		}
 		if dim == nil || *dim == "" {
+			labels[qName] = append(labels[qName], text)
 			return
 		}
 		dimensionAnswers[*dim] = append(dimensionAnswers[*dim], score)
@@ -230,7 +241,7 @@ func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) 
 			for k, v := range ch.ConditionMap {
 				customerCondition[k] = v
 			}
-			record(q.Dimension, ch.Dimension, score, minScore, maxScore)
+			record(q.Dimension, ch.Dimension, score, minScore, maxScore, q.Name, ch.Text)
 			return
 		}
 	}
@@ -305,7 +316,7 @@ func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) 
 				MinScore: minScore,
 				MaxScore: maxScore,
 			})
-			record(q.Dimension, nil, score, minScore, maxScore)
+			record(q.Dimension, nil, score, minScore, maxScore, q.Name, fmt.Sprintf("%t", b))
 
 		case q.Type == "matrix":
 			// answer is { rowValue: columnValue }; each answered row adds its
@@ -331,7 +342,7 @@ func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) 
 						MinScore: minScore,
 						MaxScore: maxScore,
 					})
-					record(q.Dimension, q.Columns[i].Dimension, score, minScore, maxScore)
+					record(q.Dimension, q.Columns[i].Dimension, score, minScore, maxScore, q.Name, q.Columns[i].Text)
 					break
 				}
 			}
@@ -349,7 +360,7 @@ func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) 
 				MinScore: minScore,
 				MaxScore: maxScore,
 			})
-			record(q.Dimension, nil, score, minScore, maxScore)
+			record(q.Dimension, nil, score, minScore, maxScore, q.Name, fmt.Sprintf("%d", score))
 		}
 	}
 
@@ -374,5 +385,5 @@ func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) 
 		})
 	}
 
-	return answerList, dimensionRefs, customerCondition, nil
+	return answerList, dimensionRefs, customerCondition, labels, nil
 }

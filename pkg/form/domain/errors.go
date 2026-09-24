@@ -8,6 +8,10 @@ var (
 	ErrDeprecated     = errors.New("deprecated")
 	ErrInvalidCode    = errors.New("code must be alphanumeric, max 10 characters")
 	ErrUpstream       = errors.New("upstream request failed")
+	// ErrVisionUnavailable means the vision provider (Paradev) failed or
+	// timed out. Surfaced as its own error, not a partial result, because an
+	// axis like W/T (Aging) has no meaning without a vision-side value.
+	ErrVisionUnavailable = errors.New("vision provider unavailable")
 )
 
 // ValidationErrors collects every rule violation found while

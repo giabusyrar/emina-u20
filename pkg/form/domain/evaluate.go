@@ -28,9 +28,9 @@ type AnswerEntry struct {
 
 // SkinProfileType represents a parameterized diagnostic skin profile computed dynamically from active axes
 type SkinProfileType struct {
-	Code        string            `json:"code"`                  // e.g. "OSPT", "DRNW", "LONGEVITY-A"
-	Name        string            `json:"name"`                  // e.g. "Oily, Sensitive, Pigmented, Tight"
-	Description string            `json:"description"`           // Diagnostic clinical overview
+	Code        string            `json:"code"`        // e.g. "OSPT", "DRNW", "LONGEVITY-A"
+	Name        string            `json:"name"`        // e.g. "Oily, Sensitive, Pigmented, Tight"
+	Description string            `json:"description"` // Diagnostic clinical overview
 	Category    string            `json:"category,omitempty"`
 	AxisValues  map[string]string `json:"axis_values,omitempty"` // dynamic map: {"OILINESS": "O", "SENSITIVITY": "S", ...}
 	Traits      []string          `json:"traits,omitempty"`      // ["Oily", "Sensitive", "Pigmented", "Tight"]
@@ -48,23 +48,31 @@ type SkinGradingTier struct {
 // POST /v1/survey/:code/evaluate. Evaluation itself is stateless; persistence
 // of the submission belongs to the Gateway Assessment layer.
 type EvaluationOutput struct {
-	Success           bool                   `json:"success"`
-	Code              string                 `json:"code"`
-	BrandID           string                 `json:"brand_id"`
-	ApplicationID     string                 `json:"application_id"`
-	CustomerID        string                 `json:"customer_id,omitempty"`
-	TotalScore        float64                `json:"total_score"`
-	DimensionScores   map[string]float64     `json:"dimension_scores"`
-	ScoreRange        string                 `json:"score_range"`
-	SeverityLevel     string                 `json:"severity_level"`
-	SkinConcern       *SkinConcernFocus      `json:"skin_concern,omitempty"`
-	SkinProfile       SkinProfileType        `json:"skin_profile"`
-	SkinGradingTiers  []SkinGradingTier      `json:"skin_grading_tiers"`
-	CustomerCondition map[string]bool        `json:"customer_condition"`
-	AnswerList        []AnswerEntry          `json:"answer_list"`
-	AnalysisResult    map[string]interface{} `json:"analysis_result,omitempty"`
-	AppliedRules      []string               `json:"applied_rules,omitempty"`
-	EvaluatedAt       string                 `json:"evaluated_at,omitempty"`
+	Success            bool                   `json:"success"`
+	Code               string                 `json:"code"`
+	BrandID            string                 `json:"brand_id"`
+	ApplicationID      string                 `json:"application_id"`
+	CustomerID         string                 `json:"customer_id,omitempty"`
+	TotalScore         float64                `json:"total_score"`
+	DimensionScores    map[string]float64     `json:"dimension_scores"`
+	ScoreRange         string                 `json:"score_range"`
+	SeverityLevel      string                 `json:"severity_level"`
+	SkinConcern        *SkinConcernFocus      `json:"skin_concern,omitempty"`
+	SkinProfile        SkinProfileType        `json:"skin_profile"`
+	SkinGradingTiers   []SkinGradingTier      `json:"skin_grading_tiers"`
+	CustomerCondition  map[string]bool        `json:"customer_condition"`
+	AnswerList         []AnswerEntry          `json:"answer_list"`
+	AnalysisResult     map[string]interface{} `json:"analysis_result,omitempty"`
+	AppliedRules       []string               `json:"applied_rules,omitempty"`
+	SubClassification  map[string]interface{} `json:"sub_classification,omitempty"`
+	RawDimensionScores map[string]float64     `json:"raw_dimension_scores,omitempty"`
+	// Labels carries every answered question that has no dimension binding
+	// at all (question or choice) — e.g. Q6's main concern, or a lifestyle
+	// checklist not yet wired into a scored axis — keyed by question name,
+	// so a caller can show them as plain metadata instead of digging them
+	// out of answer_list (which mixes in real scored answers too).
+	Labels      map[string][]string `json:"labels,omitempty"`
+	EvaluatedAt string              `json:"evaluated_at,omitempty"`
 }
 
 // ScoreModuleRequest is what the Form Module forwards to the Score
@@ -119,4 +127,16 @@ type ScoreModuleResponse struct {
 	SkinGradingTiers  []SkinGradingTier `json:"skin_grading_tiers"`
 	CustomerCondition map[string]bool   `json:"customer_conditions,omitempty"`
 	AppliedRules      []string          `json:"applied_rules,omitempty"`
+	// SubClassification carries ruleset-defined refinement fields that don't
+	// fit dimension_scores/axis_values (e.g. sub_classification.acne_type =
+	// "Sensitive Acne", sub_classification.pore_severity) — written by a
+	// custom decisionTableNode targeting sub_classification.<key>. Mirrors
+	// the Score Module's own field name so json.Unmarshal actually picks it
+	// up; without this field here it silently disappears at this hop even
+	// though the Score Module computes and returns it correctly.
+	SubClassification map[string]interface{} `json:"sub_classification,omitempty"`
+	// RawDimensionScores mirrors the Score Module's own field — each
+	// dimension's raw aggregate before min-max normalisation (e.g. Q1's raw
+	// answer sum), needed for a hypothesis band that reads the raw total.
+	RawDimensionScores map[string]float64 `json:"raw_dimension_scores,omitempty"`
 }

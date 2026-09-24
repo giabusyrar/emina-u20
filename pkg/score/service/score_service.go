@@ -98,6 +98,14 @@ type axisCode struct {
 	High      string  `json:"high"`
 }
 
+// fusionWeight is a ruleset-defined default form/vision split for one
+// dimension (e.g. sebum: 100% form, wrinkle: 100% vision). It's the ruleset's
+// baseline; a caller's own request-level FusionConfig still overrides it.
+type fusionWeight struct {
+	Form   float64 `json:"form"`
+	Vision float64 `json:"vision"`
+}
+
 // axisValuesFromScores gives each dimension a single-letter code for the
 // Combination Matrix profile strategy, keyed by the upper-cased dimension key.
 // If the ruleset declares axis_codes for a dimension, use its bipolar threshold
@@ -152,6 +160,11 @@ func (s *ScoreService) Evaluate(ctx context.Context, req domain.ScoreModuleReque
 	}
 
 	dimensionScores := make(map[string]float64)
+	// rawDimensionScores is the aggregate BEFORE min-max normalisation (e.g.
+	// Q1's raw answer sum) — needed downstream for a hypothesis band (Sub
+	// Oily) that reads the raw total directly, not the normalised 0-100
+	// concern figure dimensionScores carries.
+	rawDimensionScores := make(map[string]float64)
 	appliedRules := make([]string, 0)
 	totalScore := 0.0
 
@@ -233,6 +246,7 @@ func (s *ScoreService) Evaluate(ctx context.Context, req domain.ScoreModuleReque
 			}
 
 			dimensionScores[strings.ToLower(dim.Key)] = math.Round(normalized*10.0) / 10.0
+			rawDimensionScores[strings.ToLower(dim.Key)] = agg
 		}
 	} else if len(req.AnswerList) > 0 {
 		answerSum := 0
@@ -242,25 +256,9 @@ func (s *ScoreService) Evaluate(ctx context.Context, req domain.ScoreModuleReque
 		dimensionScores["total"] = float64(answerSum)
 	}
 
-	// 1.1 Multi-Modal Dynamic Fusion (still in concern space — form + vision
-	// signals share the low->high severity convention here).
-	if len(req.VisionSignals) > 0 {
-		fusionCfg := domain.FusionConfig{}
-		if req.FusionConfig != nil {
-			fusionCfg = *req.FusionConfig
-		}
-		dimensionScores = domain.FuseScoresDynamic(dimensionScores, req.VisionSignals, fusionCfg)
-		appliedRules = append(appliedRules, "Multi-Modal Dynamic Fusion applied")
-	}
-
-	// 1.2 Flip every per-dimension score to the HEALTH-oriented convention
-	// (100 = optimal). From here on — total_score, bands, Skin Concern, the JDM
-	// evalContext — a higher number always means healthier skin.
-	for k, v := range dimensionScores {
-		dimensionScores[k] = math.Round((100.0-v)*10.0) / 10.0
-	}
-
-	// 2. Fetch and Execute JDM Decision Model
+	// 2. Fetch the JDM Decision Model early — its dimension_fusion config (set
+	// on the ruleset's own Blending tab) is the default form/vision split used
+	// by fusion below, before the JDM itself runs.
 	rulesetCode := req.Code
 	if rulesetCode == "" {
 		rulesetCode = "baumann_16_types"
@@ -280,13 +278,51 @@ func (s *ScoreService) Evaluate(ctx context.Context, req domain.ScoreModuleReque
 	// optional: dimension weights default to equal, the band definitions and
 	// concern labels default to the grand-design values.
 	var meta struct {
-		DimensionWeights map[string]float64  `json:"dimension_weights"`
-		ScoreRangeBands  []band              `json:"score_range_bands"`
-		SeverityBands    []band              `json:"severity_bands"`
-		ConcernLabels    map[string]string   `json:"concern_labels"`
-		AxisCodes        map[string]axisCode `json:"axis_codes"`
+		DimensionWeights map[string]float64      `json:"dimension_weights"`
+		DimensionFusion  map[string]fusionWeight `json:"dimension_fusion"`
+		ScoreRangeBands  []band                  `json:"score_range_bands"`
+		SeverityBands    []band                  `json:"severity_bands"`
+		ConcernLabels    map[string]string       `json:"concern_labels"`
+		AxisCodes        map[string]axisCode     `json:"axis_codes"`
+		// SuppressSeverityLabels opts a ruleset out of score_range/
+		// severity_level in the response — for a ruleset like Skinverse
+		// whose spec never defines a generic total-score severity layer at
+		// all, a mean-of-axes bucket label ("Sangat Parah") reads as an
+		// alarming diagnosis the ruleset never actually made. Explicit
+		// per-ruleset opt-in (set on its Setup tab), not inferred, so every
+		// ruleset that already relies on these labels keeps working exactly
+		// as before.
+		SuppressSeverityLabels bool `json:"suppress_severity_labels"`
 	}
 	_ = json.Unmarshal([]byte(ruleset.Schema), &meta)
+
+	// 1.1 Multi-Modal Dynamic Fusion (still in concern space — form + vision
+	// signals share the low->high severity convention here). The ruleset's own
+	// dimension_fusion is the default per-dimension form/vision split; a
+	// caller's request-level FusionConfig, if sent, overrides it entirely
+	// (fusion_config is still an all-or-nothing override, not merged field by
+	// field, to keep the precedence simple and predictable).
+	if len(req.VisionSignals) > 0 {
+		fusionCfg := domain.FusionConfig{}
+		if req.FusionConfig != nil {
+			fusionCfg = *req.FusionConfig
+		} else if len(meta.DimensionFusion) > 0 {
+			dw := make(map[string]domain.DimensionWeight, len(meta.DimensionFusion))
+			for k, fw := range meta.DimensionFusion {
+				dw[strings.ToLower(k)] = domain.DimensionWeight{FormWeight: fw.Form, VisionWeight: fw.Vision}
+			}
+			fusionCfg.DimensionWeights = dw
+		}
+		dimensionScores = domain.FuseScoresDynamic(dimensionScores, req.VisionSignals, fusionCfg)
+		appliedRules = append(appliedRules, "Multi-Modal Dynamic Fusion applied")
+	}
+
+	// 1.2 Flip every per-dimension score to the HEALTH-oriented convention
+	// (100 = optimal). From here on — total_score, bands, Skin Concern, the JDM
+	// evalContext — a higher number always means healthier skin.
+	for k, v := range dimensionScores {
+		dimensionScores[k] = math.Round((100.0-v)*10.0) / 10.0
+	}
 
 	scoreRangeBands := meta.ScoreRangeBands
 	if len(scoreRangeBands) == 0 {
@@ -440,32 +476,74 @@ func (s *ScoreService) Evaluate(ctx context.Context, req domain.ScoreModuleReque
 			profileDescription = desc
 		}
 	}
+	matchedCode := profileCode
 
-	// Fallback to ordered axis codes if no explicit profile code was matched
-	if profileCode == "" {
+	// The Baumann-style 4-letter code is always the axes themselves, in
+	// canonical order — never whatever a Total Score-strategy profile node
+	// matched instead (a generic score-range bucket like "CONCERN" has
+	// nothing to do with the real O/S/P/T code once this ruleset has axes at
+	// all). A Combination Matrix-strategy node's own match, if any, still
+	// only ever produces the same letters in the same order, so overriding
+	// unconditionally here is safe rather than only filling in when empty.
+	if len(axisValues) > 0 {
+		// Only a key the ruleset itself registered as a real bipolar axis
+		// (axis_codes) contributes a letter to the identity code — e.g.
+		// pore_severity has a dimension_scores value and its own
+		// sub_classification output, but it is not a Baumann axis and must
+		// never turn a 4-letter code into "OSPTO". When a ruleset defines no
+		// axis_codes at all, there is no such signal to filter by, so every
+		// axisValues key is used instead (unchanged prior behaviour).
+		isRealAxis := func(k string) bool {
+			if len(meta.AxisCodes) == 0 {
+				return true
+			}
+			_, ok := meta.AxisCodes[strings.ToLower(k)]
+			return ok
+		}
+
 		var orderedCodes []string
-		axisOrder := []string{"OILINESS", "SENSITIVITY", "PIGMENTATION", "AGING", "BARRIER"}
+		axisOrder := []string{"SEBUM", "OILINESS", "SENSITIVITY", "PIGMENTATION", "AGING", "WRINKLE", "BARRIER"}
 		for _, k := range axisOrder {
-			if val, exists := axisValues[k]; exists && val != "" {
+			if val, exists := axisValues[k]; exists && val != "" && isRealAxis(k) {
 				orderedCodes = append(orderedCodes, val)
 			}
 		}
-		for k, val := range axisValues {
-			found := false
+		remainingKeys := make([]string, 0)
+		for k := range axisValues {
+			known := false
 			for _, o := range axisOrder {
 				if o == k {
-					found = true
+					known = true
 					break
 				}
 			}
-			if !found && val != "" {
-				orderedCodes = append(orderedCodes, val)
+			if !known && axisValues[k] != "" && isRealAxis(k) {
+				remainingKeys = append(remainingKeys, k)
 			}
 		}
-		profileCode = strings.Join(orderedCodes, "")
-		if profileCode == "" {
-			profileCode = "CUSTOM"
+		sort.Strings(remainingKeys) // deterministic order for any axis this list doesn't already know
+		for _, k := range remainingKeys {
+			orderedCodes = append(orderedCodes, axisValues[k])
 		}
+		if composed := strings.Join(orderedCodes, ""); composed != "" {
+			profileCode = composed
+		}
+	}
+	if profileCode == "" {
+		profileCode = "CUSTOM"
+	}
+	// A name/description the JDM matched only makes sense for the code it
+	// was matched against — if axis composition just replaced a Total
+	// Score-strategy bucket's code (e.g. "CONCERN" -> "OSPT"), that bucket's
+	// name/description ("Perlu Perhatian Khusus", ...) would otherwise be
+	// left attached to a code it has nothing to do with. Clearing them here
+	// lets the generic fallback below take over instead of showing a
+	// mismatched pair. A real Combination Matrix per-code entry (matchedCode
+	// == profileCode already) is left untouched.
+	if matchedCode != profileCode {
+		profileName = ""
+		profileCategory = ""
+		profileDescription = ""
 	}
 
 	if profileName == "" {
@@ -488,18 +566,24 @@ func (s *ScoreService) Evaluate(ctx context.Context, req domain.ScoreModuleReque
 		Traits:      traitsList,
 	}
 
+	responseScoreRange, responseSeverityLevel := scoreRange, severityLevel
+	if meta.SuppressSeverityLabels {
+		responseScoreRange, responseSeverityLevel = "", ""
+	}
+
 	return &domain.ScoreModuleResponse{
-		Success:           true,
-		TotalScore:        totalScore,
-		DimensionScores:   dimensionScores,
-		ScoreRange:        scoreRange,
-		SeverityLevel:     severityLevel,
-		SkinConcern:       skinConcern,
-		AppliedRules:      appliedRules,
-		SkinProfile:       skinProfile,
-		SkinGradingTiers:  skinGradingTiers,
-		CustomerCondition: req.CustomerCondition,
-		SubClassification: subClassification,
+		Success:            true,
+		TotalScore:         totalScore,
+		DimensionScores:    dimensionScores,
+		ScoreRange:         responseScoreRange,
+		SeverityLevel:      responseSeverityLevel,
+		SkinConcern:        skinConcern,
+		AppliedRules:       appliedRules,
+		SkinProfile:        skinProfile,
+		SkinGradingTiers:   skinGradingTiers,
+		CustomerCondition:  req.CustomerCondition,
+		SubClassification:  subClassification,
+		RawDimensionScores: rawDimensionScores,
 	}, nil
 }
 
@@ -507,6 +591,14 @@ func (s *ScoreService) Evaluate(ctx context.Context, req domain.ScoreModuleReque
 
 func (s *ScoreService) ListRulesets(ctx context.Context, brandID, appID string) ([]entity.ScoreRuleset, error) {
 	return s.repo.ListRulesets(ctx, brandID, appID)
+}
+
+// GetActiveRuleset resolves the same (brand, application, code) -> ruleset
+// lookup Evaluate itself uses, exposed for callers (e.g. the Form Engine's
+// photo-evaluate orchestration) that need the ruleset's field_mapping before
+// they can build a vision_signals payload to send to Evaluate.
+func (s *ScoreService) GetActiveRuleset(ctx context.Context, brandID, appID, code string) (*entity.ScoreRuleset, error) {
+	return s.repo.GetActiveRuleset(ctx, brandID, appID, code)
 }
 
 func (s *ScoreService) GetRuleset(ctx context.Context, id string) (*entity.ScoreRuleset, error) {

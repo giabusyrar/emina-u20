@@ -90,4 +90,11 @@ type SurveyEvaluateRequest struct {
 	Data               map[string]interface{} `json:"data"`
 	CustomerConditions map[string]bool        `json:"customer_conditions,omitempty"`
 	VisionSignals      map[string]float64     `json:"vision_signals,omitempty"`
+	// ComputedDimensions are dimension rollups this questionnaire's own
+	// questions never produce (e.g. Aging/W-T, derived from date_of_birth,
+	// not from any Q1-Q6 answer) but that the ruleset still needs a form-side
+	// value for so fusion with vision_signals blends per its configured
+	// weights instead of silently falling back to 100% vision. Appended to
+	// the dimensions ExtractEvaluationData derives from Data.
+	ComputedDimensions []DimensionRef `json:"computed_dimensions,omitempty"`
 }

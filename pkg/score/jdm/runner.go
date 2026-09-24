@@ -34,10 +34,10 @@ type Edge struct {
 }
 
 type DecisionTableContent struct {
-	HitPolicy string               `json:"hitPolicy"` // "first", "collect"
-	Inputs    []TableColumn        `json:"inputs"`
-	Outputs   []TableColumn        `json:"outputs"`
-	Rules     []map[string]string  `json:"rules"`
+	HitPolicy string              `json:"hitPolicy"` // "first", "collect"
+	Inputs    []TableColumn       `json:"inputs"`
+	Outputs   []TableColumn       `json:"outputs"`
+	Rules     []map[string]string `json:"rules"`
 }
 
 type TableColumn struct {
@@ -238,6 +238,14 @@ func resolveField(data map[string]interface{}, path string) interface{} {
 			// Try map[string]float64
 			if mf, okf := current.(map[string]float64); okf {
 				if val, has := mf[part]; has {
+					return val
+				}
+			}
+			// Try map[string]bool (e.g. customer_condition, built as
+			// map[string]bool end to end — a rule reading
+			// customer_condition.has_acne otherwise always resolves nil).
+			if mb, okb := current.(map[string]bool); okb {
+				if val, has := mb[part]; has {
 					return val
 				}
 			}

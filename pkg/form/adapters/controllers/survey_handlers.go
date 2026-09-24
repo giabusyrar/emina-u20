@@ -106,3 +106,66 @@ func (h *SurveyHandler) Evaluate(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, out)
 }
+
+// EvaluateWithPhotos handles POST /survey/:code/evaluate-with-photos — the
+// one call a brand's Submit button makes: personal data + Q1-Q6 answers +
+// a photo, multipart/form-data (the photo can't travel as JSON). Internally
+// this calls Paradev itself and folds the result into the same evaluate
+// pipeline Evaluate above uses.
+func (h *SurveyHandler) EvaluateWithPhotos(c echo.Context) error {
+	code := c.Param("code")
+
+	req := domain.EvaluateWithPhotosRequest{
+		BrandID:               c.FormValue("brand_id"),
+		ApplicationID:         c.FormValue("application_id"),
+		CustomerID:            c.FormValue("customer_id"),
+		FullName:              c.FormValue("full_name"),
+		PhoneNumber:           c.FormValue("phone_number"),
+		Email:                 c.FormValue("email"),
+		DateOfBirth:           c.FormValue("date_of_birth"),
+		ConsentDataProcessing: c.FormValue("consent_data_processing") == "true",
+		ConsentMarketing:      c.FormValue("consent_marketing") == "true",
+	}
+
+	if raw := c.FormValue("data"); raw != "" {
+		if err := json.Unmarshal([]byte(raw), &req.Data); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid data field: " + err.Error()})
+		}
+	}
+	if raw := c.FormValue("customer_conditions"); raw != "" {
+		if err := json.Unmarshal([]byte(raw), &req.CustomerConditions); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid customer_conditions field: " + err.Error()})
+		}
+	}
+
+	fileHeader, err := c.FormFile("photo")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "a photo (field \"photo\") is required"})
+	}
+	file, err := fileHeader.Open()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "could not read photo: " + err.Error()})
+	}
+	defer file.Close()
+
+	out, err := h.surveyService.EvaluateWithPhotos(c.Request().Context(), code, req, file, fileHeader.Filename)
+	if err != nil {
+		if errors.Is(err, domain.ErrVisionUnavailable) {
+			return c.JSON(http.StatusServiceUnavailable, map[string]interface{}{
+				"success":    false,
+				"error_code": "VISION_UNAVAILABLE",
+				"error":      err.Error(),
+			})
+		}
+		if errors.Is(err, domain.ErrNotFound) {
+			return c.JSON(http.StatusNotFound, map[string]string{"error": "survey not found"})
+		}
+		var verrs *domain.ValidationErrors
+		if errors.As(err, &verrs) {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{"errors": verrs.Errors})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, out)
+}

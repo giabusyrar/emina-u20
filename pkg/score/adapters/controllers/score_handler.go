@@ -67,6 +67,30 @@ func (h *ScoreHandler) ListRulesets(c echo.Context) error {
 	})
 }
 
+// GetActiveRuleset handles GET /api/scoring/rulesets/active
+func (h *ScoreHandler) GetActiveRuleset(c echo.Context) error {
+	brandID := queryParamFirst(c, "brand_id", "brandId")
+	appID := queryParamFirst(c, "application_id", "applicationId", "appId")
+	code := queryParamFirst(c, "code")
+
+	ruleset, err := h.svc.GetActiveRuleset(c.Request().Context(), brandID, appID, code)
+	if err != nil || ruleset == nil {
+		msg := "active ruleset not found"
+		if err != nil {
+			msg = err.Error()
+		}
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"success": false,
+			"error":   msg,
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"success": true,
+		"ruleset": ruleset,
+	})
+}
+
 // GetRuleset handles GET /api/scoring/rulesets/:id
 func (h *ScoreHandler) GetRuleset(c echo.Context) error {
 	id := c.Param("id")
