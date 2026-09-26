@@ -382,23 +382,26 @@ pip install -e "apps/ai-worker[test]"
 pytest apps/ai-worker      # or: npm run test:vision
 ```
 
-The dispatch benchmarks are wall-clock measurements (they export a real
-resnet18, and take minutes) and say nothing about correctness, so they are
-deselected from every ordinary run — by the worker's own `addopts`, and by the
-repo-root `pytest.ini`, which exists so that deselection is not reachable only
-from inside the worker directory (pytest resolves its rootdir from the common
-ancestor of the arguments, so a bare root `pytest` never sees the worker's
-config). Run them deliberately:
+A bare `pytest apps/ai-worker` from the repository root collects all tests
+(vision, tryon, and core) and runs with the default markers. The dispatch
+benchmarks are wall-clock measurements (they export a real resnet18, and take
+minutes) and say nothing about correctness, so they are deselected from every
+ordinary run by the `addopts` in `apps/ai-worker/pyproject.toml`:
 
-```bash
-npm run bench:vision
+```
+addopts = '-m "not benchmark and not tryon"'
 ```
 
-A bare `pytest` from the repository root does **not** work, and that is
-pre-existing: both profiles (vision and tryon) have separate test suites under
-`tests/vision/` and `tests/tryon/`, so imports can shadow each other and
-test modules can fail. Run the two suites separately
-(`npm run test:vision`, `npm run test:tryon`).
+This marker filter removes benchmarks and tryon tests by default. Run the suites
+as needed:
+
+- `pytest apps/ai-worker` — collects vision, tryon, and core together (runs with
+  default markers: vision + core, skips tryon)
+- `npm run test:vision` — vision and core tests only (same as above, slower due
+  to model inference)
+- `npm run test:tryon` — tryon tests (requires torch; about 8 minutes, downloads
+  models)
+- `npm run bench:vision` — dispatch benchmarks only
 
 The `tests/test_db_schema.py` suite needs a real Postgres and skips without
 one. Point `TEST_DATABASE_URL` at a **scratch** cluster — never a shared or
