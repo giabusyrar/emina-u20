@@ -29,7 +29,7 @@ repointed paths; it did not untangle code.
 | `apps/services/tryon-engine/` | **Seagull-core** `apps/tryon-engine/` |
 | `apps/web/` | **Seagull-web** `apps/web/` |
 | `packages/beauty-sdk/`, `packages/shared/` | **Seagull-web** (same paths) |
-| `packages/goenv/` | **duplicated** into Seagull-gateway and Seagull-core |
+| `packages/goenv/` | **duplicated** into Seagull-gateway and Seagull-core (Seagull-core's copy since renamed to packages/goplatform) |
 
 One nesting level was removed on the way: `apps/gateway/gateway-proxy` became
 `apps/gateway-proxy`, and `apps/services/vision-ai-worker` became
@@ -40,7 +40,9 @@ script was repointed to match.
 
 - **`packages/goenv` is duplicated, not shared.** It is one file with no
   external dependencies, and each repo keeps a `replace` to its own copy. If it
-  ever grows, the two copies will drift and nothing will notice. Seagull-core has since renamed its copy to packages/goplatform and grown it into the shared bootstrap (2026-09-26); Seagull-gateway's copy is still goenv.
+  ever grows, the two copies will drift and nothing will notice. Seagull-core
+  has since renamed its copy to packages/goplatform and grown it into the
+  shared bootstrap (2026-09-26); Seagull-gateway's copy is still goenv.
 - **The contracts package changed shape.** `gen-contracts` still lives in
   gateway-engine, but now writes to `packages/contracts/` in the same repo,
   which is published as `@gateway-experience/contracts`. `beauty-sdk` imports

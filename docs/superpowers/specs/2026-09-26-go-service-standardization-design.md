@@ -1,7 +1,7 @@
 # Go service standardization
 
 Date: 2026-09-26
-Status: design, awaiting review
+Status: implemented on branch go-service-standardization
 Scope: `apps/core-engine`, `apps/reference-service`, `packages/goenv`.
 
 This is sub-project **A** of the Seagull-core restructure. The others are:
@@ -248,11 +248,24 @@ Step 4 touches every core-engine lane (`core-form`, `core-match`, `core-score`,
 Nothing reaches Railway until the user pushes. After that, per `RAILWAY.md`,
 redeploy Reference Data first, confirm healthy, then Core Engine.
 
-- **`/health` can now return 503.** If Railway's health check targets
-  `/health`, a Postgres outage now restarts the service instead of being hidden
-  behind a `nil` database. This is intended.
+- **`/health` can now return 503.** Railway does not health-check `/health` at
+  runtime (`railway.json` sets no `healthcheckPath`), so a Postgres outage does
+  not restart the service — but the 503 is not harmless. Seagull-web's
+  collection poller marks a collection unhealthy on any non-2xx from its
+  `healthCheckPath`, and Seagull-gateway's APISIX auth plugin then rejects
+  every request to that collection with 503. Core Engine's `/health` and every
+  `/<engine>/health` alias now share one DB-backed handler, so a Postgres
+  outage longer than `DEPENDENCY_PING_TIMEOUT` makes the gateway reject all
+  Core Engine traffic, including vision routes that do not use the database.
+  Before this branch, `/health` always returned 200. The health body also
+  changed from `status: "healthy"` to `status: "ok"`; the poller reads only
+  the HTTP status. Tell the Seagull-web and Seagull-gateway owners before
+  deploying.
 - **A missing `DATABASE_URL` now fails startup.** Both Railway services already
-  set it. Check with `list-variables` before the first deploy.
+  set it. Check with `list-variables` before the first deploy. Also check
+  `LOG_LEVEL` (now validated; an invalid value is fatal), `CORS_ALLOW_ORIGINS`,
+  `CORS_ALLOW_HEADERS` and `SHUTDOWN_TIMEOUT` — a shared variable with those
+  names would now take effect.
 - **The reference seeder's slow-query threshold** moves from its own 500ms
   literal to the shared `DB_SLOW_QUERY_THRESHOLD` (default 2s). It only affects
   which seeder queries are logged as slow.
