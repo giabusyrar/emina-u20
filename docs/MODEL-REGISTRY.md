@@ -1,5 +1,29 @@
 # The plug-and-play model registry
 
+> ## Deploying this is one-way: do not roll the worker back
+>
+> This release drops the `vision_models_capability_code_key` unique
+> constraint (`app/db.py`, last statement in `SCHEMA_STATEMENTS`), because the
+> library needs more than one row per capability. The **previous** release's
+> `upsert_model` inserted with `ON CONFLICT (capability_code)`, which needs
+> exactly that constraint. Once this release has run its migration:
+>
+> - Rolling the worker back to the previous release makes **every upload
+>   fail** with `there is no unique or exclusion constraint matching the ON
+>   CONFLICT specification`. Reads, dispatch and scoring keep working; only
+>   uploads break.
+> - The breakage is immediate — it does not wait for a duplicate upload; the
+>   old statement needs the constraint to exist at plan time.
+> - Rolling **forward** again is the fix. Do not try to recreate the unique
+>   constraint by hand: once two rows share a capability_code (the normal
+>   state of a library after the first second upload) it cannot be recreated,
+>   and recreating it on a library that happens not to have duplicates yet
+>   would break the next upload instead.
+>
+> Treat a deploy of this worker as a forward-only migration and plan the
+> rollback as roll-forward. Same note, from the schema side, in
+> `docs/SHARED-DATABASE.md`.
+
 Lives in `apps/vision-ai-worker`. Design background:
 `docs/superpowers/specs/2026-09-26-plug-and-play-model-registry-design.md`
 (read that for the *why*; this document is the *what's actually running*, and
@@ -78,7 +102,7 @@ as the contract with core-engine — not a tunable.
 
 | Kind | Fields | Produces |
 |---|---|---|
-| `severity_scalar` | `capability` | One capability; today's behaviour. Output clamped to 0-100. |
+| `severity_scalar` | `capability` | One capability; today's behaviour. The raw output is read as a **0..1 fraction**: it is clamped to 0-1 and then multiplied by `SEVERITY_SCALE` (100). A model whose raw scalar exceeds 1.0 therefore saturates at exactly 100.0 on every zone — the upload warns when the smoke run sees that, because the post-clamp value it range-checks looks perfectly legal. |
 | `multiclass_softmax` | `classes[]` of `{index, capability}`, optional `temperature` | One capability per mapped class, from its softmax probability. Unmapped indices ignored. |
 | `multilabel_sigmoid` | `classes[]` of `{index, capability}` | One capability per mapped class, independently (sigmoid, not softmax). |
 | `detection_count` | `capability`, `scoreThreshold`, `countToSeverity`-style `fullScaleCount`, optional `tensorOrder` | Counts detections scoring above `scoreThreshold`; severity scales linearly to `fullScaleCount`, clamped. |
@@ -208,6 +232,33 @@ Every bind or unbind is written to the activation log in the same
 transaction as the binding change (`app/db.py`, `set_binding` /
 `clear_binding`), so the two never drift apart.
 
+## Editing a model row, and what a spec change implies
+
+`PATCH /api/v1/models/models/{modelId}` — body may carry `runtimeSpec`,
+`applicableZones` and `label`.
+
+- Sending `runtimeSpec` re-runs the full upload validation against the
+  **stored** model file, and **recomputes `produces` from the new spec**.
+  What a model emits is derived from its spec, so the two cannot be allowed
+  to disagree: a stale `produces` would refuse a capability the model now
+  emits (a false 422 at bind time) and accept one it no longer emits (bound,
+  and then silently scoring nothing, forever).
+- **409** if the new spec drops a capability this model is *currently bound
+  for*. The response names the capability. Bind it to another model, or
+  unbind it, and retry — the worker will not quietly leave a live binding
+  pointing at a model that cannot serve it.
+- `applicableZones` distinguishes "omitted" (leave the stored scoping alone)
+  from "explicitly sent" — an explicit `null`, an empty list, or a list of
+  nothing but blanks all mean *clear the scoping*, i.e. applies to every
+  zone.
+
+`GET /api/v1/models/download?capability=...` resolves through the **bindings
+table**: it hands back the model actually serving that capability. Several
+library rows may declare the same `capability_code`, so resolving by that
+column alone returned an arbitrary one of them, possibly a superseded
+candidate. A capability with no binding is a 404 — there is no model serving
+it to download.
+
 ## An unbound capability is absent, never zero
 
 A capability with no binding row is **unsupported**: it is absent from
@@ -259,27 +310,38 @@ own `capability_code` — expressed as an explicit default spec in code, not as
 a separate branch. There is one dispatch code path for legacy and declared
 rows alike (`_spec_for` in `app/routers/models.py`).
 
-## Troubleshooting: a failed schema migration reports nothing distinctive
+## Schema migration: concurrent startup, and reporting a failure
 
-`app/db.py`'s `init_pool` runs the whole schema migration
-(`SCHEMA_STATEMENTS`, including the registry's tables and the bindings
-backfill) inside one broad `try`/`except`. **If that migration fails for any
-reason — a permissions error, a syntax problem, a locked table — `init_pool`
-swallows the exception and sets the pool to `None`.** Every subsequent
-request that touches the registry (upload, list, bind, dispatch) then gets
-the same generic `503 "Model registry database pool is not initialized"` that
-bad credentials or an unreachable database would also produce. **These three
-causes are indistinguishable from the HTTP response.** The only trace of
-which one actually happened is one `print("[vision-models] Warning: failed to
-initialize DB pool: ...")` line to stdout at boot. An operator debugging a
-503 from the registry should check the worker's boot-time logs first — the
-error does not identify itself anywhere else, including in the 503 body
-itself.
+`app/db.py`'s `init_pool` applies the whole statement list (`SCHEMA_STATEMENTS`
+— the registry's tables, the bindings backfill, the constraint drop) at every
+process start, via `apply_schema`.
 
-This is a pre-existing characteristic of `init_pool`'s error handling, not
-something introduced by the registry; it is documented here because the
-registry gave it more to go wrong (a bindings backfill can itself fail) and
-because no earlier version of this document said so.
+**Concurrent replicas.** `CREATE TABLE IF NOT EXISTS` and `ADD COLUMN IF NOT
+EXISTS` are *not* race-free in Postgres: two backends can both pass the
+existence check, and the loser raises `duplicate_table` / `duplicate_column`.
+Two replicas booting together is the ordinary case on any rolling deploy. So
+`apply_schema` holds `pg_advisory_lock(SCHEMA_ADVISORY_LOCK_ID)` across the
+*whole* list — not per statement, because the backfill and the constraint
+drop must not interleave with another replica's copy of the same list. The
+lock id is a fixed constant in `app/db.py`; it must stay distinct from any
+advisory-lock id Seagull-gateway takes on this shared database (a collision
+would only serialize unrelated migrations, never corrupt anything).
+
+**When it still fails.** A migration can fail for reasons the lock does not
+address — a permissions error, an unreachable database, a table locked by
+something else. `init_pool` deliberately does not take the service down for
+that: segment-and-pose keeps working. But the failure is recorded, not only
+printed:
+
+- The cause is logged through the module logger (`logging`, not `print`), and
+- stored in `db._schema_error`, which `_require_pool` puts **into the 503
+  body**: `Model registry database is unavailable: startup schema
+  initialization failed with <exception type>: <message>`.
+
+So an operator seeing a 503 from any model endpoint reads the actual cause
+off the response. The bare `Model registry database pool is not initialized`
+now means only "no pool and no recorded schema failure" — i.e. the database
+was never configured or connected at all.
 
 ## What Seagull-web must change
 

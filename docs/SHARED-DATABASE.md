@@ -69,6 +69,47 @@ run-once, gated by `vision_registry_migrations`) has already given every
 pre-existing capability a binding row, so there is no window in which a
 second upload could shadow a live model before bindings exist to prevent it.
 
+#### Dropping it makes the worker deploy one-way — plan the rollback as roll-forward
+
+**Once this migration has run, rolling the vision worker back to the previous
+release breaks every model upload.** The previous release's `upsert_model`
+inserted with `INSERT ... ON CONFLICT (capability_code)`, and that clause
+needs a unique or exclusion constraint on `capability_code` to exist. With
+`vision_models_capability_code_key` dropped, it fails with:
+
+```
+there is no unique or exclusion constraint matching the ON CONFLICT specification
+```
+
+Notes for whoever is holding the deploy:
+
+- The breakage is immediate on rollback, not deferred until a duplicate
+  upload; the old statement needs the constraint at plan time.
+- Only uploads break. Reads, dispatch and scoring keep working, so the
+  failure will show up as "the admin upload form 500s", not as an outage.
+- **Roll forward to fix it.** Do not recreate the constraint by hand: once
+  two rows share a `capability_code` — the normal state of a library after
+  its second upload — it cannot be recreated at all, and recreating it on a
+  library that has no duplicates *yet* only moves the breakage to the next
+  upload.
+- The schema change is shared-database state, so it outlives the worker
+  version: redeploying the old image does not undo it.
+
+The same warning, from the worker's side, is at the top of
+`docs/MODEL-REGISTRY.md`.
+
+### Advisory lock on the schema run
+
+`apply_schema` in `apps/vision-ai-worker/app/db.py` holds
+`pg_advisory_lock(SCHEMA_ADVISORY_LOCK_ID)` — a fixed constant, currently
+`1581646198` — for the whole of `SCHEMA_STATEMENTS`, because
+`CREATE TABLE IF NOT EXISTS` and `ADD COLUMN IF NOT EXISTS` are not race-free
+and two replicas boot together on every rolling deploy. **If Seagull-gateway
+ever takes advisory locks on this shared database, keep its ids distinct from
+this one.** A collision is not corrupting — it would only serialize two
+unrelated migrations against each other — but it is a needless startup stall,
+and a deadlock risk if both sides ever take two locks.
+
 ## If you want this to stop being a hazard
 
 The durable fix is to take migrations away from `AutoMigrate` and give them to a
