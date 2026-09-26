@@ -7,7 +7,7 @@ WORKDIR /app
 RUN apk add --no-cache git ca-certificates tzdata
 
 # Copy shared internal module (referenced via go.mod replace directive)
-COPY packages/goenv ./packages/goenv
+COPY packages/goplatform ./packages/goplatform
 
 # Copy go module files
 COPY apps/core-engine/go.mod ./apps/core-engine/

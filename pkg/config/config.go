@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/experience-gateway/packages/goenv"
+	"github.com/experience-gateway/packages/goplatform"
 )
 
 type Config struct {
@@ -19,32 +19,32 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
-	goenv.LoadDotEnv()
+	goplatform.LoadDotEnv()
 
-	port := goenv.Port("CORE_ENGINE_PORT", "PORT", "8082")
+	port := goplatform.Port("CORE_ENGINE_PORT", "PORT", "8082")
 
-	dbURL := goenv.First("DATABASE_URL")
+	dbURL := goplatform.First("DATABASE_URL")
 	if dbURL == "" {
 		dbURL = "postgresql://postgres:postgres@127.0.0.1:5432/gateway_db?sslmode=disable"
 	}
 
-	redisURL := goenv.First("REDIS_URL")
+	redisURL := goplatform.First("REDIS_URL")
 
-	referenceServiceURL := goenv.First("REFERENCE_SERVICE_URL")
+	referenceServiceURL := goplatform.First("REFERENCE_SERVICE_URL")
 	if referenceServiceURL == "" {
 		referenceServiceURL = "http://127.0.0.1:8086"
 	}
 
-	visionAIWorkerURL := goenv.First("VISION_AI_WORKER_URL")
+	visionAIWorkerURL := goplatform.First("VISION_AI_WORKER_URL")
 	if visionAIWorkerURL == "" {
 		visionAIWorkerURL = "http://127.0.0.1:8088"
 	}
 
-	paradevGatewayURL := goenv.First("PARADEV_GATEWAY_URL")
+	paradevGatewayURL := goplatform.First("PARADEV_GATEWAY_URL")
 	if paradevGatewayURL == "" {
 		paradevGatewayURL = "http://127.0.0.1:9080/paradev/scoring"
 	}
-	paradevGatewayAPIKey := goenv.First("PARADEV_GATEWAY_API_KEY")
+	paradevGatewayAPIKey := goplatform.First("PARADEV_GATEWAY_API_KEY")
 
 	return &Config{
 		Port:                 port,
