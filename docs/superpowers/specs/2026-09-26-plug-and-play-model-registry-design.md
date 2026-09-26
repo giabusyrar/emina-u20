@@ -81,6 +81,29 @@ which is why batching is part of this spec rather than a later optimization.
 
 These numbers are wall-clock only. They say nothing about accuracy.
 
+**Correction (established during implementation — see
+`task-11-report.md`): batching is a small, measured win, not the headroom
+argument.** An earlier draft of this document claimed batching "buys back the
+headroom" these measurements showed disappearing. Benchmarked instead, at 8
+crops per dispatch:
+
+| Model | Threading | Per-crop (8 calls) | Batched (1 call) | Batching |
+|---|---|---|---|---|
+| toy mean-reduction graph | default (16 cores) | 20.07 ms | 26.75 ms | **loses, ~33%** |
+| resnet18 @224 | default (16 cores) | 129.15 ms | 121.67 ms | wins, ~5.8% |
+| resnet18 @224 | 1 intra-op thread | 266.52 ms | 260.34 ms | wins, ~2.3% |
+
+On a trivial graph, batching loses outright — fixed dispatch overhead (tensor
+stacking, one larger session call) swamps a near-zero per-image compute cost.
+On a realistic CNN backbone it wins, but by a margin that **shrinks as cores
+shrink**: ~7.5 ms saved per 8-crop batch at 16 cores, ~6.2 ms at 1 thread on a
+run that is itself twice as slow. That is the opposite of what a small,
+constrained-core container needs — the deployment most likely to be CPU- and
+core-limited is the one that benefits least from batching. Batching is kept
+(restricted to the output kinds below, since the benefit there is real and
+free), but it is a modest optimization on top of the sequential-vs-grouped
+dispatch shape, not the mechanism the budget depends on.
+
 ## Data model
 
 `vision_models` is created by raw SQL in `app/db.py`, not by GORM, and lives in
@@ -169,6 +192,17 @@ terms mean what a vision engineer already expects.
 image bytes through untouched and ignores every other `input` field, which the
 API rejects as a contradiction rather than silently dropping.
 
+**Correction (established during implementation):** `input.width` and
+`input.height` are optional when `input.embedded` is `true`, and required
+otherwise. Drafting them as unconditionally required made the embedded path
+unusable — a spec that correctly omitted them for an embedded model failed
+generic "field required" validation before the embedded/non-embedded check
+ever ran. `RuntimeSpec._check` (`app/models/spec.py`) now enforces this
+conditionally: when `embedded` is `true`, any preprocessing field present
+(`width`, `height`, `colorFormat`, `layout`, `netScaleFactor`, `offsets`) is
+rejected as a contradiction; when `embedded` is `false`, `width` and `height`
+are required and named individually if missing.
+
 ### Output kinds
 
 Each kind is an adapter in the worker. An adapter's job is to turn raw output
@@ -191,6 +225,19 @@ once and named.
 `detection_count` and `mask_area_ratio` need an output layout to read. Both
 declare `tensorOrder` naming which output index carries what (`scores`,
 `boxes`, `classes`, `mask`), because ONNX output ordering is not standardized.
+
+**Correction (established during implementation): batching is restricted by
+output kind.** Only `severity_scalar`, `multiclass_softmax` and
+`multilabel_sigmoid` are batched — each produces one row of per-image scores
+with no cross-image interaction in the graph, so slicing the batched output's
+axis 0 back apart 1:1 with crop order is safe. `detection_count` and
+`mask_area_ratio` always run one crop at a time, regardless of what the
+model's input signature allows, because batched slicing is not safe for them:
+a common NMS export for detection runs across the whole batch and emits a
+single `[total_detections, 6]` tensor with a batch-index column, so row *i* is
+not image *i*; a segmentation head can likewise apply batch-level
+post-processing, so nothing guarantees axis 0 is a clean per-image split.
+Enforced in `app/models/model_registry.py` (`_BATCHABLE_OUTPUT_KINDS`).
 
 ## Validation at upload
 
@@ -264,9 +311,13 @@ All three are env config, not literals at call sites.
    implementation: preprocessing measured at 0.9-1.6 ms against 2-341 ms of
    inference, so it is not where the budget goes. Revisit only if a profile
    says otherwise.
-3. For each model, run its applicable zones **as one batch** where the model's
-   input allows a dynamic batch dimension, otherwise sequentially. Batching is
-   what buys back the headroom the measurements showed disappearing.
+3. For each model, run its applicable zones **as one batch** where the
+   model's input allows a dynamic batch dimension and its output kind is
+   `severity_scalar`, `multiclass_softmax` or `multilabel_sigmoid`, otherwise
+   sequentially. Batching is a modest, measured win on a realistic backbone
+   (see "Measured constraints" for the numbers and its shrinking margin at
+   lower core counts) — the sequential-loop-to-grouped-by-model shape above,
+   not batching, is what keeps dispatch inside budget.
 4. Pass raw outputs through the adapter, producing `{capability: severity}`
    per zone.
 5. Zone applicability (`applicable_zones`) is unchanged and applies per model.
@@ -365,6 +416,30 @@ capabilities from one model, and the corrected `ExecutedModelsCount`.
 5. Add the remaining output kinds.
 6. Add the library, activation and history endpoints; retire the
    capability-keyed paths to 410 stubs once Seagull-web ships its screens.
+
+**Correction (established during implementation): the constraint drop moved,
+and is gated by a migration marker.** Step 4 as drafted deferred the drop to a
+later step "once bindings are populated and resolution reads them" — but the
+library cannot hold more than one row per `capability_code` while the
+constraint stands, which made it untestable within its own task. The drop now
+happens in the schema migration itself (`app/db.py`, `SCHEMA_STATEMENTS`),
+as the statement immediately following the `produces`/bindings backfill, in
+the same statement list — not deferred at all. This is safe for the same
+reason the draft gave: every pre-existing capability is bound by the backfill
+that runs immediately before the drop, in the same list, so there is still no
+window in which a second upload could shadow a live model.
+
+That backfill itself is gated by an explicit marker row in a new
+`vision_registry_migrations` table, checked and set inside one atomic `DO`
+block, rather than being inferred from "the bindings table is empty."
+`init_pool` re-runs every statement in `SCHEMA_STATEMENTS` on every process
+start, so without an explicit marker the backfill would re-run on every
+restart — and an operator who deliberately unbound every capability (a
+legitimate, supported state) would find them all silently re-bound at the
+next restart, which is a fabricated model choice presented as real, the exact
+defect this spec's error-handling section forbids. The marker makes the
+backfill run exactly once, ever; a deliberately-unbound capability stays
+unbound across restarts.
 
 Steps 1-5 need no frontend change. The current upload form sends no spec and
 no `activate`, and through step 5 that keeps its present meaning: the upload

@@ -179,7 +179,6 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 
 	// Phase 4: One batched capability dispatch to the vision AI worker
 	scoredCapabilities := make(map[string]bool)
-	executedCount := 0
 	var unsupportedCapabilities []string
 
 	if len(plan.Capabilities) > 0 && len(crops) > 0 {
@@ -198,7 +197,6 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 			for capability, severity := range zoneScores.Telemetry {
 				health[capability] = SeverityToHealth(severity)
 				scoredCapabilities[capability] = true
-				executedCount++
 			}
 			zoneBreakdownItems[i].Metrics = RollUpZone(plan, health, zoneBreakdownItems[i].Confidence)
 		}
@@ -238,7 +236,7 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 		Warnings:          warnings,
 		ExecutionMetrics: domain.ExecutionMetrics{
 			TotalLatencyMs:      time.Since(start).Milliseconds(),
-			ExecutedModelsCount: executedCount,
+			ExecutedModelsCount: len(executedModels),
 			SkippedModelsCount:  len(plan.Capabilities) - len(executedModels),
 			ExecutedModels:      executedModels,
 		},
