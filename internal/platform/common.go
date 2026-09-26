@@ -61,7 +61,7 @@ func LoadCommon(d CommonDefaults) (CommonConfig, error) {
 	}
 
 	var err error
-	for _, d := range []struct {
+	for _, dur := range []struct {
 		key string
 		def time.Duration
 		dst *time.Duration
@@ -70,7 +70,7 @@ func LoadCommon(d CommonDefaults) (CommonConfig, error) {
 		{"DB_SLOW_QUERY_THRESHOLD", DefaultDBSlowQueryThreshold, &c.DBSlowQueryThreshold},
 		{"DEPENDENCY_PING_TIMEOUT", DefaultDependencyPingTimeout, &c.DependencyPingTimeout},
 	} {
-		if *d.dst, err = Duration(d.key, d.def); err != nil {
+		if *dur.dst, err = Duration(dur.key, dur.def); err != nil {
 			return CommonConfig{}, err
 		}
 	}

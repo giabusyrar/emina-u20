@@ -160,7 +160,10 @@ func Duration(key string, def time.Duration) (time.Duration, error) {
 func List(key string, def []string) []string {
 	raw := First(key)
 	if raw == "" {
-		return def
+		// Return a copy so a caller mutating the result cannot alter the
+		// package default (e.g. DefaultCORSAllowOrigins) that other callers
+		// share.
+		return append([]string(nil), def...)
 	}
 	var out []string
 	for _, item := range strings.Split(raw, ",") {

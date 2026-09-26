@@ -1,12 +1,15 @@
 package goplatform
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -59,6 +62,61 @@ func TestRunShutsDownOnContextCancel(t *testing.T) {
 		}
 	case <-time.After(3 * time.Second):
 		t.Fatal("Run did not return after cancel")
+	}
+}
+
+func TestNewEchoLogsUnregisteredRouteAsWarnNotError(t *testing.T) {
+	var buf bytes.Buffer
+	e := NewEcho(ServerOptions{
+		Logger:           slog.New(slog.NewJSONHandler(&buf, nil)),
+		CORSAllowOrigins: []string{"*"},
+	})
+
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/no-such-path", nil))
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want 404", rec.Code)
+	}
+
+	var logged bool
+	for _, line := range strings.Split(strings.TrimSpace(buf.String()), "\n") {
+		if line == "" {
+			continue
+		}
+		var entry map[string]any
+		if err := json.Unmarshal([]byte(line), &entry); err != nil {
+			t.Fatalf("unmarshal log line %q: %v", line, err)
+		}
+		if entry["msg"] != "request" {
+			continue
+		}
+		logged = true
+		if entry["level"] != "WARN" {
+			t.Fatalf("level = %v, want WARN for a 404", entry["level"])
+		}
+	}
+	if !logged {
+		t.Fatal("no request log line found")
+	}
+}
+
+func TestNewEchoRecoversPanicAsJSONError(t *testing.T) {
+	var buf bytes.Buffer
+	e := NewEcho(ServerOptions{
+		Logger:           slog.New(slog.NewJSONHandler(&buf, nil)),
+		CORSAllowOrigins: []string{"*"},
+	})
+	e.GET("/panic", func(c echo.Context) error { panic("boom") })
+
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/panic", nil))
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want 500", rec.Code)
+	}
+	if !strings.Contains(buf.String(), "panic recovered") {
+		t.Fatalf("log output missing %q: %s", "panic recovered", buf.String())
 	}
 }
 

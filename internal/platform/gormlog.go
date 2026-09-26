@@ -20,6 +20,9 @@ type gormSlog struct {
 	level gormlogger.LogLevel
 }
 
+// NewGormLogger returns a GORM logger.Interface that routes GORM's log
+// output through log, at Warn level, treating queries slower than slow as
+// warnings and gorm.ErrRecordNotFound as not an error.
 func NewGormLogger(log *slog.Logger, slow time.Duration) gormlogger.Interface {
 	return &gormSlog{log: log, slow: slow, level: gormlogger.Warn}
 }

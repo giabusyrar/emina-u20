@@ -135,3 +135,13 @@ func TestList(t *testing.T) {
 		t.Fatalf("set: got %v, want [a b c]", got)
 	}
 }
+
+func TestListReturnsCopyOfDefault(t *testing.T) {
+	t.Setenv("GP_TEST_LIST_COPY", "")
+	def := []string{"a", "b"}
+	got := List("GP_TEST_LIST_COPY", def)
+	got[0] = "mutated"
+	if def[0] != "a" {
+		t.Fatalf("mutating the returned slice changed the passed default: def = %v", def)
+	}
+}
