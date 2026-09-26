@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/experience-gateway/apps/core-engine/internal/form/domain"
+	"github.com/experience-gateway/packages/goplatform"
 )
 
 // respondErr maps a service-layer error to an HTTP status + JSON
@@ -15,22 +16,19 @@ import (
 func respondErr(c echo.Context, err error) error {
 	var verrs *domain.ValidationErrors
 	if errors.As(err, &verrs) {
-		return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{
-			"success": false,
-			"errors":  verrs.Errors,
-		})
+		return goplatform.JSONValidationError(c, http.StatusUnprocessableEntity, verrs.Errors)
 	}
 
 	switch {
 	case errors.Is(err, domain.ErrNotFound):
-		return c.JSON(http.StatusNotFound, map[string]interface{}{"success": false, "error": "not found"})
+		return goplatform.JSONError(c, http.StatusNotFound, "not found")
 	case errors.Is(err, domain.ErrConflict):
-		return c.JSON(http.StatusConflict, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusConflict, err.Error())
 	case errors.Is(err, domain.ErrInvalidCode):
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusBadRequest, err.Error())
 	case errors.Is(err, domain.ErrUpstream):
-		return c.JSON(http.StatusBadGateway, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusBadGateway, err.Error())
 	default:
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 }

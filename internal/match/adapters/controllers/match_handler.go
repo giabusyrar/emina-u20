@@ -9,6 +9,7 @@ import (
 	"github.com/experience-gateway/apps/core-engine/internal/match/domain"
 	"github.com/experience-gateway/apps/core-engine/internal/match/entity"
 	"github.com/experience-gateway/apps/core-engine/internal/match/service"
+	"github.com/experience-gateway/packages/goplatform"
 )
 
 type MatchHandler struct {
@@ -23,18 +24,12 @@ func NewMatchHandler(svc *service.MatchService) *MatchHandler {
 func (h *MatchHandler) Evaluate(c echo.Context) error {
 	var req domain.MatchRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"success": false,
-			"error":   "Invalid JSON payload: " + err.Error(),
-		})
+		return goplatform.JSONError(c, http.StatusBadRequest, "Invalid JSON payload: "+err.Error())
 	}
 
 	resp, err := h.svc.Evaluate(c.Request().Context(), req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"success": false,
-			"error":   err.Error(),
-		})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, resp)
@@ -45,7 +40,7 @@ func (h *MatchHandler) ListProducts(c echo.Context) error {
 	brandID := c.QueryParam("brand_id")
 	items, err := h.svc.ListProducts(c.Request().Context(), brandID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "products": items})
 }
@@ -56,7 +51,7 @@ func (h *MatchHandler) ListConflictRules(c echo.Context) error {
 	appID := c.QueryParam("application_id")
 	items, err := h.svc.ListConflictRules(c.Request().Context(), brandID, appID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "conflicts": items})
 }
@@ -64,11 +59,11 @@ func (h *MatchHandler) ListConflictRules(c echo.Context) error {
 func (h *MatchHandler) CreateConflictRule(c echo.Context) error {
 	var item entity.ConflictMatrixRule
 	if err := c.Bind(&item); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Invalid JSON"})
+		return goplatform.JSONError(c, http.StatusBadRequest, "Invalid JSON")
 	}
 	created, err := h.svc.CreateConflictRule(c.Request().Context(), item)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusCreated, map[string]interface{}{"success": true, "conflict": created})
 }
@@ -76,11 +71,11 @@ func (h *MatchHandler) CreateConflictRule(c echo.Context) error {
 func (h *MatchHandler) UpdateConflictRule(c echo.Context) error {
 	var item entity.ConflictMatrixRule
 	if err := c.Bind(&item); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Invalid JSON"})
+		return goplatform.JSONError(c, http.StatusBadRequest, "Invalid JSON")
 	}
 	updated, err := h.svc.UpdateConflictRule(c.Request().Context(), item)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "conflict": updated})
 }
@@ -88,10 +83,10 @@ func (h *MatchHandler) UpdateConflictRule(c echo.Context) error {
 func (h *MatchHandler) DeleteConflictRule(c echo.Context) error {
 	id := c.QueryParam("id")
 	if id == "" {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Missing id"})
+		return goplatform.JSONError(c, http.StatusBadRequest, "Missing id")
 	}
 	if err := h.svc.DeleteConflictRule(c.Request().Context(), id); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true})
 }
@@ -102,7 +97,7 @@ func (h *MatchHandler) ListProductGroups(c echo.Context) error {
 	appID := c.QueryParam("application_id")
 	items, err := h.svc.ListProductGroups(c.Request().Context(), brandID, appID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "groups": items})
 }
@@ -110,14 +105,14 @@ func (h *MatchHandler) ListProductGroups(c echo.Context) error {
 func (h *MatchHandler) CreateProductGroup(c echo.Context) error {
 	var item entity.ProductGroup
 	if err := c.Bind(&item); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Invalid JSON"})
+		return goplatform.JSONError(c, http.StatusBadRequest, "Invalid JSON")
 	}
 	if item.BrandID == "" {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": "brandId is required"})
+		return goplatform.JSONError(c, http.StatusBadRequest, "brandId is required")
 	}
 	created, err := h.svc.CreateProductGroup(c.Request().Context(), item)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusCreated, map[string]interface{}{"success": true, "group": created})
 }
@@ -125,11 +120,11 @@ func (h *MatchHandler) CreateProductGroup(c echo.Context) error {
 func (h *MatchHandler) UpdateProductGroup(c echo.Context) error {
 	var item entity.ProductGroup
 	if err := c.Bind(&item); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Invalid JSON"})
+		return goplatform.JSONError(c, http.StatusBadRequest, "Invalid JSON")
 	}
 	updated, err := h.svc.UpdateProductGroup(c.Request().Context(), item)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "group": updated})
 }
@@ -137,10 +132,10 @@ func (h *MatchHandler) UpdateProductGroup(c echo.Context) error {
 func (h *MatchHandler) DeleteProductGroup(c echo.Context) error {
 	id := c.QueryParam("id")
 	if id == "" {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Missing id"})
+		return goplatform.JSONError(c, http.StatusBadRequest, "Missing id")
 	}
 	if err := h.svc.DeleteProductGroup(c.Request().Context(), id); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true})
 }
@@ -150,7 +145,7 @@ func (h *MatchHandler) ListShades(c echo.Context) error {
 	productID := c.QueryParam("product_id")
 	items, err := h.svc.ListShades(c.Request().Context(), productID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "shades": items})
 }
@@ -158,14 +153,14 @@ func (h *MatchHandler) ListShades(c echo.Context) error {
 func (h *MatchHandler) CreateShade(c echo.Context) error {
 	var item entity.Shade
 	if err := c.Bind(&item); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Invalid JSON"})
+		return goplatform.JSONError(c, http.StatusBadRequest, "Invalid JSON")
 	}
 	if item.ProductID == "" || item.HexColor == "" || item.Region == "" {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": "productId, hexColor, and region are required"})
+		return goplatform.JSONError(c, http.StatusBadRequest, "productId, hexColor, and region are required")
 	}
 	created, err := h.svc.CreateShade(c.Request().Context(), item)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
 	if created.ReferencePhotoURL != "" {
@@ -180,11 +175,11 @@ func (h *MatchHandler) CreateShade(c echo.Context) error {
 func (h *MatchHandler) UpdateShade(c echo.Context) error {
 	var item entity.Shade
 	if err := c.Bind(&item); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Invalid JSON"})
+		return goplatform.JSONError(c, http.StatusBadRequest, "Invalid JSON")
 	}
 	updated, err := h.svc.UpdateShade(c.Request().Context(), item)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "shade": updated})
 }
@@ -192,10 +187,10 @@ func (h *MatchHandler) UpdateShade(c echo.Context) error {
 func (h *MatchHandler) DeleteShade(c echo.Context) error {
 	id := c.QueryParam("id")
 	if id == "" {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Missing id"})
+		return goplatform.JSONError(c, http.StatusBadRequest, "Missing id")
 	}
 	if err := h.svc.DeleteShade(c.Request().Context(), id); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true})
 }
@@ -206,7 +201,7 @@ func (h *MatchHandler) GetShadeAsset(c echo.Context) error {
 	id := c.Param("id")
 	asset, err := h.svc.GetShadeAssetByID(c.Request().Context(), id)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]interface{}{"success": false, "error": "shade asset not found"})
+		return goplatform.JSONError(c, http.StatusNotFound, "shade asset not found")
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "asset": asset})
 }
@@ -223,15 +218,15 @@ func (h *MatchHandler) ExtractionCallback(c echo.Context) error {
 		FinishMapURL string `json:"finishMapUrl,omitempty"`
 	}
 	if err := c.Bind(&payload); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Invalid JSON"})
+		return goplatform.JSONError(c, http.StatusBadRequest, "Invalid JSON")
 	}
 	if payload.Status != "ready" && payload.Status != "failed" {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"success": false, "error": "status must be 'ready' or 'failed'"})
+		return goplatform.JSONError(c, http.StatusBadRequest, "status must be 'ready' or 'failed'")
 	}
 
 	target, err := h.svc.GetShadeByID(c.Request().Context(), shadeID)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]interface{}{"success": false, "error": "shade not found"})
+		return goplatform.JSONError(c, http.StatusNotFound, "shade not found")
 	}
 
 	target.ExtractionStatus = payload.Status
@@ -245,13 +240,13 @@ func (h *MatchHandler) ExtractionCallback(c echo.Context) error {
 			FinishMapURL: payload.FinishMapURL,
 		})
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+			return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 		}
 		target.AssetID = &asset.ID
 	}
 
 	if _, err := h.svc.UpdateShade(c.Request().Context(), *target); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
+		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true})
 }
