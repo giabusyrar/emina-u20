@@ -2,19 +2,18 @@ package main
 
 import (
 	"context"
-	"log"
-	"net/http"
+	"fmt"
+	"log/slog"
 	"os"
-	"time"
+	"os/signal"
+	"syscall"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"github.com/redis/go-redis/v9"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 
 	"github.com/experience-gateway/apps/core-engine/internal/config"
+	"github.com/experience-gateway/packages/goplatform"
 
 	// Form Engine
 	formCache "github.com/experience-gateway/apps/core-engine/internal/form/adapters/cache"
@@ -48,65 +47,46 @@ import (
 	visionWorkers "github.com/experience-gateway/apps/core-engine/internal/vision/workers"
 )
 
+const serviceName = "core-engine"
+
 func main() {
+	if err := run(); err != nil {
+		slog.Error(serviceName+" exited", "err", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("Core Engine: config: %v", err)
+		return fmt.Errorf("config: %w", err)
 	}
 
-	// 1. Shared PostgreSQL Connection Pool
-	var db *gorm.DB
-	if cfg.DatabaseURL != "" {
-		gormLogger := gormlogger.New(
-			log.New(os.Stdout, "\r\n", log.LstdFlags),
-			gormlogger.Config{
-				SlowThreshold:             2 * time.Second,
-				LogLevel:                  gormlogger.Warn,
-				IgnoreRecordNotFoundError: true,
-				Colorful:                  true,
-			},
-		)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
-		openedDB, dbErr := gorm.Open(postgres.Open(cfg.DatabaseURL), &gorm.Config{Logger: gormLogger})
-		if dbErr != nil {
-			log.Printf("Core Engine: PostgreSQL connection notice (%v), running with in-memory fallback", dbErr)
-		} else {
-			db = openedDB
-			log.Println("Core Engine: successfully connected to PostgreSQL via GORM")
+	deps, err := goplatform.Bootstrap(ctx, serviceName, cfg.CommonConfig)
+	if err != nil {
+		return err
+	}
+	defer deps.Close()
+	db, rdb := deps.DB, deps.Redis
 
-			// Auto-migrate all 4 engine entities
-			_ = db.Session(&gorm.Session{Logger: gormlogger.Default.LogMode(gormlogger.Error)}).AutoMigrate(
-				&formEntity.SurveyDefinition{},
-				&scoreEntity.ScoreRuleset{},
-				&matchEntity.ProductCatalogItem{},
-				&matchEntity.ConflictMatrixRule{},
-				&matchEntity.ProductGroup{},
-				&matchEntity.Shade{},
-				&matchEntity.ShadeAsset{},
-			)
-		}
+	// AutoMigrate at error-level logging, as before. Its error used to be
+	// discarded; it is now logged. It is not fatal, because the database is
+	// shared with Seagull-gateway (docs/SHARED-DATABASE.md).
+	if err := db.Session(&gorm.Session{Logger: db.Logger.LogMode(gormlogger.Error)}).AutoMigrate(
+		&formEntity.SurveyDefinition{},
+		&scoreEntity.ScoreRuleset{},
+		&matchEntity.ProductCatalogItem{},
+		&matchEntity.ConflictMatrixRule{},
+		&matchEntity.ProductGroup{},
+		&matchEntity.Shade{},
+		&matchEntity.ShadeAsset{},
+	); err != nil {
+		deps.Log.Error("automigrate failed", "err", err)
 	}
 
-	// 2. Shared Redis Client Pool
-	var rdb *redis.Client
-	if cfg.RedisURL != "" {
-		opt, parseErr := redis.ParseURL(cfg.RedisURL)
-		if parseErr != nil {
-			rdb = redis.NewClient(&redis.Options{Addr: cfg.RedisURL})
-		} else {
-			rdb = redis.NewClient(opt)
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		if pingErr := rdb.Ping(ctx).Err(); pingErr != nil {
-			log.Printf("Core Engine: Redis notice (%v), cache disabled", pingErr)
-			rdb = nil
-		} else {
-			log.Println("Core Engine: successfully connected to Redis")
-		}
-	}
-
-	// 3. Initialize Engine Services
 	// Form Engine
 	formC := formCache.NewSurveyCache(rdb, cfg.FormCacheTTL)
 	fRepo := formRepo.NewSurveyRepo(db)
@@ -146,38 +126,20 @@ func main() {
 	)
 	visionHandler := visionControllers.NewVisionController(visionOrch, visionReferenceCatalog, visionBridge)
 
-	// 4. Echo HTTP Server Setup
-	e := echo.New()
-	e.HideBanner = true
-	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
-		AllowHeaders: []string{"*"},
-	}))
-
-	// Health Checks
-	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"status":  "healthy",
-			"service": "core-engine",
-			"engines": map[string]string{
-				"form-engine":   "active",
-				"score-engine":  "active",
-				"match-engine":  "active",
-				"vision-engine": "active",
-			},
-		})
+	e := goplatform.NewEcho(goplatform.ServerOptions{
+		Logger:           deps.Log,
+		CORSAllowOrigins: cfg.CORSAllowOrigins,
+		CORSAllowHeaders: cfg.CORSAllowHeaders,
 	})
 
-	// 5. Mount Engine Route Namespaces
+	// One health handler for the service and every engine prefix. It reports
+	// real dependency state instead of a static "active" map.
+	health := deps.HealthHandler()
+	e.GET("/health", health)
 
 	// --- FORM ENGINE ---
 	mountFormRoutes := func(g *echo.Group) {
-		g.GET("/health", func(c echo.Context) error {
-			return c.JSON(http.StatusOK, map[string]string{"status": "ok", "service": "form-engine"})
-		})
+		g.GET("/health", health)
 		g.GET("/survey", formHandler.List)
 		g.GET("/survey/:code", formHandler.Get)
 		g.POST("/survey", formHandler.Save)
@@ -193,9 +155,7 @@ func main() {
 
 	// --- SCORE ENGINE ---
 	mountScoreRoutes := func(g *echo.Group) {
-		g.GET("/health", func(c echo.Context) error {
-			return c.JSON(http.StatusOK, map[string]string{"status": "ok", "service": "score-engine"})
-		})
+		g.GET("/health", health)
 		g.POST("/evaluate", scoreHandler.Evaluate)
 		g.POST("/simulate", scoreHandler.Simulate)
 		g.GET("/rulesets", scoreHandler.ListRulesets)
@@ -211,9 +171,7 @@ func main() {
 
 	// --- MATCH ENGINE ---
 	mountMatchRoutes := func(g *echo.Group) {
-		g.GET("/health", func(c echo.Context) error {
-			return c.JSON(http.StatusOK, map[string]string{"status": "ok", "service": "match-engine"})
-		})
+		g.GET("/health", health)
 		g.POST("/evaluate", matchHandler.Evaluate)
 		g.GET("/products", matchHandler.ListProducts)
 		g.GET("/conflicts", matchHandler.ListConflictRules)
@@ -237,9 +195,7 @@ func main() {
 
 	// --- VISION ENGINE ORCHESTRATION ---
 	mountVisionRoutes := func(g *echo.Group) {
-		g.GET("/health", func(c echo.Context) error {
-			return c.JSON(http.StatusOK, map[string]string{"status": "ok", "service": "vision-engine"})
-		})
+		g.GET("/health", health)
 		g.POST("/analyze-image", visionHandler.AnalyzeImage)
 		g.POST("/evaluate", visionHandler.AnalyzeImage)
 		g.GET("/config/:brandId/:applicationId", visionHandler.GetConfig)
@@ -249,8 +205,5 @@ func main() {
 	mountVisionRoutes(e.Group("/api/v1/vision"))
 	mountVisionRoutes(e.Group("/api/vision"))
 
-	log.Printf("Unified Core Engine Server starting on HTTP port :%s ...", cfg.Port)
-	if err := e.Start(":" + cfg.Port); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("Core Engine failed to start: %v", err)
-	}
+	return goplatform.Run(ctx, e, ":"+cfg.Port, cfg.ShutdownTimeout)
 }
