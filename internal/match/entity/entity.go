@@ -28,7 +28,7 @@ type ConflictMatrixRule struct {
 	ApplicationID    string     `json:"applicationId" gorm:"type:varchar(64);default:'*';index"`
 	IngredientA      string     `json:"ingredientA" gorm:"type:varchar(255);not null"`
 	IngredientB      string     `json:"ingredientB" gorm:"type:varchar(255);not null"`
-	ConflictType     string     `json:"conflictType" gorm:"type:varchar(64);default:'incompatible'"` // incompatible, pH_clash, over_exfoliation
+	ConflictType     string     `json:"conflictType" gorm:"type:varchar(64);default:'incompatible'"`     // incompatible, pH_clash, over_exfoliation
 	ResolutionAction string     `json:"resolutionAction" gorm:"type:varchar(128);default:'split_am_pm'"` // split_am_pm, alternate_days, strict_block
 	Severity         string     `json:"severity" gorm:"type:varchar(32);default:'high'"`
 	WarningMessage   string     `json:"warningMessage" gorm:"type:text"`
@@ -70,7 +70,7 @@ type Shade struct {
 	ID                string     `json:"id" gorm:"type:varchar(64);primaryKey"`
 	ProductID         string     `json:"productId" gorm:"type:varchar(64);not null;index"`
 	Name              string     `json:"name" gorm:"type:varchar(255);not null"`
-	HexColor          string     `json:"hexColor" gorm:"type:varchar(7);not null"` // e.g. "#C41E3A"
+	HexColor          string     `json:"hexColor" gorm:"type:varchar(7);not null"`      // e.g. "#C41E3A"
 	Region            string     `json:"region" gorm:"type:varchar(32);not null;index"` // lip | eye | cheek | skin
 	ReferencePhotoURL string     `json:"referencePhotoUrl" gorm:"type:varchar(512)"`
 	ExtractionStatus  string     `json:"extractionStatus" gorm:"type:varchar(32);not null;default:'pending';index"` // pending | processing | ready | failed

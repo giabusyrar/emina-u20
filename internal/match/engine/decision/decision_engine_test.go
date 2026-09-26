@@ -56,7 +56,7 @@ func TestClinicalDecisionEngine_MakeOverAndKahfParadigms(t *testing.T) {
 
 	// Test Make Over
 	moRes, err := eng.Evaluate(context.Background(), decision.DecisionInput{
-		BrandID: "makeover",
+		BrandID:         "makeover",
 		DimensionScores: map[string]float64{"sebum": 50.0},
 	})
 	if err != nil {
@@ -68,7 +68,7 @@ func TestClinicalDecisionEngine_MakeOverAndKahfParadigms(t *testing.T) {
 
 	// Test Kahf
 	kahfRes, err := eng.Evaluate(context.Background(), decision.DecisionInput{
-		BrandID: "kahf",
+		BrandID:         "kahf",
 		DimensionScores: map[string]float64{"sebum": 60.0},
 	})
 	if err != nil {

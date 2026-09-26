@@ -27,10 +27,10 @@ type DecisionResult struct {
 
 // ClinicalDecisionEngine evaluates clinical rules, contraindications, and dynamic blueprints
 type ClinicalDecisionEngine struct {
-	mu                   sync.RWMutex
-	conditionRules       []domain.IngredientConditionRelation
-	dimensionEfficacies  []domain.IngredientDimensionEfficacy
-	brandBlueprints      map[string]domain.BrandRoutineBlueprint
+	mu                  sync.RWMutex
+	conditionRules      []domain.IngredientConditionRelation
+	dimensionEfficacies []domain.IngredientDimensionEfficacy
+	brandBlueprints     map[string]domain.BrandRoutineBlueprint
 }
 
 // NewClinicalDecisionEngine creates a new instance initialized with default clinical knowledge

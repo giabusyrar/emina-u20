@@ -16,7 +16,7 @@ func TestAgeOverThirty(t *testing.T) {
 		dob  string
 		want bool
 	}{
-		{"turns 30 today", "1996-09-24", false},       // spec: <=30 -> T, not over
+		{"turns 30 today", "1996-09-24", false},        // spec: <=30 -> T, not over
 		{"turned 31 today", "1995-09-24", true},        // 31 today -> over
 		{"turns 30 tomorrow", "1996-09-25", false},     // still 29 -> not over
 		{"28yo, birthday passed", "1998-04-12", false}, // matches the session's worked example

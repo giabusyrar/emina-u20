@@ -71,10 +71,18 @@ func (s *SegmenterWorker) fallbackSegment(angle domain.ImageAngle) []SegmentedZo
 		minX, minY := 1.0, 1.0
 		maxX, maxY := 0.0, 0.0
 		for _, pt := range def.DefaultPolygon {
-			if pt.X < minX { minX = pt.X }
-			if pt.X > maxX { maxX = pt.X }
-			if pt.Y < minY { minY = pt.Y }
-			if pt.Y > maxY { maxY = pt.Y }
+			if pt.X < minX {
+				minX = pt.X
+			}
+			if pt.X > maxX {
+				maxX = pt.X
+			}
+			if pt.Y < minY {
+				minY = pt.Y
+			}
+			if pt.Y > maxY {
+				maxY = pt.Y
+			}
 		}
 
 		results[i] = SegmentedZone{

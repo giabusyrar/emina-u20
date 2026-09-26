@@ -3,11 +3,11 @@ package domain
 import "errors"
 
 var (
-	ErrNotFound       = errors.New("not found")
-	ErrConflict       = errors.New("already exists")
-	ErrDeprecated     = errors.New("deprecated")
-	ErrInvalidCode    = errors.New("code must be alphanumeric, max 10 characters")
-	ErrUpstream       = errors.New("upstream request failed")
+	ErrNotFound    = errors.New("not found")
+	ErrConflict    = errors.New("already exists")
+	ErrDeprecated  = errors.New("deprecated")
+	ErrInvalidCode = errors.New("code must be alphanumeric, max 10 characters")
+	ErrUpstream    = errors.New("upstream request failed")
 	// ErrVisionUnavailable means the vision provider (Paradev) failed or
 	// timed out. Surfaced as its own error, not a partial result, because an
 	// axis like W/T (Aging) has no meaning without a vision-side value.
