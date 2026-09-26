@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
 	"github.com/experience-gateway/apps/core-engine/internal/vision/workers"
@@ -60,7 +61,7 @@ func TestSegmenterWorker_MockAIService_Success(t *testing.T) {
 	}))
 	defer server.Close()
 
-	worker := workers.NewSegmenterWorkerWithURL(server.URL)
+	worker := workers.NewSegmenterWorkerWithURL(server.URL, 5*time.Second)
 	zones, err := worker.Segment(domain.AngleFront, createTestImage())
 
 	assert.NoError(t, err)
@@ -71,7 +72,7 @@ func TestSegmenterWorker_MockAIService_Success(t *testing.T) {
 
 func TestSegmenterWorker_OfflineFallback(t *testing.T) {
 	// Worker pointing to unreachable port -> triggers fallback
-	worker := workers.NewSegmenterWorkerWithURL("http://127.0.0.1:59999")
+	worker := workers.NewSegmenterWorkerWithURL("http://127.0.0.1:59999", 5*time.Second)
 	zones, err := worker.Segment(domain.AngleFront, createTestImage())
 
 	assert.NoError(t, err)

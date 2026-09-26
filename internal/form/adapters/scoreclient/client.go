@@ -23,10 +23,10 @@ type Client struct {
 	HTTP    *http.Client
 }
 
-func New(baseURL string) *Client {
+func New(baseURL string, timeout time.Duration) *Client {
 	return &Client{
 		BaseURL: baseURL,
-		HTTP:    &http.Client{Timeout: 5 * time.Second},
+		HTTP:    &http.Client{Timeout: timeout},
 	}
 }
 

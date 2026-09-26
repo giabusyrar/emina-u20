@@ -16,7 +16,7 @@ import (
 
 func newTestMatchHandler() *MatchHandler {
 	repo := repository.NewMatchRepo(nil)
-	svc := service.NewMatchService(repo)
+	svc := service.NewMatchService(repo, "")
 	return NewMatchHandler(svc)
 }
 
@@ -133,9 +133,10 @@ func TestCreateShade_TriggersExtractionCall(t *testing.T) {
 		w.WriteHeader(http.StatusAccepted)
 	}))
 	defer extractionServer.Close()
-	t.Setenv("TRYON_ENGINE_URL", extractionServer.URL)
 
-	h := newTestMatchHandler()
+	repo := repository.NewMatchRepo(nil)
+	svc := service.NewMatchService(repo, extractionServer.URL)
+	h := NewMatchHandler(svc)
 	e := echo.New()
 
 	body, _ := json.Marshal(map[string]string{

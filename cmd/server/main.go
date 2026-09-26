@@ -51,7 +51,7 @@ import (
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
-		log.Printf("Core Engine: config warning: %v, using defaults", err)
+		log.Fatalf("Core Engine: config: %v", err)
 	}
 
 	// 1. Shared PostgreSQL Connection Pool
@@ -108,24 +108,24 @@ func main() {
 
 	// 3. Initialize Engine Services
 	// Form Engine
-	formC := formCache.NewSurveyCache(rdb, 15*time.Minute)
+	formC := formCache.NewSurveyCache(rdb, cfg.FormCacheTTL)
 	fRepo := formRepo.NewSurveyRepo(db)
 	// scoreclient appends /api/scoring/evaluate, so the base must be the host only.
-	scoreClient := formScoreClient.New("http://127.0.0.1:" + cfg.Port)
-	paradevClient := formVisionClient.New(cfg.ParadevGatewayURL, cfg.ParadevGatewayAPIKey, 50*time.Second)
+	scoreClient := formScoreClient.New("http://127.0.0.1:"+cfg.Port, cfg.ScoreClientTimeout)
+	paradevClient := formVisionClient.New(cfg.ParadevGatewayURL, cfg.ParadevGatewayAPIKey, cfg.ParadevTimeout)
 	fService := formService.NewSurveyService(fRepo, formC, scoreClient, paradevClient)
 	formHandler := formControllers.NewSurveyHandler(fService)
 
 	// Score Engine
-	scoreC := scoreCache.NewScoreCache(rdb, 15*time.Minute)
+	scoreC := scoreCache.NewScoreCache(rdb, cfg.ScoreCacheTTL)
 	sRepo := scoreRepo.NewRulesetRepo(db, scoreC)
 	sService := scoreService.NewScoreService(sRepo)
 	scoreHandler := scoreControllers.NewScoreHandler(sService)
 
 	// Match Engine
-	matchC := matchCache.NewMatchCache(rdb, 15*time.Minute)
+	matchC := matchCache.NewMatchCache(rdb, cfg.MatchCacheTTL)
 	mRepo := matchRepo.NewMatchRepo(db, matchC)
-	mService := matchService.NewMatchService(mRepo)
+	mService := matchService.NewMatchService(mRepo, cfg.TryonEngineURL)
 	matchHandler := matchControllers.NewMatchHandler(mService)
 
 	// Vision Engine Orchestrator
@@ -134,14 +134,15 @@ func main() {
 		"http://127.0.0.1:"+cfg.Port+"/core/match-engine",
 	)
 	visionReferenceCatalog := visionCatalog.NewCachedCatalog(
-		visionCatalog.NewReferenceClient(cfg.ReferenceServiceURL),
-		time.Minute,
+		visionCatalog.NewReferenceClient(cfg.ReferenceServiceURL, cfg.ReferenceClientTimeout),
+		cfg.VisionCatalogTTL,
 	)
 	visionOrch := visionOrchestrator.NewVisionOrchestrator(
-		visionWorkers.NewSegmenterWorkerWithURL(cfg.VisionAIWorkerURL),
+		visionWorkers.NewSegmenterWorkerWithURL(cfg.VisionAIWorkerURL, cfg.SegmenterTimeout),
 		visionWorkers.NewOcclusionWorker(),
 		visionCatalog.NewResolver(visionReferenceCatalog),
-		visionInference.NewHTTPCapabilityClient(cfg.VisionAIWorkerURL),
+		visionInference.NewHTTPCapabilityClient(cfg.VisionAIWorkerURL, cfg.VisionDispatchTimeout),
+		cfg.VisionDAGTimeout,
 	)
 	visionHandler := visionControllers.NewVisionController(visionOrch, visionReferenceCatalog, visionBridge)
 

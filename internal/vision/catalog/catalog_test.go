@@ -43,7 +43,7 @@ func newReferenceServer(t *testing.T, dimensions, skinConditions string, status 
 func TestReferenceClient_FetchKeepsOnlyVisionRelevantEntries(t *testing.T) {
 	server := newReferenceServer(t, dimensionsBody, skinConditionsBody, http.StatusOK)
 
-	snapshot, err := NewReferenceClient(server.URL + "/").Fetch(context.Background())
+	snapshot, err := NewReferenceClient(server.URL+"/", 5*time.Second).Fetch(context.Background())
 	require.NoError(t, err)
 
 	require.Len(t, snapshot.Dimensions, 2)
@@ -64,14 +64,14 @@ func TestReferenceClient_FetchKeepsOnlyVisionRelevantEntries(t *testing.T) {
 func TestReferenceClient_NonSuccessStatusIsError(t *testing.T) {
 	server := newReferenceServer(t, dimensionsBody, skinConditionsBody, http.StatusInternalServerError)
 
-	_, err := NewReferenceClient(server.URL).Fetch(context.Background())
+	_, err := NewReferenceClient(server.URL, 5*time.Second).Fetch(context.Background())
 	assert.Error(t, err)
 }
 
 func TestReferenceClient_MissingDataEnvelopeIsError(t *testing.T) {
 	server := newReferenceServer(t, `{"success":true}`, skinConditionsBody, http.StatusOK)
 
-	_, err := NewReferenceClient(server.URL).Fetch(context.Background())
+	_, err := NewReferenceClient(server.URL, 5*time.Second).Fetch(context.Background())
 	assert.Error(t, err)
 }
 

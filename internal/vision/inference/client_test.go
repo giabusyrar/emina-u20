@@ -46,7 +46,7 @@ func TestHTTPCapabilityClient_SendsCropsAndDecodesScores(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := inference.NewHTTPCapabilityClient(server.URL + "/")
+	client := inference.NewHTTPCapabilityClient(server.URL+"/", 5*time.Second)
 	result, err := client.DispatchZones(context.Background(),
 		[]string{"acne_lesion_classifier", "hyperpigmentation_net"},
 		[]inference.ZoneCrop{{ZoneCode: domain.ZoneLeftCheekOuter, SourceAngle: domain.AngleLeft, JPEG: []byte("crop-1")}},
@@ -66,7 +66,7 @@ func TestHTTPCapabilityClient_NonSuccessStatusIsWorkerUnavailable(t *testing.T) 
 	}))
 	defer server.Close()
 
-	_, err := inference.NewHTTPCapabilityClient(server.URL).DispatchZones(context.Background(), []string{"a"}, []inference.ZoneCrop{{ZoneCode: "Z"}})
+	_, err := inference.NewHTTPCapabilityClient(server.URL, 5*time.Second).DispatchZones(context.Background(), []string{"a"}, []inference.ZoneCrop{{ZoneCode: "Z"}})
 
 	assert.True(t, errors.Is(err, inference.ErrWorkerUnavailable))
 }
@@ -77,13 +77,13 @@ func TestHTTPCapabilityClient_MalformedResponseIsWorkerUnavailable(t *testing.T)
 	}))
 	defer server.Close()
 
-	_, err := inference.NewHTTPCapabilityClient(server.URL).DispatchZones(context.Background(), []string{"a"}, []inference.ZoneCrop{{ZoneCode: "Z"}})
+	_, err := inference.NewHTTPCapabilityClient(server.URL, 5*time.Second).DispatchZones(context.Background(), []string{"a"}, []inference.ZoneCrop{{ZoneCode: "Z"}})
 
 	assert.True(t, errors.Is(err, inference.ErrWorkerUnavailable))
 }
 
 func TestHTTPCapabilityClient_UnreachableIsWorkerUnavailable(t *testing.T) {
-	_, err := inference.NewHTTPCapabilityClient("http://127.0.0.1:1").DispatchZones(context.Background(), []string{"a"}, []inference.ZoneCrop{{ZoneCode: "Z"}})
+	_, err := inference.NewHTTPCapabilityClient("http://127.0.0.1:1", 5*time.Second).DispatchZones(context.Background(), []string{"a"}, []inference.ZoneCrop{{ZoneCode: "Z"}})
 
 	assert.True(t, errors.Is(err, inference.ErrWorkerUnavailable))
 }
@@ -96,7 +96,7 @@ func TestHTTPCapabilityClient_ContextDeadlineIsWorkerUnavailable(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
-	_, err := inference.NewHTTPCapabilityClient(server.URL).DispatchZones(ctx, []string{"a"}, []inference.ZoneCrop{{ZoneCode: "Z"}})
+	_, err := inference.NewHTTPCapabilityClient(server.URL, 5*time.Second).DispatchZones(ctx, []string{"a"}, []inference.ZoneCrop{{ZoneCode: "Z"}})
 
 	assert.True(t, errors.Is(err, inference.ErrWorkerUnavailable))
 }

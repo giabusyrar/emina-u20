@@ -14,10 +14,7 @@ import (
 	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
 )
 
-const (
-	dispatchZonesPath = "/api/v1/models/dispatch-zones"
-	dispatchTimeout   = 20 * time.Second
-)
+const dispatchZonesPath = "/api/v1/models/dispatch-zones"
 
 // ZoneCrop is one facial zone cut out of its source image.
 type ZoneCrop struct {
@@ -52,10 +49,10 @@ type HTTPCapabilityClient struct {
 	httpClient *http.Client
 }
 
-func NewHTTPCapabilityClient(baseURL string) *HTTPCapabilityClient {
+func NewHTTPCapabilityClient(baseURL string, timeout time.Duration) *HTTPCapabilityClient {
 	return &HTTPCapabilityClient{
 		baseURL:    strings.TrimRight(baseURL, "/"),
-		httpClient: &http.Client{Timeout: dispatchTimeout},
+		httpClient: &http.Client{Timeout: timeout},
 	}
 }
 

@@ -11,6 +11,7 @@ import (
 	"image/png"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -157,7 +158,7 @@ func TestExecute_ScoresArbiterWinnersPerZone(t *testing.T) {
 		UnsupportedCapabilities: []string{"hyperpigmentation_net"},
 	}}
 	occlusion := fakeOcclusion{occluded: map[string]bool{domain.ZoneLeftCheekOuter: true}}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, occlusion, fakeResolver{plan: testPlan()}, client)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, occlusion, fakeResolver{plan: testPlan()}, client, 30*time.Second)
 
 	resp, err := orch.Execute(context.Background(), request(
 		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
@@ -207,7 +208,7 @@ func TestExecute_CropsFromTheWinningCandidatesOwnImage(t *testing.T) {
 		200: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, Confidence: 0.9}},
 	}}
 	client := &fakeCapabilityClient{}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client, 30*time.Second)
 
 	resp, err := orch.Execute(context.Background(), request(
 		domain.RawImageInput{Angle: domain.AngleFront, FileName: "small.png", Data: createTestPng(100)},
@@ -229,7 +230,7 @@ func TestExecute_NoUsableCropsSkipsDispatchAndWarns(t *testing.T) {
 		100: {{ZoneCode: domain.ZoneTZoneNose, BoundingBox: tinyNoseBox, Confidence: 0.9}},
 	}}
 	client := &fakeCapabilityClient{}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client, 30*time.Second)
 
 	resp, err := orch.Execute(context.Background(), request(
 		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
@@ -247,7 +248,7 @@ func TestExecute_ResolverErrorStopsBeforeSegmentation(t *testing.T) {
 	segmenter := &fakeSegmenter{}
 	client := &fakeCapabilityClient{}
 	invalid := &catalog.ValidationError{Items: []domain.ValidationErrorItem{{Field: "dimensions", Value: "pigment"}}}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{err: invalid}, client)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{err: invalid}, client, 30*time.Second)
 
 	resp, err := orch.Execute(context.Background(), request(
 		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
@@ -265,7 +266,7 @@ func TestExecute_DispatchFailureIsReturned(t *testing.T) {
 		100: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, Confidence: 0.9}},
 	}}
 	client := &fakeCapabilityClient{err: fmt.Errorf("%w: connection refused", inference.ErrWorkerUnavailable)}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client, 30*time.Second)
 
 	resp, err := orch.Execute(context.Background(), request(
 		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},

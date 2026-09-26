@@ -14,9 +14,6 @@ type MatchCache struct {
 }
 
 func NewMatchCache(rdb *redis.Client, ttl time.Duration) *MatchCache {
-	if ttl <= 0 {
-		ttl = 15 * time.Minute
-	}
 	return &MatchCache{
 		rdb: rdb,
 		ttl: ttl,

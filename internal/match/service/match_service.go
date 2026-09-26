@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -23,14 +22,16 @@ type MatchService struct {
 	decisionEngine    *decision.ClinicalDecisionEngine
 	hybridMatcher     *retrieval.HybridMatcher
 	conflictValidator *conflict.ConflictValidator
+	tryonEngineURL    string
 }
 
-func NewMatchService(repo *repository.MatchRepo) *MatchService {
+func NewMatchService(repo *repository.MatchRepo, tryonEngineURL string) *MatchService {
 	return &MatchService{
 		repo:              repo,
 		decisionEngine:    decision.NewClinicalDecisionEngine(),
 		hybridMatcher:     retrieval.NewHybridMatcher(),
 		conflictValidator: conflict.NewConflictValidator(),
+		tryonEngineURL:    tryonEngineURL,
 	}
 }
 
@@ -345,7 +346,7 @@ func (s *MatchService) GetShadeAssetByID(ctx context.Context, id string) (*entit
 // UV texture for a shade. tryon-engine reports back via the shade's
 // extraction-callback route (see MatchHandler.ExtractionCallback).
 func (s *MatchService) TriggerShadeExtraction(ctx context.Context, shade entity.Shade) error {
-	baseURL := os.Getenv("TRYON_ENGINE_URL")
+	baseURL := s.tryonEngineURL
 	if baseURL == "" {
 		return fmt.Errorf("TRYON_ENGINE_URL is not configured")
 	}

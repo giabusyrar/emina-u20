@@ -2,32 +2,75 @@ package config_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/experience-gateway/apps/core-engine/internal/config"
 )
 
-func TestLoad_CoreEnginePortTakesPriorityOverGenericPort(t *testing.T) {
-	t.Setenv("CORE_ENGINE_PORT", "8082")
-	t.Setenv("PORT", "4000")
+var tunables = []string{"FORM_CACHE_TTL", "SCORE_CACHE_TTL", "MATCH_CACHE_TTL", "VISION_CATALOG_TTL",
+	"SCORE_CLIENT_TIMEOUT", "PARADEV_TIMEOUT", "REFERENCE_CLIENT_TIMEOUT", "VISION_DISPATCH_TIMEOUT",
+	"VISION_DAG_TIMEOUT", "SEGMENTER_TIMEOUT", "TRYON_ENGINE_URL", "CORS_ALLOW_HEADERS"}
 
-	cfg, err := config.Load()
-	if err != nil {
-		t.Fatalf("Load() returned error: %v", err)
-	}
-	if cfg.Port != "8082" {
-		t.Errorf("Port = %q, want %q (CORE_ENGINE_PORT must win over generic PORT)", cfg.Port, "8082")
+// FromEnv, not Load: Load reads the repository's .env.
+func setBaseEnv(t *testing.T) {
+	t.Setenv("DATABASE_URL", "postgres://test")
+	for _, k := range tunables {
+		t.Setenv(k, "")
 	}
 }
 
-func TestLoad_DefaultsPortTo8082WhenUnset(t *testing.T) {
-	t.Setenv("CORE_ENGINE_PORT", "")
-	t.Setenv("PORT", "")
-
-	cfg, err := config.Load()
+func TestFromEnv_DefaultsEqualPreStandardizationLiterals(t *testing.T) {
+	setBaseEnv(t)
+	cfg, err := config.FromEnv()
 	if err != nil {
-		t.Fatalf("Load() returned error: %v", err)
+		t.Fatal(err)
 	}
-	if cfg.Port != "8082" {
-		t.Errorf("Port = %q, want %q", cfg.Port, "8082")
+	for name, got := range map[string][2]time.Duration{
+		"FormCacheTTL":           {cfg.FormCacheTTL, 15 * time.Minute},
+		"ScoreCacheTTL":          {cfg.ScoreCacheTTL, 15 * time.Minute},
+		"MatchCacheTTL":          {cfg.MatchCacheTTL, 15 * time.Minute},
+		"VisionCatalogTTL":       {cfg.VisionCatalogTTL, time.Minute},
+		"ScoreClientTimeout":     {cfg.ScoreClientTimeout, 5 * time.Second},
+		"ParadevTimeout":         {cfg.ParadevTimeout, 50 * time.Second},
+		"ReferenceClientTimeout": {cfg.ReferenceClientTimeout, 3 * time.Second},
+		"VisionDispatchTimeout":  {cfg.VisionDispatchTimeout, 20 * time.Second},
+		"VisionDAGTimeout":       {cfg.VisionDAGTimeout, 30 * time.Second},
+		"SegmenterTimeout":       {cfg.SegmenterTimeout, 4 * time.Second},
+	} {
+		if got[0] != got[1] {
+			t.Errorf("%s = %v, want %v", name, got[0], got[1])
+		}
+	}
+	if len(cfg.CORSAllowHeaders) != 1 || cfg.CORSAllowHeaders[0] != "*" {
+		t.Errorf("CORSAllowHeaders = %v, want [*]", cfg.CORSAllowHeaders)
+	}
+	if cfg.TryonEngineURL != "" {
+		t.Errorf("TryonEngineURL = %q, want empty (no default)", cfg.TryonEngineURL)
+	}
+}
+
+func TestFromEnv_Overrides(t *testing.T) {
+	setBaseEnv(t)
+	t.Setenv("PARADEV_TIMEOUT", "55s")
+	t.Setenv("TRYON_ENGINE_URL", "http://tryon:8090")
+	cfg, err := config.FromEnv()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.ParadevTimeout != 55*time.Second || cfg.TryonEngineURL != "http://tryon:8090" {
+		t.Fatalf("got ParadevTimeout=%v TryonEngineURL=%q", cfg.ParadevTimeout, cfg.TryonEngineURL)
+	}
+}
+
+func TestFromEnv_RejectsBadDurationAndMissingDatabase(t *testing.T) {
+	setBaseEnv(t)
+	t.Setenv("VISION_DAG_TIMEOUT", "0s")
+	if _, err := config.FromEnv(); err == nil {
+		t.Error("want error for VISION_DAG_TIMEOUT=0s")
+	}
+	setBaseEnv(t)
+	t.Setenv("DATABASE_URL", "")
+	if _, err := config.FromEnv(); err == nil {
+		t.Error("want error when DATABASE_URL is unset")
 	}
 }

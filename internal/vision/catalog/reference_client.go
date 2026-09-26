@@ -9,8 +9,6 @@ import (
 	"time"
 )
 
-const referenceTimeout = 3 * time.Second
-
 type referenceDimension struct {
 	Code        string `json:"code"`
 	Name        string `json:"name"`
@@ -31,10 +29,10 @@ type ReferenceClient struct {
 	httpClient *http.Client
 }
 
-func NewReferenceClient(baseURL string) *ReferenceClient {
+func NewReferenceClient(baseURL string, timeout time.Duration) *ReferenceClient {
 	return &ReferenceClient{
 		baseURL:    strings.TrimRight(baseURL, "/"),
-		httpClient: &http.Client{Timeout: referenceTimeout},
+		httpClient: &http.Client{Timeout: timeout},
 	}
 }
 

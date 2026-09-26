@@ -13,7 +13,7 @@ import (
 
 func BenchmarkMatchService_Evaluate(b *testing.B) {
 	repo := repository.NewMatchRepo(nil)
-	svc := service.NewMatchService(repo)
+	svc := service.NewMatchService(repo, "")
 
 	// Seed 500 products across various categories
 	ctx := context.Background()

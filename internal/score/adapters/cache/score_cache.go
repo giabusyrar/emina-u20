@@ -14,9 +14,6 @@ type ScoreCache struct {
 }
 
 func NewScoreCache(rdb *redis.Client, ttl time.Duration) *ScoreCache {
-	if ttl <= 0 {
-		ttl = 15 * time.Minute
-	}
 	return &ScoreCache{
 		rdb: rdb,
 		ttl: ttl,

@@ -29,10 +29,8 @@ type Client struct {
 // New builds a client with an explicit timeout. Paradev's scoring call runs
 // a synchronous LLM pass — per the reviewed spec this needs a generous
 // timeout (45-60s), not the short default used for our own internal calls.
+// The timeout comes from config (PARADEV_TIMEOUT).
 func New(gatewayURL, apiKey string, timeout time.Duration) *Client {
-	if timeout <= 0 {
-		timeout = 50 * time.Second
-	}
 	return &Client{
 		GatewayURL: gatewayURL,
 		APIKey:     apiKey,

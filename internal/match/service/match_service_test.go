@@ -12,7 +12,7 @@ import (
 
 func setupTestService(t *testing.T) (*service.MatchService, *repository.MatchRepo) {
 	repo := repository.NewMatchRepo(nil)
-	svc := service.NewMatchService(repo)
+	svc := service.NewMatchService(repo, "")
 
 	// Seed sample products
 	ctx := context.Background()

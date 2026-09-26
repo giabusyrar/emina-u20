@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -85,7 +86,7 @@ var acnePlan = &catalog.Plan{
 }
 
 func newController(resolver orchestrator.PlanResolver, capabilities inference.CapabilityClient) *controllers.VisionController {
-	orch := orchestrator.NewVisionOrchestrator(stubSegmenter{}, workers.NewOcclusionWorker(), resolver, capabilities)
+	orch := orchestrator.NewVisionOrchestrator(stubSegmenter{}, workers.NewOcclusionWorker(), resolver, capabilities, 30*time.Second)
 	return controllers.NewVisionController(orch, stubCatalog{snapshot: &catalog.Snapshot{}}, nil)
 }
 
@@ -206,7 +207,7 @@ func TestVisionController_UnlabelledMultiImage(t *testing.T) {
 
 func serveRegistry(t *testing.T, referenceCatalog catalog.Catalog) *httptest.ResponseRecorder {
 	t.Helper()
-	orch := orchestrator.NewVisionOrchestrator(stubSegmenter{}, workers.NewOcclusionWorker(), stubResolver{plan: acnePlan}, stubCapabilities{})
+	orch := orchestrator.NewVisionOrchestrator(stubSegmenter{}, workers.NewOcclusionWorker(), stubResolver{plan: acnePlan}, stubCapabilities{}, 30*time.Second)
 	ctrl := controllers.NewVisionController(orch, referenceCatalog, nil)
 	req := httptest.NewRequest(http.MethodGet, "/api/vision/registry", nil)
 	rec := httptest.NewRecorder()

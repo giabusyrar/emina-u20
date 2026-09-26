@@ -39,6 +39,7 @@ type VisionOrchestrator struct {
 	arbiter      *ZoneArbiter
 	resolver     PlanResolver
 	capabilities inference.CapabilityClient
+	execTimeout  time.Duration
 }
 
 func NewVisionOrchestrator(
@@ -46,6 +47,7 @@ func NewVisionOrchestrator(
 	occlusion OcclusionChecker,
 	resolver PlanResolver,
 	capabilities inference.CapabilityClient,
+	execTimeout time.Duration,
 ) *VisionOrchestrator {
 	return &VisionOrchestrator{
 		segmenter:    segmenter,
@@ -53,6 +55,7 @@ func NewVisionOrchestrator(
 		arbiter:      NewZoneArbiter(),
 		resolver:     resolver,
 		capabilities: capabilities,
+		execTimeout:  execTimeout,
 	}
 }
 
@@ -65,8 +68,8 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 		return nil, err
 	}
 
-	// Enforce 30-second context timeout constraint
-	execCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	// Bound the whole pipeline (VISION_DAG_TIMEOUT).
+	execCtx, cancel := context.WithTimeout(ctx, o.execTimeout)
 	defer cancel()
 
 	captureMode := "SINGLE_ANGLE"

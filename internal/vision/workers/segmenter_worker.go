@@ -54,11 +54,11 @@ type SegmenterWorker struct {
 	httpClient *http.Client
 }
 
-func NewSegmenterWorkerWithURL(workerURL string) *SegmenterWorker {
+func NewSegmenterWorkerWithURL(workerURL string, timeout time.Duration) *SegmenterWorker {
 	return &SegmenterWorker{
 		workerURL: workerURL,
 		httpClient: &http.Client{
-			Timeout: 4 * time.Second,
+			Timeout: timeout,
 		},
 	}
 }
