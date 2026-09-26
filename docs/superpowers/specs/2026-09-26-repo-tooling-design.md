@@ -1,7 +1,7 @@
 # Repo tooling: npm scripts as the single entry point
 
 Date: 2026-09-26
-Status: design, awaiting review
+Status: implemented on branch repo-tooling
 Scope: `package.json`, `package-lock.json`, `Makefile` (deleted), `scripts/`,
 `.gitattributes`, `docker-compose.yml`, `README.md`, and one gofmt-only fix in
 `apps/core-engine/internal/vision/workers/segmenter_worker.go`.
@@ -147,6 +147,18 @@ bodies in `fallbackSegment`. Without this fix, `lint` fails on its first run.
 
 Replace the two-line "On the host instead" block with the script table above,
 and mention `npm ci` as the setup step.
+
+## As built (deviations)
+
+- **Seven files needed gofmt, not one.** The first `lint` run flagged six
+  more core-engine files beyond `segmenter_worker.go`: `form/domain/errors.go`,
+  `form/domain/vision_mapping_test.go`, `match/domain/match.go`,
+  `match/engine/decision/decision_engine.go`, `decision_engine_test.go` and
+  `match/entity/entity.go`. The committed blobs have alignment drift, which the
+  CRLF noise had hidden. All seven were fixed with `gofmt -w`, whitespace only
+  (`git diff -w` shows only the `segmenter_worker.go` line splits).
+- **`test:platform` added.** `test:go` never ran `packages/goplatform`'s tests,
+  so `check` now runs `lint`, `test`, `test:platform`, then `build:check`.
 
 ## Out of scope
 
