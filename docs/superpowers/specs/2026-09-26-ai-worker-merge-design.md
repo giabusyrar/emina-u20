@@ -66,16 +66,17 @@ apps/ai-worker/
     __init__.py
     main.py               create_app(): lifespan, logging, CORS, /health, mounts profiles
     core/
-      settings.py         pydantic-settings BaseSettings; every default named once
+      settings.py         one lazily-read Settings (union of both); every default named once
       storage.py          one S3 client + local-disk fallback (today's vision storage.py)
       logging.py          JSON-lines stdlib logging with `service` and `profile`
       health.py           /health (+ vision's /healthz alias)
-    vision/               today's apps/vision-ai-worker/app/* (git mv), imports rewritten
-      router.py           models router + segment-and-pose (moved out of main.py)
-      db.py  storage use via core.storage  models/  schemas/  zones.py
-    tryon/                today's apps/tryon-engine/app/* (git mv), imports rewritten
-      router.py           POST /extract
-      services/
+    vision/               today's apps/vision-ai-worker/app/* (git mv), imports rewritten;
+                          internal layout unchanged (routers/, models/, schemas/, db.py, zones.py)
+      routers/segment.py  segment-and-pose + its detector singletons (moved out of main.py)
+      profile.py          ROUTERS, startup(), shutdown(), health_checks()
+    tryon/                today's apps/tryon-engine/app/* (git mv), imports rewritten;
+                          internal layout unchanged (routers/extraction.py, services/, schemas.py)
+      profile.py          ROUTERS, startup(), shutdown(), health_checks()
   tests/
     conftest.py
     core/  vision/  tryon/
@@ -129,25 +130,42 @@ by `core/settings.py`.
     informational and never a failure.
   - `GET /healthz` remains an alias when vision is enabled, because vision's
     existing callers use it.
-- **Config:** `core/settings.py` uses `pydantic-settings`.
-  - It reads the same env names as today:
-    - vision: `DATABASE_URL` / `DATABASE_PUBLIC_URL` / `POSTGRES_URL`,
-      `VISION_MODEL_STORAGE_DIR`, `VISION_AI_WORKER_URL`, `MODEL_*`;
-    - both: `S3_*`;
-    - tryon: `MATCH_ENGINE_URL`, `FACE_PARSING_MODEL_ID`;
-    - plus `PORT`.
+- **Config:** `core/settings.py` is **one shared, lazily-read `Settings`
+  class**, the union of today's two classes. It uses the same env names:
+  - vision: `DATABASE_URL` / `DATABASE_PUBLIC_URL` / `POSTGRES_URL`,
+    `VISION_MODEL_STORAGE_DIR`, `VISION_AI_WORKER_URL`, `MODEL_*`;
+  - both: `S3_*`;
+  - tryon: `MATCH_ENGINE_URL`, `FACE_PARSING_MODEL_ID`;
+  - plus `PORT`, and the new `LOG_LEVEL`, `AI_WORKER_PROFILES` and
+    `HEALTH_DB_TIMEOUT_SECONDS`.
+
+  Every other rule is unchanged:
   - The `DATABASE_URL` → `DATABASE_PUBLIC_URL` → `POSTGRES_URL` fallback order
     is kept.
-  - `.env` loading uses pydantic-settings' `env_file`, which replaces the
-    hand-rolled walker. It looks for `.env` in the working directory and in the
-    repository root, which it finds by walking up to the directory containing
-    `go.work`.
-  - Defaults keep today's values and are defined once in `settings.py`.
-  - `require_s3()` and `require_database()` keep their behaviour and messages.
+  - Defaults keep today's values and are defined once.
+  - `require_s3()` and `require_database()` keep their behaviour. The S3
+    message is vision's wording.
+  - The `.env` walker is kept, as one copy. `python-dotenv` becomes a declared
+    dependency; vision used it without declaring it.
+
+  *Amended from `pydantic-settings`:* that library reads env once, when the
+  object is built. Vision relies on reading env on each access, which lets
+  segment-and-pose run before S3 or the database is configured. Its tests set
+  env at runtime (`test_db_schema.py`) and patch properties on the class
+  (`test_model_validation.py`, `test_model_upload.py`). A frozen settings
+  object would break both.
+- **Local model storage:** the default `VISION_MODEL_STORAGE_DIR` becomes
+  `apps/ai-worker/data/models`, replacing `apps/vision-ai-worker/data/models`,
+  which was never created on the development machine. It is added to
+  `.gitignore`.
 - **Storage:** vision's `storage.py` becomes `core/storage.py` and tryon uses it.
   - Tryon's `upload_bytes` currently returns a constructed public URL, which
     vision's version does not. That behaviour moves into `core/storage.py` as
     `public_url(key)`, so tryon's callback payload is byte-identical.
+  - Tryon keeps a thin `upload_bytes(key, data, content_type)` wrapper that
+    calls `settings.require_s3()` first. Vision's local-disk fallback must not
+    apply to tryon: tryon hands its URLs to the web app, and a local-disk write
+    would return a URL that does not exist.
 - **Errors:** FastAPI's `{"detail": ...}` stays the wire format. Nothing changes
   for clients.
 
@@ -155,7 +173,7 @@ by `core/settings.py`.
 
 - `name = "ai-worker"`, `requires-python = ">=3.12"`.
 - **`[project].dependencies`:** vision's current 11 runtime packages plus
-  `pydantic-settings`.
+  `python-dotenv`.
 - **`[project.optional-dependencies]`:**
   - `tryon`: torch, torchvision, transformers, diffusers, accelerate, pillow,
     scipy. Lower bounds come from today's tryon `requirements.txt`, which has no
@@ -259,7 +277,7 @@ by `core/settings.py`.
    app. The vision baseline must hold.
 2. Move tryon with `git mv` and rewrite imports. The tryon baseline must hold,
    and both suites must collect in one `pytest apps/ai-worker` run.
-3. Add `core/settings.py` (pydantic-settings) and replace both `Settings`
+3. Add `core/settings.py` (one shared lazy Settings) and replace both `Settings`
    classes, keeping the env names and fallbacks, with tests.
 4. Add `core/storage.py`: one client and `public_url`, with tryon switched to
    it, with tests.
