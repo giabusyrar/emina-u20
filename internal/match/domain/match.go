@@ -40,16 +40,16 @@ type MatchRequest struct {
 
 // ProductMatchItem represents a recommended product
 type ProductMatchItem struct {
-	ID               string                 `json:"id"`
-	Name             string                 `json:"name"`
-	Brand            string                 `json:"brand"`
-	Category         string                 `json:"category"`
-	Texture          string                 `json:"texture"`
-	MatchScore       float64                `json:"match_score"`
-	WhySelected      []string               `json:"why_selected"`
-	KeyActives       []string               `json:"key_actives,omitempty"`
-	EfficacyDetails  map[string]interface{} `json:"efficacy_details,omitempty"`
-	ImageURL         string                 `json:"image_url,omitempty"`
+	ID              string                 `json:"id"`
+	Name            string                 `json:"name"`
+	Brand           string                 `json:"brand"`
+	Category        string                 `json:"category"`
+	Texture         string                 `json:"texture"`
+	MatchScore      float64                `json:"match_score"`
+	WhySelected     []string               `json:"why_selected"`
+	KeyActives      []string               `json:"key_actives,omitempty"`
+	EfficacyDetails map[string]interface{} `json:"efficacy_details,omitempty"`
+	ImageURL        string                 `json:"image_url,omitempty"`
 }
 
 // RegimenStep represents one step in a skincare routine
@@ -88,12 +88,12 @@ type ProfileSummary struct {
 
 // MatchResponse is the output recommendation result
 type MatchResponse struct {
-	Success                bool                    `json:"success"`
-	MatchID                string                  `json:"match_id"`
-	BrandID                string                  `json:"brand_id"`
-	ApplicationID          string                  `json:"application_id"`
-	ProfileSummary         ProfileSummary          `json:"profile_summary"`
-	Regimens               RegimenCollection       `json:"regimens"`
-	ClinicalConflictMatrix ClinicalConflictReport  `json:"clinical_conflict_matrix"`
-	EvaluatedAt            string                  `json:"evaluated_at"`
+	Success                bool                   `json:"success"`
+	MatchID                string                 `json:"match_id"`
+	BrandID                string                 `json:"brand_id"`
+	ApplicationID          string                 `json:"application_id"`
+	ProfileSummary         ProfileSummary         `json:"profile_summary"`
+	Regimens               RegimenCollection      `json:"regimens"`
+	ClinicalConflictMatrix ClinicalConflictReport `json:"clinical_conflict_matrix"`
+	EvaluatedAt            string                 `json:"evaluated_at"`
 }
