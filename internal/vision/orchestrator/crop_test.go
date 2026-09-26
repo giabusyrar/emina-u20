@@ -1,0 +1,61 @@
+package orchestrator
+
+import (
+	"bytes"
+	"image"
+	"image/color"
+	"image/jpeg"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
+)
+
+func solidImage(width, height int) image.Image {
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+			img.Set(x, y, color.RGBA{R: 200, G: 180, B: 170, A: 255})
+		}
+	}
+	return img
+}
+
+func decodedSize(t *testing.T, data []byte) (int, int) {
+	t.Helper()
+	decoded, err := jpeg.Decode(bytes.NewReader(data))
+	require.NoError(t, err)
+	return decoded.Bounds().Dx(), decoded.Bounds().Dy()
+}
+
+func TestCropZone_EncodesBoundingBoxAsJPEG(t *testing.T) {
+	data, ok := cropZone(solidImage(100, 100), domain.BoundingBox{MinX: 0.25, MinY: 0.25, MaxX: 0.75, MaxY: 0.5})
+
+	require.True(t, ok)
+	width, height := decodedSize(t, data)
+	assert.Equal(t, 50, width)
+	assert.Equal(t, 25, height)
+}
+
+func TestCropZone_SkipsBoxesSmallerThan16Pixels(t *testing.T) {
+	_, ok := cropZone(solidImage(100, 100), domain.BoundingBox{MinX: 0.5, MinY: 0.25, MaxX: 0.625, MaxY: 0.5})
+
+	assert.False(t, ok)
+}
+
+func TestCropZone_ClampsBoxToImage(t *testing.T) {
+	data, ok := cropZone(solidImage(100, 100), domain.BoundingBox{MinX: -0.5, MinY: -0.5, MaxX: 0.25, MaxY: 1.5})
+
+	require.True(t, ok)
+	width, height := decodedSize(t, data)
+	assert.Equal(t, 25, width)
+	assert.Equal(t, 100, height)
+}
+
+func TestCropZone_NilImageIsSkipped(t *testing.T) {
+	_, ok := cropZone(nil, domain.BoundingBox{MaxX: 1, MaxY: 1})
+
+	assert.False(t, ok)
+}

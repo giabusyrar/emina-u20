@@ -14,38 +14,38 @@ import (
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 
-	"github.com/experience-gateway/apps/core-engine/pkg/config"
+	"github.com/experience-gateway/apps/core-engine/internal/config"
 
 	// Form Engine
-	formCache "github.com/experience-gateway/apps/core-engine/pkg/form/adapters/cache"
-	formControllers "github.com/experience-gateway/apps/core-engine/pkg/form/adapters/controllers"
-	formScoreClient "github.com/experience-gateway/apps/core-engine/pkg/form/adapters/scoreclient"
-	formVisionClient "github.com/experience-gateway/apps/core-engine/pkg/form/adapters/visionclient"
-	formEntity "github.com/experience-gateway/apps/core-engine/pkg/form/entity"
-	formRepo "github.com/experience-gateway/apps/core-engine/pkg/form/repository"
-	formService "github.com/experience-gateway/apps/core-engine/pkg/form/service"
+	formCache "github.com/experience-gateway/apps/core-engine/internal/form/adapters/cache"
+	formControllers "github.com/experience-gateway/apps/core-engine/internal/form/adapters/controllers"
+	formScoreClient "github.com/experience-gateway/apps/core-engine/internal/form/adapters/scoreclient"
+	formVisionClient "github.com/experience-gateway/apps/core-engine/internal/form/adapters/visionclient"
+	formEntity "github.com/experience-gateway/apps/core-engine/internal/form/entity"
+	formRepo "github.com/experience-gateway/apps/core-engine/internal/form/repository"
+	formService "github.com/experience-gateway/apps/core-engine/internal/form/service"
 
 	// Score Engine
-	scoreCache "github.com/experience-gateway/apps/core-engine/pkg/score/adapters/cache"
-	scoreControllers "github.com/experience-gateway/apps/core-engine/pkg/score/adapters/controllers"
-	scoreEntity "github.com/experience-gateway/apps/core-engine/pkg/score/entity"
-	scoreRepo "github.com/experience-gateway/apps/core-engine/pkg/score/repository"
-	scoreService "github.com/experience-gateway/apps/core-engine/pkg/score/service"
+	scoreCache "github.com/experience-gateway/apps/core-engine/internal/score/adapters/cache"
+	scoreControllers "github.com/experience-gateway/apps/core-engine/internal/score/adapters/controllers"
+	scoreEntity "github.com/experience-gateway/apps/core-engine/internal/score/entity"
+	scoreRepo "github.com/experience-gateway/apps/core-engine/internal/score/repository"
+	scoreService "github.com/experience-gateway/apps/core-engine/internal/score/service"
 
 	// Match Engine
-	matchCache "github.com/experience-gateway/apps/core-engine/pkg/match/adapters/cache"
-	matchControllers "github.com/experience-gateway/apps/core-engine/pkg/match/adapters/controllers"
-	matchEntity "github.com/experience-gateway/apps/core-engine/pkg/match/entity"
-	matchRepo "github.com/experience-gateway/apps/core-engine/pkg/match/repository"
-	matchService "github.com/experience-gateway/apps/core-engine/pkg/match/service"
+	matchCache "github.com/experience-gateway/apps/core-engine/internal/match/adapters/cache"
+	matchControllers "github.com/experience-gateway/apps/core-engine/internal/match/adapters/controllers"
+	matchEntity "github.com/experience-gateway/apps/core-engine/internal/match/entity"
+	matchRepo "github.com/experience-gateway/apps/core-engine/internal/match/repository"
+	matchService "github.com/experience-gateway/apps/core-engine/internal/match/service"
 
 	// Vision Engine
-	visionControllers "github.com/experience-gateway/apps/core-engine/pkg/vision/adapters/controllers"
-	visionCatalog "github.com/experience-gateway/apps/core-engine/pkg/vision/catalog"
-	visionClient "github.com/experience-gateway/apps/core-engine/pkg/vision/client"
-	visionInference "github.com/experience-gateway/apps/core-engine/pkg/vision/inference"
-	visionOrchestrator "github.com/experience-gateway/apps/core-engine/pkg/vision/orchestrator"
-	visionWorkers "github.com/experience-gateway/apps/core-engine/pkg/vision/workers"
+	visionControllers "github.com/experience-gateway/apps/core-engine/internal/vision/adapters/controllers"
+	visionCatalog "github.com/experience-gateway/apps/core-engine/internal/vision/catalog"
+	visionClient "github.com/experience-gateway/apps/core-engine/internal/vision/client"
+	visionInference "github.com/experience-gateway/apps/core-engine/internal/vision/inference"
+	visionOrchestrator "github.com/experience-gateway/apps/core-engine/internal/vision/orchestrator"
+	visionWorkers "github.com/experience-gateway/apps/core-engine/internal/vision/workers"
 )
 
 func main() {
