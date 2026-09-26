@@ -1,7 +1,7 @@
 # ai-worker: one Python codebase, two router profiles
 
 Date: 2026-09-26
-Status: design, awaiting review
+Status: implemented on branch ai-worker-merge
 Scope:
 - merges `apps/vision-ai-worker` and `apps/tryon-engine` into a new `apps/ai-worker`;
 - `package.json`, `scripts/`, `docker-compose.yml` and root `pytest.ini`;

@@ -24,7 +24,7 @@
 > rollback as roll-forward. Same note, from the schema side, in
 > `docs/SHARED-DATABASE.md`.
 
-Lives in `apps/vision-ai-worker`. Design background:
+Lives in `apps/ai-worker` (vision profile). Design background:
 `docs/superpowers/specs/2026-09-26-plug-and-play-model-registry-design.md`
 (read that for the *why*; this document is the *what's actually running*, and
 corrects the design doc's own claims where implementation proved them wrong —
@@ -370,16 +370,16 @@ was never configured or connected at all.
 
 ## Running the worker's tests
 
-The worker's test dependencies — `pytest`, `pytest-asyncio`,
+The AI worker's test dependencies — `pytest`, `pytest-asyncio`,
 `pytest-benchmark`, `onnx`, `torch`, `torchvision` — are declared **only** in
-the `[test]` extra of `apps/vision-ai-worker/pyproject.toml`. They are
+the `[test]` extra of `apps/ai-worker/pyproject.toml`. They are
 deliberately absent from `requirements.txt`, which is what a deployment
 installs: the worker infers with `onnxruntime` and never imports any of them,
 and `torch` alone is several hundred megabytes. Install them explicitly:
 
 ```bash
-pip install -e "apps/vision-ai-worker[test]"
-pytest apps/vision-ai-worker      # or: npm run test:vision
+pip install -e "apps/ai-worker[test]"
+pytest apps/ai-worker      # or: npm run test:vision
 ```
 
 The dispatch benchmarks are wall-clock measurements (they export a real
@@ -395,9 +395,9 @@ npm run bench:vision
 ```
 
 A bare `pytest` from the repository root does **not** work, and that is
-pre-existing: both Python workers ship a top-level `app` package and a
-top-level `tests` package, so whichever is imported first shadows the other and
-every vision test module fails to import. Run the two suites separately
+pre-existing: both profiles (vision and tryon) have separate test suites under
+`tests/vision/` and `tests/tryon/`, so imports can shadow each other and
+test modules can fail. Run the two suites separately
 (`npm run test:vision`, `npm run test:tryon`).
 
 The `tests/test_db_schema.py` suite needs a real Postgres and skips without

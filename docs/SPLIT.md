@@ -36,6 +36,10 @@ One nesting level was removed on the way: `apps/gateway/gateway-proxy` became
 `apps/vision-ai-worker`. Every `go.mod` `replace`, Dockerfile `COPY` and npm
 script was repointed to match.
 
+Since 2026-09-26 `apps/vision-ai-worker/` and `apps/tryon-engine/` are one
+package, `apps/ai-worker/` (profiles `vision` and `tryon`); see
+`docs/superpowers/specs/2026-09-26-ai-worker-merge-design.md`.
+
 ## What changed beyond moving files
 
 - **`packages/goenv` is duplicated, not shared.** It is one file with no
