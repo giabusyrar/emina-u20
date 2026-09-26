@@ -3,7 +3,9 @@ package goplatform
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
+	"time"
 )
 
 func TestPort(t *testing.T) {
@@ -101,5 +103,35 @@ func TestLoadDotEnvDiscovery(t *testing.T) {
 
 	if val := os.Getenv("TEST_DISCOVERY_KEY"); val != "discovered_successfully" {
 		t.Errorf("Expected discovered_successfully, got '%s'", val)
+	}
+}
+
+func TestDuration(t *testing.T) {
+	t.Setenv("GP_TEST_DUR", "")
+	if d, err := Duration("GP_TEST_DUR", 3*time.Second); err != nil || d != 3*time.Second {
+		t.Fatalf("unset: got %v, %v; want 3s, nil", d, err)
+	}
+
+	t.Setenv("GP_TEST_DUR", "250ms")
+	if d, err := Duration("GP_TEST_DUR", time.Second); err != nil || d != 250*time.Millisecond {
+		t.Fatalf("set: got %v, %v; want 250ms, nil", d, err)
+	}
+
+	for _, bad := range []string{"soon", "0s", "-1s"} {
+		t.Setenv("GP_TEST_DUR", bad)
+		if _, err := Duration("GP_TEST_DUR", time.Second); err == nil {
+			t.Errorf("%q: want error, got nil", bad)
+		}
+	}
+}
+
+func TestList(t *testing.T) {
+	t.Setenv("GP_TEST_LIST", "")
+	if got := List("GP_TEST_LIST", []string{"*"}); !reflect.DeepEqual(got, []string{"*"}) {
+		t.Fatalf("unset: got %v, want [*]", got)
+	}
+	t.Setenv("GP_TEST_LIST", " a, b ,,c ")
+	if got := List("GP_TEST_LIST", nil); !reflect.DeepEqual(got, []string{"a", "b", "c"}) {
+		t.Fatalf("set: got %v, want [a b c]", got)
 	}
 }

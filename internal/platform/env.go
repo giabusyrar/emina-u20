@@ -9,11 +9,13 @@ package goplatform
 
 import (
 	"bufio"
+	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // LoadDotEnv searches for .env and .env.local files starting from the current
@@ -132,4 +134,39 @@ func Port(serviceVar, platformVar, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// Duration returns key parsed by time.ParseDuration, or def when unset.
+// A malformed or non-positive value is an error, never a silent fallback:
+// every duration configured here is a timeout or a TTL, and zero means
+// "no limit" to net/http and "never expire" to Redis.
+func Duration(key string, def time.Duration) (time.Duration, error) {
+	raw := First(key)
+	if raw == "" {
+		return def, nil
+	}
+	d, err := time.ParseDuration(raw)
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", key, err)
+	}
+	if d <= 0 {
+		return 0, fmt.Errorf("%s: must be positive, got %q", key, raw)
+	}
+	return d, nil
+}
+
+// List returns key split on commas, trimmed, with empty items dropped, or
+// def when unset.
+func List(key string, def []string) []string {
+	raw := First(key)
+	if raw == "" {
+		return def
+	}
+	var out []string
+	for _, item := range strings.Split(raw, ",") {
+		if item = strings.TrimSpace(item); item != "" {
+			out = append(out, item)
+		}
+	}
+	return out
 }
