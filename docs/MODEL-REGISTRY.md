@@ -372,10 +372,11 @@ was never configured or connected at all.
 
 The AI worker's test dependencies — `pytest`, `pytest-asyncio`,
 `pytest-benchmark`, `onnx`, `torch`, `torchvision` — are declared **only** in
-the `[test]` extra of `apps/ai-worker/pyproject.toml`. They are
-deliberately absent from `requirements.txt`, which is what a deployment
-installs: the worker infers with `onnxruntime` and never imports any of them,
-and `torch` alone is several hundred megabytes. Install them explicitly:
+the `[test]` extra of `apps/ai-worker/pyproject.toml` — not in
+`[project].dependencies`, and not in the `cpu`/`gpu` images built from
+`apps/ai-worker/Dockerfile`: the worker infers with `onnxruntime` and never
+imports any of them, and `torch` alone is several hundred megabytes. Install
+them explicitly:
 
 ```bash
 pip install -e "apps/ai-worker[test]"
@@ -396,16 +397,22 @@ This marker filter removes benchmarks and tryon tests by default. Run the suites
 as needed:
 
 - `pytest apps/ai-worker` — collects vision, tryon, and core together (runs with
-  default markers: vision + core, skips tryon)
-- `npm run test:vision` — vision and core tests only (same as above, slower due
-  to model inference)
+  default markers: vision + core, deselects tryon)
+- `npm run test:vision` — vision and core tests only (same selection as above)
 - `npm run test:tryon` — tryon tests (requires torch; about 8 minutes, downloads
   models)
 - `npm run bench:vision` — dispatch benchmarks only
 
-The `tests/test_db_schema.py` suite needs a real Postgres and skips without
-one. Point `TEST_DATABASE_URL` at a **scratch** cluster — never a shared or
-hosted database; it truncates the registry tables between tests.
+The `tests/vision/test_db_schema.py` suite needs a real Postgres and skips
+without one. Point `TEST_DATABASE_URL` at a **scratch** cluster — never a
+shared or hosted database; it truncates the registry tables between tests.
+
+`/health` returns 503 while the registry database is down, or while startup's
+schema-lock wait timed out, and stays that way with no reconnect attempt until
+the process restarts. A platform health check that polls `/health` will
+therefore fail such a deploy — that is intended: `dispatch-zones` cannot serve
+correctly with the registry database unreachable. `/healthz` is unaffected and
+stays 200.
 
 ## What Seagull-web must change
 

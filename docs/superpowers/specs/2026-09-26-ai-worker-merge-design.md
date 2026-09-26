@@ -127,7 +127,10 @@ by `core/settings.py`.
   - With `DATABASE_URL` unset, `database` is `disabled`, which is not a
     failure. This preserves today's local-dev behaviour.
   - With tryon enabled, `checks.gpu` is `available` or `unavailable`. This is
-    informational and never a failure.
+    informational and never a failure. This changes the tryon profile's
+    `/health` body from tryon-engine's `{status, service:"tryon-engine",
+    gpu_available}` shape to the standard one above (`checks.gpu`); no caller
+    in this repository reads it.
   - `GET /healthz` remains an alias when vision is enabled, because vision's
     existing callers use it.
 - **Config:** `core/settings.py` is **one shared, lazily-read `Settings`
