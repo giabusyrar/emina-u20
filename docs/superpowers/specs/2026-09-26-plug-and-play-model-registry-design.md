@@ -255,10 +255,15 @@ All three are env config, not literals at call sites.
 1. Resolve requested capabilities through their bindings to the active models.
    One model bound to four requested capabilities is one entry, not four; an
    unbound capability is reported unsupported and no model runs for it.
-2. Group models by their *input spec*. Every model sharing width, height,
-   color format, layout and normalization shares one preprocessed tensor per
-   zone. Preprocessing is done once per (spec, zone), not once per
-   (capability, zone).
+2. Preprocess per model, not per capability. Four capabilities served by one
+   model share one preprocessing pass over each zone, where today each
+   capability repeats it.
+
+   Sharing a tensor *between* models that happen to declare identical input
+   specs is a further saving and is deliberately not in the first
+   implementation: preprocessing measured at 0.9-1.6 ms against 2-341 ms of
+   inference, so it is not where the budget goes. Revisit only if a profile
+   says otherwise.
 3. For each model, run its applicable zones **as one batch** where the model's
    input allows a dynamic batch dimension, otherwise sequentially. Batching is
    what buys back the headroom the measurements showed disappearing.
