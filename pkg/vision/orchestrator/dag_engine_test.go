@@ -260,6 +260,34 @@ func TestExecute_ResolverErrorStopsBeforeSegmentation(t *testing.T) {
 	assert.Equal(t, 0, client.calls)
 }
 
+func TestExecutedModelsCountDoesNotDoubleCountZones(t *testing.T) {
+	// One capability scored on three zones is one executed model, not three.
+	segmenter := &fakeSegmenter{zonesByWidth: map[int][]workers.SegmentedZone{
+		100: {
+			{ZoneCode: domain.ZoneForehead, ZoneName: "Forehead", BoundingBox: foreheadBox, Confidence: 0.9},
+			{ZoneCode: domain.ZoneLeftCheekOuter, ZoneName: "Left Cheek (Outer)", BoundingBox: leftCheekBox, Confidence: 0.9},
+			{ZoneCode: domain.ZoneChinJawline, ZoneName: "Chin & Jawline", BoundingBox: foreheadBox, Confidence: 0.9},
+		},
+	}}
+	client := &fakeCapabilityClient{result: &inference.DispatchResult{
+		Zones: []inference.ZoneScores{
+			{ZoneCode: domain.ZoneForehead, Telemetry: map[string]float64{"acne": 20}},
+			{ZoneCode: domain.ZoneLeftCheekOuter, Telemetry: map[string]float64{"acne": 30}},
+			{ZoneCode: domain.ZoneChinJawline, Telemetry: map[string]float64{"acne": 40}},
+		},
+	}}
+	plan := &catalog.Plan{Capabilities: []string{"acne"}}
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: plan}, client)
+
+	resp, err := orch.Execute(context.Background(), request(
+		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
+	))
+	require.NoError(t, err)
+
+	assert.Equal(t, 1, resp.ExecutionMetrics.ExecutedModelsCount)
+	assert.Equal(t, 0, resp.ExecutionMetrics.SkippedModelsCount)
+}
+
 func TestExecute_DispatchFailureIsReturned(t *testing.T) {
 	segmenter := &fakeSegmenter{zonesByWidth: map[int][]workers.SegmentedZone{
 		100: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, Confidence: 0.9}},
