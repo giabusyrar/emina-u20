@@ -251,6 +251,13 @@ transaction as the binding change (`app/db.py`, `set_binding` /
   from "explicitly sent" — an explicit `null`, an empty list, or a list of
   nothing but blanks all mean *clear the scoping*, i.e. applies to every
   zone.
+- The response carries the same `warnings` list an upload returns, for the
+  same validation run. Re-speccing a model into a non-fatal but consequential
+  state — a `severity_scalar` export whose raw output exceeds 1.0, so every
+  score it ever produces pins to the top of the scale — used to be **silent**
+  on PATCH while the identical upload warned. The list is empty when the
+  request carried no `runtimeSpec`: nothing was revalidated, so there is
+  nothing to report.
 
 `GET /api/v1/models/download?capability=...` resolves through the **bindings
 table**: it hands back the model actually serving that capability. Several
@@ -327,6 +334,24 @@ lock id is a fixed constant in `app/db.py`; it must stay distinct from any
 advisory-lock id Seagull-gateway takes on this shared database (a collision
 would only serialize unrelated migrations, never corrupt anything).
 
+**The wait for that lock is bounded.** `pg_advisory_lock` blocks forever, and
+a session-level lock is held by the backend of a replica that was OOM-killed
+mid-migration until TCP keepalive reaps that backend — hours, by default.
+`init_pool` is awaited in the startup hook, so blocking there meant the next
+replica never answered `/healthz` and the orchestrator restart-looped the
+whole worker, taking segment-and-pose down with it — the exact outage
+`init_pool` exists to prevent. So `apply_schema` polls
+`pg_try_advisory_lock` to a deadline:
+`MODEL_SCHEMA_LOCK_TIMEOUT_SECONDS`, **default 60s**
+(`Settings.schema_lock_timeout_seconds` in `app/config.py` documents the
+choice — many times the honest worst case for the statement list plus the one-time backfill,
+and far below any deployment's own timeout). On expiry it raises
+`db.SchemaLockTimeout` and **does not run the DDL unlocked** — the statements
+are not race-free, and proceeding would trade a hang for corruption. The
+timeout is recorded exactly like any other migration failure (below), so the
+503 body names it: *another instance appears to hold the registry schema
+migration lock*.
+
 **When it still fails.** A migration can fail for reasons the lock does not
 address — a permissions error, an unreachable database, a table locked by
 something else. `init_pool` deliberately does not take the service down for
@@ -342,6 +367,42 @@ So an operator seeing a 503 from any model endpoint reads the actual cause
 off the response. The bare `Model registry database pool is not initialized`
 now means only "no pool and no recorded schema failure" — i.e. the database
 was never configured or connected at all.
+
+## Running the worker's tests
+
+The worker's test dependencies — `pytest`, `pytest-asyncio`,
+`pytest-benchmark`, `onnx`, `torch`, `torchvision` — are declared **only** in
+the `[test]` extra of `apps/vision-ai-worker/pyproject.toml`. They are
+deliberately absent from `requirements.txt`, which is what a deployment
+installs: the worker infers with `onnxruntime` and never imports any of them,
+and `torch` alone is several hundred megabytes. Install them explicitly:
+
+```bash
+pip install -e "apps/vision-ai-worker[test]"
+pytest apps/vision-ai-worker      # or: npm run test:vision
+```
+
+The dispatch benchmarks are wall-clock measurements (they export a real
+resnet18, and take minutes) and say nothing about correctness, so they are
+deselected from every ordinary run — by the worker's own `addopts`, and by the
+repo-root `pytest.ini`, which exists so that deselection is not reachable only
+from inside the worker directory (pytest resolves its rootdir from the common
+ancestor of the arguments, so a bare root `pytest` never sees the worker's
+config). Run them deliberately:
+
+```bash
+npm run bench:vision
+```
+
+A bare `pytest` from the repository root does **not** work, and that is
+pre-existing: both Python workers ship a top-level `app` package and a
+top-level `tests` package, so whichever is imported first shadows the other and
+every vision test module fails to import. Run the two suites separately
+(`npm run test:vision`, `npm run test:tryon`).
+
+The `tests/test_db_schema.py` suite needs a real Postgres and skips without
+one. Point `TEST_DATABASE_URL` at a **scratch** cluster — never a shared or
+hosted database; it truncates the registry tables between tests.
 
 ## What Seagull-web must change
 
