@@ -22,6 +22,14 @@ const (
 	DefaultVisionDispatchTimeout  = 20 * time.Second // vision/inference/client.go
 	DefaultVisionDAGTimeout       = 30 * time.Second // vision/orchestrator/dag_engine.go
 	DefaultSegmenterTimeout       = 4 * time.Second  // vision/workers/segmenter_worker.go
+
+	// DefaultPort and the URL defaults below are the local-development
+	// defaults that existed before standardization; they match the ports
+	// recorded in docs/PORTS.md.
+	DefaultPort                = "8082"
+	DefaultReferenceServiceURL = "http://127.0.0.1:8086"
+	DefaultVisionAIWorkerURL   = "http://127.0.0.1:8088"
+	DefaultParadevGatewayURL   = "http://127.0.0.1:9080/paradev/scoring"
 )
 
 // defaultCORSAllowHeaders is what core-engine allowed before standardization.
@@ -71,10 +79,10 @@ func FromEnv() (*Config, error) {
 
 	cfg := &Config{
 		CommonConfig:         common,
-		Port:                 goplatform.Port("CORE_ENGINE_PORT", "PORT", "8082"),
-		ReferenceServiceURL:  firstOr("REFERENCE_SERVICE_URL", "http://127.0.0.1:8086"),
-		VisionAIWorkerURL:    firstOr("VISION_AI_WORKER_URL", "http://127.0.0.1:8088"),
-		ParadevGatewayURL:    firstOr("PARADEV_GATEWAY_URL", "http://127.0.0.1:9080/paradev/scoring"),
+		Port:                 goplatform.Port("CORE_ENGINE_PORT", "PORT", DefaultPort),
+		ReferenceServiceURL:  firstOr("REFERENCE_SERVICE_URL", DefaultReferenceServiceURL),
+		VisionAIWorkerURL:    firstOr("VISION_AI_WORKER_URL", DefaultVisionAIWorkerURL),
+		ParadevGatewayURL:    firstOr("PARADEV_GATEWAY_URL", DefaultParadevGatewayURL),
 		ParadevGatewayAPIKey: goplatform.First("PARADEV_GATEWAY_API_KEY"),
 		TryonEngineURL:       goplatform.First("TRYON_ENGINE_URL"),
 	}

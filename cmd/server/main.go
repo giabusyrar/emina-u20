@@ -73,8 +73,9 @@ func run() error {
 	db, rdb := deps.DB, deps.Redis
 
 	// AutoMigrate at error-level logging, as before. Its error used to be
-	// discarded; it is now logged. It is not fatal, because the database is
-	// shared with Seagull-gateway (docs/SHARED-DATABASE.md).
+	// discarded; it is now logged. It stays non-fatal to preserve the previous
+	// startup behaviour; making it fatal is a separate decision, because the
+	// schema is shared with Seagull-gateway (docs/SHARED-DATABASE.md).
 	if err := db.Session(&gorm.Session{Logger: db.Logger.LogMode(gormlogger.Error)}).AutoMigrate(
 		&formEntity.SurveyDefinition{},
 		&scoreEntity.ScoreRuleset{},
