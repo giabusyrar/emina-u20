@@ -57,6 +57,7 @@ Two behaviours break the ground rules in `AGENTS.md`:
    | `pkg/vision/inference/client.go:19` | 20s |
    | `pkg/vision/orchestrator/dag_engine.go:69` | 30s |
    | `pkg/vision/workers/segmenter_worker.go:61` | 4s |
+   | `cmd/server/main.go` (core) | vision catalog cache TTL `time.Minute` |
    | both `pkg/config/config.go` | default `DATABASE_URL` with embedded credentials |
    | `pkg/match/service/match_service.go:348` | `os.Getenv("TRYON_ENGINE_URL")` bypasses config |
 
@@ -150,6 +151,16 @@ apps/reference-service/
   `errors` appears only on validation failures. This is a superset of both
   shapes in use today, so every existing client keeps reading `error`. Clients
   of `form/errors.go` keep reading `success`. No field is removed or renamed.
+  `JSONErrorCode` adds `error_code` for the one handler that already sends it
+  (`EvaluateWithPhotos`, `VISION_UNAVAILABLE`).
+
+  **The vision controller is excluded.** Its bodies are
+  `{"error":"<CODE>","message":"<text>"}`. There, `error` is a machine code,
+  not a message, so folding it into the envelope would change what that field
+  means to its clients. It keeps its shape.
+
+  **reference-service is included.** Its `{"error":msg}` bodies gain
+  `success:false`, which is additive.
 
 ### Configuration
 
@@ -160,13 +171,16 @@ deployed has to set a new variable.
 - **core-engine.** `FORM_CACHE_TTL`, `SCORE_CACHE_TTL`, `MATCH_CACHE_TTL`,
   `SCORE_CLIENT_TIMEOUT`, `PARADEV_TIMEOUT`, `REFERENCE_CLIENT_TIMEOUT`,
   `VISION_DISPATCH_TIMEOUT`, `VISION_DAG_TIMEOUT`, `SEGMENTER_TIMEOUT`,
+  `VISION_CATALOG_TTL`,
   `TRYON_ENGINE_URL`.
-- **Both services.** `DB_SLOW_QUERY_THRESHOLD`, `REDIS_PING_TIMEOUT`,
+- **Both services.** `DB_SLOW_QUERY_THRESHOLD`, `DEPENDENCY_PING_TIMEOUT`
+  (the Postgres and Redis ping at startup and in `/health`),
   `SHUTDOWN_TIMEOUT`, `CORS_ALLOW_ORIGINS`, `CORS_ALLOW_HEADERS`, `LOG_LEVEL`.
 - **reference-service.** `REFERENCE_CACHE_TTL`.
 
-Durations are parsed with `time.ParseDuration`. A malformed value is a startup
-error, not a silent fallback. Constructors that today default a zero value
+Durations are parsed with `time.ParseDuration`. A malformed or non-positive
+value is a startup error, not a silent fallback. (A zero TTL would mean
+"never expire" to Redis.) Constructors that today default a zero value
 internally (`score_cache.go`, `match_cache.go`, `visionclient`) take the value
 from config instead, and the internal defaults are removed so there is exactly
 one definition of each.
@@ -186,9 +200,10 @@ one definition of each.
 ## Sequence
 
 Each step is one commit. `go build ./...` and `go test ./...` pass for both
-modules, and both Docker images build, before the next step starts. Go may not
-be installed locally (`docs/SPLIT.md`), so the Docker builds are the check of
-record.
+modules before the next step starts. Each step also runs the Dockerfile's own
+build command (`CGO_ENABLED=0 GOOS=linux go build`). Docker is not installed
+on the development machine, so **the image builds are verified by the user or
+by Railway**, not by the implementation.
 
 1. **Rename** `packages/goenv` → `packages/goplatform`. Update the `replace`,
    `require`, `go.work` and Dockerfile `COPY` lines. No behaviour change.
@@ -200,9 +215,10 @@ record.
    graceful shutdown, so it proves the pattern.
 4. **core-engine**: `pkg/` → `internal/`. Switch `main.go` to `goplatform`.
    Move all literals and `TRYON_ENGINE_URL` into config.
-5. **core-engine error helpers**: replace per-controller `c.JSON` error writes
-   in form, score, match and vision with `goplatform.JSONError` /
-   `JSONValidationError`.
+5. **Error helpers**: replace per-controller `c.JSON` error writes in
+   core-engine's form, score and match controllers and in reference-service's
+   controller with `goplatform.JSONError` / `JSONErrorCode` /
+   `JSONValidationError`. The vision controller is left alone (see above).
 6. **Docs**: `README.md`, `AGENTS.md`, and the lane map in `docs/LANES.md`
    (`apps/core-engine/pkg/<engine>/` → `apps/core-engine/internal/<engine>/`).
 
@@ -237,6 +253,9 @@ redeploy Reference Data first, confirm healthy, then Core Engine.
   behind a `nil` database. This is intended.
 - **A missing `DATABASE_URL` now fails startup.** Both Railway services already
   set it. Check with `list-variables` before the first deploy.
+- **The reference seeder's slow-query threshold** moves from its own 500ms
+  literal to the shared `DB_SLOW_QUERY_THRESHOLD` (default 2s). It only affects
+  which seeder queries are logged as slow.
 - **Log format changes** from stdlib text to JSON. Anything that parses the
   Railway logs as text (ClickHouse Log ingestion, saved searches) will see a
   different shape.
