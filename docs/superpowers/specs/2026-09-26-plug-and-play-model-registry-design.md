@@ -29,18 +29,33 @@ a small set of adapters, one per output kind, selected by name at run time.
 Uploading a model of a known kind needs no code change; adding a genuinely new
 kind does, and that limit is deliberate.
 
-It also flips the key. Today `vision_models.capability_code` is unique: one
-capability, one model. A multi-class model produces several capabilities at
-once, so a model row instead **declares the capability codes it produces**, and
-lookup runs from capability to the model claiming it.
+It also flips the key twice over. Today `vision_models.capability_code` is
+unique: one capability, one model, and an upload destroys its predecessor.
+Instead:
+
+- A model row **declares the capability codes it produces**, so one multi-class
+  model can serve several.
+- Uploading **adds to a library** rather than replacing anything. Every model
+  ever uploaded stays available.
+- Each capability **points at the model currently serving it**. Switching is a
+  pointer move, instant and reversible; going back to a previous model is the
+  same operation, not a restore.
+
+Activation is **per capability**. A model producing acne, redness and pores can
+be active for acne and redness while a specialist model serves pores. The cost
+of splitting is an extra inference run per zone; the design allows it because
+picking the best model per condition is the point.
 
 ### Out of scope
 
 Deliberately deferred to their own specs, in this order:
 
-1. **Versioning and rollback** — keep every upload, activate one, roll back.
-2. **Swappable built-in four** — face parsing, pose, hijab, landmarks as slots.
-3. **Per-brand model resolution** — a brand overriding a capability's model.
+1. **Swappable built-in four** — face parsing, pose, hijab, landmarks as slots.
+2. **Per-brand model resolution** — a brand overriding a capability's model.
+
+Versioning and rollback are no longer a separate piece of work: a library plus
+an activation pointer gives both, and the previously planned rollback spec is
+absorbed here.
 
 Also out of scope: hosted/API models (no file to upload), user-authored
 transform expressions, and a frontend-reconfigurable pipeline graph.
@@ -73,15 +88,52 @@ the database shared with Seagull-gateway (`docs/SHARED-DATABASE.md`). No other
 repository reads this table; widening it is safe, but the migration stays in
 `db.py` where the table is already defined.
 
+`vision_models` becomes a library: one row per uploaded artifact, nothing
+overwritten. A second table records which model currently serves each
+capability.
+
 ```sql
 ALTER TABLE vision_models ADD COLUMN IF NOT EXISTS runtime_spec JSONB;
 ALTER TABLE vision_models ADD COLUMN IF NOT EXISTS produces TEXT[];
+ALTER TABLE vision_models ADD COLUMN IF NOT EXISTS label TEXT;
+
+CREATE TABLE IF NOT EXISTS vision_capability_bindings (
+  capability_code TEXT PRIMARY KEY,
+  model_id        UUID NOT NULL REFERENCES vision_models(id),
+  activated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  activated_by    TEXT
+);
+
+CREATE TABLE IF NOT EXISTS vision_capability_activation_log (
+  id              BIGSERIAL PRIMARY KEY,
+  capability_code TEXT NOT NULL,
+  model_id        UUID,               -- NULL = deactivated
+  activated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  activated_by    TEXT
+);
 ```
 
-`capability_code` stays, holding the model's primary capability, so existing
-rows keep working and the column keeps its uniqueness during migration.
-`produces` is the authoritative list once set; a row with `produces = NULL` is
-read as `[capability_code]`.
+`capability_code` stays on `vision_models` as the primary capability, so
+existing rows keep working; its uniqueness constraint is dropped once bindings
+are populated. `produces` is authoritative once set; a row with
+`produces = NULL` is read as `[capability_code]`. `label` is a human name for
+the row ("resnet50 384, trained 2026-09") so a library of eight acne models is
+navigable — it is display only and nothing resolves by it.
+
+A capability with no binding row is **unsupported**: absent from results with a
+warning, exactly as an unregistered capability is today. Deactivating is
+therefore a legitimate operation, not an error state.
+
+The activation log exists because "why did scores shift on the 12th" must be
+answerable. It is append-only and never read by the scoring path.
+
+### Retention
+
+Nothing is deleted automatically. A model that was live last month is the thing
+you reach for when this month's is wrong, and an eviction policy that removes
+it silently defeats the feature. The library therefore grows, and two things
+keep that honest: the API reports total library bytes, and deleting a model is
+manual and refused while any capability is bound to it.
 
 A row with `runtime_spec = NULL` is a pre-existing model and runs under the
 legacy contract — 224 RGB 0-1 NCHW, single scalar — which is expressed as an
@@ -158,12 +210,21 @@ anything is stored, and rejects rather than adapts:
    result through the adapter. An adapter that raises, or returns a value
    outside 0-100, fails the upload. This catches a spec that is internally
    consistent but wrong about the model.
-5. **Capability conflict.** If another row already produces one of the declared
-   capabilities, reject with 409 naming the incumbent. Replacing it is an
-   explicit force flag on the request — silent takeover of a capability is how
-   a swap becomes untraceable.
-
 Steps 2-4 mean a model that uploads successfully has demonstrably run once.
+
+There is no conflict check: an upload never displaces anything. Several models
+declaring the same capability is the normal state of a library, and which one
+serves it is decided by activation, separately and explicitly.
+
+### Activation
+
+Activating is a single write to `vision_capability_bindings` plus a log row. It
+takes effect on the next request — no reload, no restart, no cache flush beyond
+dropping nothing (sessions are cached per model, so both old and new stay warm
+and switching back is free).
+
+The API refuses to bind a capability to a model that does not declare it in
+`produces`, which is the one way activation can be wrong.
 
 ### Resource limits
 
@@ -177,8 +238,13 @@ Enforced at upload, configurable, defaulting from the measurements above:
   in the response**, naming the projected dispatch cost. It does not fail: a
   slow model may be a deliberate choice, and refusing it would make this a
   policy decision the deployment cannot override.
-- `MODEL_CACHE_MAX_BYTES` — default 1 GB of loaded sessions, evicted
-  least-recently-used. Today's cache is unbounded.
+- `MODEL_CACHE_MAX_BYTES` — default 1 GB of loaded sessions, keyed by model id
+  and evicted least-recently-used. Today's cache is unbounded and keyed by
+  capability, which a library of candidates would otherwise make unbounded in a
+  second dimension.
+- `MODEL_LIBRARY_WARN_BYTES` — default 10 GB. Not enforced; the listing reports
+  total bytes and flags when the library passes it, so storage growth is
+  visible before it is a bill.
 
 All three are env config, not literals at call sites.
 
@@ -186,8 +252,9 @@ All three are env config, not literals at call sites.
 
 `dispatch-zones` changes from "for each capability, for each zone, run" to:
 
-1. Resolve requested capabilities to the models producing them. One model
-   serving four requested capabilities is now one entry, not four.
+1. Resolve requested capabilities through their bindings to the active models.
+   One model bound to four requested capabilities is one entry, not four; an
+   unbound capability is reported unsupported and no model runs for it.
 2. Group models by their *input spec*. Every model sharing width, height,
    color format, layout and normalization shares one preprocessed tensor per
    zone. Preprocessing is done once per (spec, zone), not once per
@@ -219,10 +286,23 @@ Extends the existing `/api/v1/models` router; no new service.
 | Endpoint | Change |
 |---|---|
 | `GET /kinds` | New. Returns the output kinds, their fields, types and defaults. The upload form is rendered from this, so a new kind needs no web release. |
-| `POST /upload` | Adds `runtimeSpec` (JSON string in the form) and `force`. Absent spec means the legacy default, so the current UI keeps working. |
-| `GET ""` | Rows now carry `runtimeSpec` and `produces`. |
-| `PATCH /{capability}` | Unchanged for zones; also accepts a `runtimeSpec` for editing thresholds without re-uploading the file. Re-runs validation steps 1, 3 and 4. |
-| `DELETE /{capability}` | Unchanged; deletes the model producing that capability, and its other capabilities become unsupported. The response names them. |
+| `POST /upload` | Adds `runtimeSpec` (JSON string in the form), `label`, and `activate` (capability codes to bind on success; empty means upload only). Absent spec means the legacy default. Never displaces an existing model. |
+| `GET ""` | The library: every model, with `runtimeSpec`, `produces`, `label`, size, upload time, and the capabilities it is currently active for. Plus total library bytes. |
+| `GET /capabilities` | New. Every capability code from Reference Data with its bound model, the candidates that could serve it, and when it was last switched. This is what the activation screen renders. |
+| `PUT /capabilities/{code}/binding` | New. Body `{modelId}`. Binds, or rebinds, that capability. 422 if the model does not declare the capability. Rolling back is this call with the older model's id. |
+| `DELETE /capabilities/{code}/binding` | New. Unbinds; the capability becomes unsupported. |
+| `GET /capabilities/{code}/history` | New. The activation log for one capability. |
+| `PATCH /models/{id}` | Zones and `runtimeSpec` edits, by model id. Re-runs validation steps 1, 3 and 4. |
+| `DELETE /models/{id}` | Deletes a library entry and its stored file. Refused with 409 while any capability is bound to it, naming them. |
+
+**Breaking changes for Seagull-web**, which the split makes a cross-repository
+concern: `PATCH /{capability}` and `DELETE /{capability}` are replaced by their
+`/models/{id}` equivalents, because a capability no longer identifies one
+model. `POST /upload` stays compatible in shape, but its meaning changes — the
+model no longer goes live on upload unless `activate` names the capability.
+Both repositories must ship in step. The old paths are kept as stubs returning
+410 with the replacement path in the message, so a stale web build fails
+legibly instead of appearing to work.
 
 ## Error handling
 
@@ -247,8 +327,12 @@ TDD, following the existing suites. New tests:
 - **Validation** — a mismatched declared input size is rejected; a spec whose
   class count exceeds the model's outputs is rejected; a model that raises in
   the adapter is rejected by the smoke run.
-- **Capability conflict** — a second model claiming a taken capability is a 409
-  without `force`, succeeds with it.
+- **Library and activation** — a second model declaring a bound capability
+  uploads without touching the binding; binding switches which model runs;
+  binding to a model that does not declare the capability is rejected;
+  rebinding to the previous model restores the earlier scores exactly;
+  unbinding makes the capability unsupported rather than zero; deleting a bound
+  model is refused, and succeeds once unbound.
 - **Dispatch grouping** — two capabilities from one model cause one inference;
   two models sharing an input spec cause one preprocessing pass; a model with
   `applicable_zones` runs only on those zones.
@@ -263,17 +347,29 @@ capabilities from one model, and the corrected `ExecutedModelsCount`.
 
 ## Migration
 
-1. Add columns; existing rows get `runtime_spec = NULL`, read as `LEGACY_SPEC`.
-2. Ship adapters with `severity_scalar` first, behaviourally identical to
-   today, gated by the legacy regression test.
-3. Add the remaining kinds.
-4. Backfill `produces` from `capability_code`.
-5. Drop the uniqueness constraint on `capability_code` only after `produces` is
-   populated and the conflict check is live, so no window exists where two rows
-   can claim one capability unchecked.
+1. Add columns and both new tables; existing rows get `runtime_spec = NULL`,
+   read as `LEGACY_SPEC`.
+2. Backfill `produces` from `capability_code`, and one binding row per existing
+   model so every capability keeps the model serving it today.
+3. Ship resolution through bindings, plus adapters with `severity_scalar`
+   first, behaviourally identical to today and gated by the legacy regression
+   test.
+4. Drop the uniqueness constraint on `capability_code` only after bindings are
+   populated and resolution reads them, so no window exists in which a second
+   upload could shadow a live model.
+5. Add the remaining output kinds.
+6. Add the library, activation and history endpoints; retire the
+   capability-keyed paths to 410 stubs once Seagull-web ships its screens.
 
-No step requires the frontend to change. The current upload form keeps working
-throughout, sending no spec and getting the legacy contract.
+Steps 1-5 need no frontend change. The current upload form sends no spec and
+no `activate`, and through step 5 that keeps its present meaning: the upload
+binds the capability immediately, as it does today. The difference is that the
+previous model is now kept as a library row instead of being overwritten, so
+the change is invisible except that nothing is lost.
+
+Step 6 is the only coordinated release: the default flips to upload-without-
+activating, and the activation screens in Seagull-web become the way a model
+goes live.
 
 ## Open questions
 
