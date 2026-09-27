@@ -18,7 +18,7 @@ import (
 	// Form Engine
 	formCache "github.com/experience-gateway/apps/core-engine/internal/form/adapters/cache"
 	formControllers "github.com/experience-gateway/apps/core-engine/internal/form/adapters/controllers"
-	formScoreClient "github.com/experience-gateway/apps/core-engine/internal/form/adapters/scoreclient"
+	formScoreEngine "github.com/experience-gateway/apps/core-engine/internal/form/adapters/scoreengine"
 	formVisionClient "github.com/experience-gateway/apps/core-engine/internal/form/adapters/visionclient"
 	formEntity "github.com/experience-gateway/apps/core-engine/internal/form/entity"
 	formRepo "github.com/experience-gateway/apps/core-engine/internal/form/repository"
@@ -41,7 +41,6 @@ import (
 	// Vision Engine
 	visionControllers "github.com/experience-gateway/apps/core-engine/internal/vision/adapters/controllers"
 	visionCatalog "github.com/experience-gateway/apps/core-engine/internal/vision/catalog"
-	visionClient "github.com/experience-gateway/apps/core-engine/internal/vision/client"
 	visionInference "github.com/experience-gateway/apps/core-engine/internal/vision/inference"
 	visionOrchestrator "github.com/experience-gateway/apps/core-engine/internal/vision/orchestrator"
 	visionWorkers "github.com/experience-gateway/apps/core-engine/internal/vision/workers"
@@ -88,20 +87,19 @@ func run() error {
 		deps.Log.Error("automigrate failed", "err", err)
 	}
 
-	// Form Engine
-	formC := formCache.NewSurveyCache(rdb, cfg.FormCacheTTL)
-	fRepo := formRepo.NewSurveyRepo(db)
-	// scoreclient appends /api/scoring/evaluate, so the base must be the host only.
-	scoreClient := formScoreClient.New("http://127.0.0.1:"+cfg.Port, cfg.ScoreClientTimeout)
-	paradevClient := formVisionClient.New(cfg.ParadevGatewayURL, cfg.ParadevGatewayAPIKey, cfg.ParadevTimeout)
-	fService := formService.NewSurveyService(fRepo, formC, scoreClient, paradevClient)
-	formHandler := formControllers.NewSurveyHandler(fService)
-
 	// Score Engine
 	scoreC := scoreCache.NewScoreCache(rdb, cfg.ScoreCacheTTL)
 	sRepo := scoreRepo.NewRulesetRepo(db, scoreC)
 	sService := scoreService.NewScoreService(sRepo)
 	scoreHandler := scoreControllers.NewScoreHandler(sService)
+
+	// Form Engine -- calls the Score Engine above in-process.
+	formC := formCache.NewSurveyCache(rdb, cfg.FormCacheTTL)
+	fRepo := formRepo.NewSurveyRepo(db)
+	scoreEngine := formScoreEngine.New(sService, cfg.ScoreClientTimeout)
+	paradevClient := formVisionClient.New(cfg.ParadevGatewayURL, cfg.ParadevGatewayAPIKey, cfg.ParadevTimeout)
+	fService := formService.NewSurveyService(fRepo, formC, scoreEngine, paradevClient)
+	formHandler := formControllers.NewSurveyHandler(fService)
 
 	// Match Engine
 	matchC := matchCache.NewMatchCache(rdb, cfg.MatchCacheTTL)
@@ -110,10 +108,6 @@ func run() error {
 	matchHandler := matchControllers.NewMatchHandler(mService)
 
 	// Vision Engine Orchestrator
-	visionBridge := visionClient.NewEngineBridge(
-		"http://127.0.0.1:"+cfg.Port+"/core/score-engine",
-		"http://127.0.0.1:"+cfg.Port+"/core/match-engine",
-	)
 	visionReferenceCatalog := visionCatalog.NewCachedCatalog(
 		visionCatalog.NewReferenceClient(cfg.ReferenceServiceURL, cfg.ReferenceClientTimeout),
 		cfg.VisionCatalogTTL,
@@ -125,7 +119,7 @@ func run() error {
 		visionInference.NewHTTPCapabilityClient(cfg.VisionAIWorkerURL, cfg.VisionDispatchTimeout),
 		cfg.VisionDAGTimeout,
 	)
-	visionHandler := visionControllers.NewVisionController(visionOrch, visionReferenceCatalog, visionBridge)
+	visionHandler := visionControllers.NewVisionController(visionOrch, visionReferenceCatalog)
 
 	e := goplatform.NewEcho(goplatform.ServerOptions{
 		Logger:           deps.Log,

@@ -87,7 +87,7 @@ var acnePlan = &catalog.Plan{
 
 func newController(resolver orchestrator.PlanResolver, capabilities inference.CapabilityClient) *controllers.VisionController {
 	orch := orchestrator.NewVisionOrchestrator(stubSegmenter{}, workers.NewOcclusionWorker(), resolver, capabilities, 30*time.Second)
-	return controllers.NewVisionController(orch, stubCatalog{snapshot: &catalog.Snapshot{}}, nil)
+	return controllers.NewVisionController(orch, stubCatalog{snapshot: &catalog.Snapshot{}})
 }
 
 type upload struct {
@@ -208,7 +208,7 @@ func TestVisionController_UnlabelledMultiImage(t *testing.T) {
 func serveRegistry(t *testing.T, referenceCatalog catalog.Catalog) *httptest.ResponseRecorder {
 	t.Helper()
 	orch := orchestrator.NewVisionOrchestrator(stubSegmenter{}, workers.NewOcclusionWorker(), stubResolver{plan: acnePlan}, stubCapabilities{}, 30*time.Second)
-	ctrl := controllers.NewVisionController(orch, referenceCatalog, nil)
+	ctrl := controllers.NewVisionController(orch, referenceCatalog)
 	req := httptest.NewRequest(http.MethodGet, "/api/vision/registry", nil)
 	rec := httptest.NewRecorder()
 	require.NoError(t, ctrl.GetRegistry(echo.New().NewContext(req, rec)))

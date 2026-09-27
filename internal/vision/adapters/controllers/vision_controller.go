@@ -9,7 +9,6 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/experience-gateway/apps/core-engine/internal/vision/catalog"
-	"github.com/experience-gateway/apps/core-engine/internal/vision/client"
 	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
 	"github.com/experience-gateway/apps/core-engine/internal/vision/inference"
 	"github.com/experience-gateway/apps/core-engine/internal/vision/orchestrator"
@@ -18,14 +17,12 @@ import (
 type VisionController struct {
 	orchestrator *orchestrator.VisionOrchestrator
 	catalog      catalog.Catalog
-	bridge       *client.EngineBridge
 }
 
-func NewVisionController(orch *orchestrator.VisionOrchestrator, referenceCatalog catalog.Catalog, bridge *client.EngineBridge) *VisionController {
+func NewVisionController(orch *orchestrator.VisionOrchestrator, referenceCatalog catalog.Catalog) *VisionController {
 	return &VisionController{
 		orchestrator: orch,
 		catalog:      referenceCatalog,
-		bridge:       bridge,
 	}
 }
 

@@ -7,21 +7,30 @@ import (
 	"time"
 
 	"github.com/experience-gateway/apps/core-engine/internal/form/adapters/cache"
-	"github.com/experience-gateway/apps/core-engine/internal/form/adapters/scoreclient"
+	"github.com/experience-gateway/apps/core-engine/internal/form/adapters/scoreengine"
 	"github.com/experience-gateway/apps/core-engine/internal/form/adapters/visionclient"
 	"github.com/experience-gateway/apps/core-engine/internal/form/domain"
 	"github.com/experience-gateway/apps/core-engine/internal/form/entity"
 	"github.com/experience-gateway/apps/core-engine/internal/form/repository"
 )
 
+// ScoreEngine is what the Form Engine needs from the Score Module: resolve a
+// survey's ruleset and score an assembled payload. In the running service it
+// is scoreengine.Adapter, an in-process call into score's ScoreService.
+type ScoreEngine interface {
+	ListRulesets(ctx context.Context, brandID, appID string) ([]scoreengine.Ruleset, error)
+	GetActiveRuleset(ctx context.Context, brandID, appID, code string) (*scoreengine.Ruleset, error)
+	Evaluate(ctx context.Context, req domain.ScoreModuleRequest) (*domain.ScoreModuleResponse, error)
+}
+
 type SurveyService struct {
 	repo         *repository.SurveyRepo
 	cache        *cache.SurveyCache
-	scoreClient  *scoreclient.Client
+	scoreClient  ScoreEngine
 	visionClient *visionclient.Client
 }
 
-func NewSurveyService(repo *repository.SurveyRepo, cache *cache.SurveyCache, scoreClient *scoreclient.Client, visionClient *visionclient.Client) *SurveyService {
+func NewSurveyService(repo *repository.SurveyRepo, cache *cache.SurveyCache, scoreClient ScoreEngine, visionClient *visionclient.Client) *SurveyService {
 	return &SurveyService{
 		repo:         repo,
 		cache:        cache,

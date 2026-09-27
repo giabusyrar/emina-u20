@@ -14,7 +14,7 @@ const (
 	DefaultMatchCacheTTL    = 15 * time.Minute // main.go, and match_cache.go's zero-value default
 	DefaultVisionCatalogTTL = time.Minute      // main.go, NewCachedCatalog
 
-	DefaultScoreClientTimeout = 5 * time.Second // form/adapters/scoreclient
+	DefaultScoreClientTimeout = 5 * time.Second // was the form->score HTTP client timeout; now bounds the in-process call (form/adapters/scoreengine)
 	// main.go and visionclient. Paradev's scoring call runs a synchronous
 	// LLM pass; the reviewed Paradev spec asked for 45-60s.
 	DefaultParadevTimeout         = 50 * time.Second
