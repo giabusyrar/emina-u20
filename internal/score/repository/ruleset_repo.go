@@ -58,14 +58,14 @@ func (r *RulesetRepo) GetActiveRuleset(ctx context.Context, brandID, appID, code
 
 	// 1. Exact match: Brand + App
 	err := r.db.WithContext(ctx).
-		Where("brand_id = ? AND application_id = ? AND code = ? AND status = 'ACTIVE'", brandID, appID, code).
+		Where("brand_id = ? AND application_id = ? AND code = ? AND UPPER(status) = ?", brandID, appID, code, entity.RulesetStatusActive).
 		Order("version desc").
 		First(&ruleset).Error
 
 	// 2. Fallback: Brand + Global App
 	if err != nil && appID != "*" {
 		err = r.db.WithContext(ctx).
-			Where("brand_id = ? AND application_id = '*' AND code = ? AND status = 'ACTIVE'", brandID, code).
+			Where("brand_id = ? AND application_id = '*' AND code = ? AND UPPER(status) = ?", brandID, code, entity.RulesetStatusActive).
 			Order("version desc").
 			First(&ruleset).Error
 	}
@@ -73,7 +73,7 @@ func (r *RulesetRepo) GetActiveRuleset(ctx context.Context, brandID, appID, code
 	// 3. Fallback: Global Brand + Global App
 	if err != nil && brandID != "*" {
 		err = r.db.WithContext(ctx).
-			Where("brand_id = '*' AND application_id = '*' AND code = ? AND status = 'ACTIVE'", code).
+			Where("brand_id = '*' AND application_id = '*' AND code = ? AND UPPER(status) = ?", code, entity.RulesetStatusActive).
 			Order("version desc").
 			First(&ruleset).Error
 	}
@@ -81,7 +81,7 @@ func (r *RulesetRepo) GetActiveRuleset(ctx context.Context, brandID, appID, code
 	// 4. Default fallback: Baumann default model
 	if err != nil {
 		err = r.db.WithContext(ctx).
-			Where("code = ? AND status = 'ACTIVE'", "baumann_16_types").
+			Where("code = ? AND UPPER(status) = ?", "baumann_16_types", entity.RulesetStatusActive).
 			Order("version desc").
 			First(&ruleset).Error
 		if err != nil {
@@ -146,9 +146,7 @@ func (r *RulesetRepo) SaveRuleset(ctx context.Context, item *entity.ScoreRuleset
 	if item.ApplicationID == "" {
 		item.ApplicationID = "*"
 	}
-	if item.Status == "" {
-		item.Status = "ACTIVE"
-	}
+	item.Status = entity.NormalizeRulesetStatus(item.Status)
 
 	now := time.Now()
 	item.UpdatedAt = &now

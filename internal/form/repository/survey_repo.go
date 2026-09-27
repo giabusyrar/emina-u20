@@ -21,7 +21,7 @@ func NewSurveyRepo(db *gorm.DB) *SurveyRepo {
 func (r *SurveyRepo) GetActive(ctx context.Context, brandID, applicationID, code string) (*entity.SurveyDefinition, error) {
 	var row entity.SurveyDefinition
 	err := r.db.WithContext(ctx).
-		Where("brand_id = ? AND application_id = ? AND code = ? AND status = ?", brandID, applicationID, code, "active").
+		Where("brand_id = ? AND application_id = ? AND code = ? AND LOWER(status) = ?", brandID, applicationID, code, entity.SurveyStatusActive).
 		Order("version desc").
 		First(&row).Error
 

@@ -2,6 +2,7 @@ package domain
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 )
 
@@ -87,6 +88,11 @@ type RulesetSchemaWithCode struct {
 	Schema string
 }
 
+// rulesetStatusActive mirrors score/entity.RulesetStatusActive; the Form
+// module does not import the Score module's packages. Compared
+// case-insensitively, since a ruleset saved as "active" is active.
+const rulesetStatusActive = "ACTIVE"
+
 // ResolveRulesetCode finds the active ruleset among candidates whose schema
 // declares form_survey_code == surveyCode (set on the ruleset's own Setup
 // tab) and returns its code. Falls back to surveyCode unchanged when none
@@ -95,7 +101,7 @@ type RulesetSchemaWithCode struct {
 // as before.
 func ResolveRulesetCode(candidates []RulesetSchemaWithCode, surveyCode string) string {
 	for _, rs := range candidates {
-		if rs.Status != "" && rs.Status != "ACTIVE" {
+		if rs.Status != "" && !strings.EqualFold(rs.Status, rulesetStatusActive) {
 			continue
 		}
 		var meta struct {

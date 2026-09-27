@@ -1,6 +1,25 @@
 package entity
 
-import "time"
+import (
+	"strings"
+	"time"
+)
+
+// SurveyStatusActive is the status a survey must have to be served and
+// evaluated. Survey statuses are lowercase (draft | active | archived); rulesets
+// use uppercase (score/entity.RulesetStatusActive).
+const SurveyStatusActive = "active"
+
+// NormalizeSurveyStatus returns status in the canonical survey form: trimmed
+// and lowercase, defaulting to active. Saving "ACTIVE" used to store a survey
+// that GetActive's exact-match lookup could never find.
+func NormalizeSurveyStatus(status string) string {
+	status = strings.ToLower(strings.TrimSpace(status))
+	if status == "" {
+		return SurveyStatusActive
+	}
+	return status
+}
 
 // SurveyDefinition represents a full SurveyJS JSON questionnaire definition
 type SurveyDefinition struct {

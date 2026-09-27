@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/experience-gateway/apps/core-engine/internal/form/domain"
+	"github.com/experience-gateway/apps/core-engine/internal/form/entity"
 	"github.com/experience-gateway/apps/core-engine/internal/form/service"
 	"github.com/experience-gateway/packages/goplatform"
 )
@@ -82,7 +83,7 @@ func (h *SurveyHandler) Save(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"success": true,
 		"code":    req.Code,
-		"status":  req.Status,
+		"status":  entity.NormalizeSurveyStatus(req.Status), // what SaveSurvey stored
 	})
 }
 

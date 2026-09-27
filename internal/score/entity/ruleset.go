@@ -1,8 +1,24 @@
 package entity
 
 import (
+	"strings"
 	"time"
 )
+
+// RulesetStatusActive is the status a ruleset must have to score. Ruleset
+// statuses are uppercase; surveys use lowercase (form/entity.SurveyStatusActive).
+const RulesetStatusActive = "ACTIVE"
+
+// NormalizeRulesetStatus returns status in the canonical ruleset form: trimmed
+// and uppercase, defaulting to ACTIVE. Saving "active" used to store a ruleset
+// the exact-match active lookup could never find.
+func NormalizeRulesetStatus(status string) string {
+	status = strings.ToUpper(strings.TrimSpace(status))
+	if status == "" {
+		return RulesetStatusActive
+	}
+	return status
+}
 
 // ScoreRuleset represents a versioned JDM Decision Model stored in PostgreSQL
 type ScoreRuleset struct {

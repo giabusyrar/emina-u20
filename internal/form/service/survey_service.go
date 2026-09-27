@@ -90,9 +90,7 @@ func (s *SurveyService) SaveSurvey(ctx context.Context, brandID, applicationID, 
 	if title == "" && model.Title != "" {
 		title = model.Title
 	}
-	if status == "" {
-		status = "active"
-	}
+	status = entity.NormalizeSurveyStatus(status)
 
 	row := &entity.SurveyDefinition{
 		BrandID:       brandID,

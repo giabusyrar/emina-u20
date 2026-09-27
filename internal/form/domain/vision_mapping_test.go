@@ -73,3 +73,16 @@ func TestResolveRulesetCode(t *testing.T) {
 		t.Errorf("fallback: got %q, want the survey code unchanged", got)
 	}
 }
+
+func TestResolveRulesetCodeIgnoresStatusCase(t *testing.T) {
+	candidates := []domain.RulesetSchemaWithCode{
+		{Code: "linked_ruleset", Status: "active", Schema: `{"form_survey_code": "q1"}`},
+		{Code: "draft_ruleset", Status: "draft", Schema: `{"form_survey_code": "q2"}`},
+	}
+	if got := domain.ResolveRulesetCode(candidates, "q1"); got != "linked_ruleset" {
+		t.Errorf("a lowercase 'active' ruleset must still link: got %q", got)
+	}
+	if got := domain.ResolveRulesetCode(candidates, "q2"); got != "q2" {
+		t.Errorf("a non-active ruleset must not link: got %q", got)
+	}
+}
