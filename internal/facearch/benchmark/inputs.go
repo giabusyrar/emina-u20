@@ -13,6 +13,8 @@
 package benchmark
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -52,6 +54,9 @@ var (
 	resultColumns   = []string{"image_id", "source", "attribute", "value"}
 )
 
+// utf8BOM is the UTF-8 byte-order mark spreadsheet exports start with.
+var utf8BOM = []byte{0xEF, 0xBB, 0xBF}
+
 // csvRow is one data row by column name, with its 1-based line number.
 type csvRow struct {
 	line   int
@@ -62,16 +67,19 @@ type csvRow struct {
 // order. A UTF-8 byte-order mark (spreadsheet exports) is ignored; fields
 // are trimmed.
 func readCSV(r io.Reader, name string, columns []string) ([]csvRow, error) {
-	cr := csv.NewReader(r)
+	// Drop a UTF-8 byte-order mark before parsing: left in, it sits in front
+	// of a quoted first header cell and breaks the quoting.
+	br := bufio.NewReader(r)
+	if lead, _ := br.Peek(len(utf8BOM)); bytes.Equal(lead, utf8BOM) {
+		_, _ = br.Discard(len(utf8BOM))
+	}
+	cr := csv.NewReader(br)
 	header, err := cr.Read()
 	if errors.Is(err, io.EOF) {
 		return nil, fmt.Errorf("%s: empty file, want header %s", name, strings.Join(columns, ","))
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", name, err)
-	}
-	if len(header) > 0 {
-		header[0] = strings.TrimPrefix(header[0], "\ufeff")
 	}
 	index := map[string]int{}
 	for i, h := range header {

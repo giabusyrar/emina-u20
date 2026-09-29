@@ -28,6 +28,17 @@ func TestReadManifest(t *testing.T) {
 	assert.Equal(t, "second visit", rows[1].Notes)
 }
 
+// A BOM before a quoted first header cell and CRLF line endings, as some
+// spreadsheet exports write them.
+func TestReadManifestBOMQuotedCRLF(t *testing.T) {
+	path := writeFile(t, t.TempDir(), "manifest.csv", bom+"\"image_id\",image_path,subject_id,consent_ref,hijab,notes\r\n"+
+		"a,a.jpg,s1,c-1,no,\r\n")
+	rows, err := benchmark.ReadManifest(path)
+	require.NoError(t, err)
+	require.Len(t, rows, 1)
+	assert.Equal(t, "a", rows[0].ImageID)
+}
+
 func TestReadManifestRejects(t *testing.T) {
 	const header = "image_id,image_path,subject_id,consent_ref,hijab,notes\n"
 	for name, tc := range map[string]struct{ body, want string }{
