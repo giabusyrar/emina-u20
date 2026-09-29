@@ -70,6 +70,11 @@ func storeContract(t *testing.T, s profile.Store) {
 
 	_, err = s.Upsert(ctx, profile.UpsertInput{BrandID: "", ApplicationID: "*", Code: "x", Document: []byte(`{}`)})
 	assert.Error(t, err, "scope is explicit")
+
+	_, err = s.Upsert(ctx, profile.UpsertInput{BrandID: "*", ApplicationID: "app-1", Code: "x", Document: []byte(`{}`)})
+	require.Error(t, err, "*+app is a scope no lookup reads")
+	assert.Contains(t, err.Error(), "brand")
+	assert.Contains(t, err.Error(), "application")
 }
 
 func TestMemoryStoreContract(t *testing.T) {

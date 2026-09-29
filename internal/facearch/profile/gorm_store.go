@@ -10,6 +10,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// upsertLockClass is the class key of a two-key advisory lock. Two-key locks
+// do not share a key space with the ai-worker's single-key schema lock
+// 1581646198 (docs/SHARED-DATABASE.md). It serialises version computation and
+// scope deactivation per brand+app.
+const upsertLockClass int32 = 1581646199
+
 // GormStore keeps profiles in face_architecture_profiles.
 type GormStore struct {
 	db *gorm.DB
@@ -42,6 +48,9 @@ func (s *GormStore) Upsert(ctx context.Context, in UpsertInput) (*FaceArchitectu
 	}
 	var out FaceArchitectureProfile
 	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec("SELECT pg_advisory_xact_lock(?, hashtext(?))", upsertLockClass, in.BrandID+"|"+in.ApplicationID).Error; err != nil {
+			return fmt.Errorf("lock scope: %w", err)
+		}
 		var maxVersion int
 		if err := tx.Model(&FaceArchitectureProfile{}).
 			Where("brand_id = ? AND application_id = ? AND code = ?", in.BrandID, in.ApplicationID, in.Code).

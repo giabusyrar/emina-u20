@@ -9,7 +9,8 @@ import (
 // or *+*. There are no built-in defaults; the handler answers 409.
 var ErrNoActiveProfile = errors.New("no_active_face_architecture_profile")
 
-// UpsertInput is a validated document and the scope to store it under.
+// UpsertInput is a document and the scope to store it under. The store does
+// not validate Document; callers must run profile.Validate first.
 type UpsertInput struct {
 	BrandID       string
 	ApplicationID string
@@ -52,6 +53,9 @@ func Scopes(brandID, appID string) [][2]string {
 func normaliseInput(in UpsertInput) (UpsertInput, error) {
 	if in.BrandID == "" || in.ApplicationID == "" || in.Code == "" {
 		return in, errors.New("brand, application and code are required (use * for any brand or application)")
+	}
+	if in.BrandID == Wildcard && in.ApplicationID != Wildcard {
+		return in, errors.New("brand \"*\" with a specific application is not a scope any lookup reads; use a specific brand or application \"*\"")
 	}
 	if in.Title == "" {
 		in.Title = in.Code
