@@ -84,15 +84,19 @@ func (Shade) TableName() string {
 	return "match_shades"
 }
 
-// ShadeAsset holds the object-storage locations of a Shade's extracted,
+// ShadeAsset holds the object-storage keys of a Shade's extracted,
 // photorealistic UV-space makeup texture maps, produced once by
 // tryon-engine and reused by every live try-on session.
 type ShadeAsset struct {
-	ID           string    `json:"id" gorm:"type:varchar(64);primaryKey"`
-	ShadeID      string    `json:"shadeId" gorm:"type:varchar(64);not null;index"`
-	ColorMapURL  string    `json:"colorMapUrl" gorm:"type:varchar(512);not null"`
-	AlphaMapURL  string    `json:"alphaMapUrl" gorm:"type:varchar(512);not null"`
-	FinishMapURL string    `json:"finishMapUrl" gorm:"type:varchar(512)"`
+	ID      string `json:"id" gorm:"type:varchar(64);primaryKey"`
+	ShadeID string `json:"shadeId" gorm:"type:varchar(64);not null;index"`
+	// Object keys in the tryon texture bucket (e.g. shades/<id>/color.png),
+	// never URLs: GET /shade-assets/:id presigns a fresh link per request.
+	// Nullable so AutoMigrate can add them to a populated table; the legacy
+	// *_url columns are converted and dropped by cmd/shade-asset-keys.
+	ColorMapKey  string    `json:"-" gorm:"type:varchar(512)"`
+	AlphaMapKey  string    `json:"-" gorm:"type:varchar(512)"`
+	FinishMapKey string    `json:"-" gorm:"type:varchar(512)"`
 	CreatedAt    time.Time `json:"createdAt" gorm:"autoCreateTime"`
 }
 

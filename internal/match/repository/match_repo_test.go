@@ -57,8 +57,8 @@ func TestShadeAsset_InMemory(t *testing.T) {
 
 	asset, err := repo.SaveShadeAsset(context.Background(), entity.ShadeAsset{
 		ShadeID:     "shade-1",
-		ColorMapURL: "s3://bucket/shade-1/color.png",
-		AlphaMapURL: "s3://bucket/shade-1/alpha.png",
+		ColorMapKey: "shades/shade-1/color.png",
+		AlphaMapKey: "shades/shade-1/alpha.png",
 	})
 	if err != nil {
 		t.Fatalf("SaveShadeAsset error: %v", err)
@@ -71,8 +71,8 @@ func TestShadeAsset_InMemory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetShadeAsset error: %v", err)
 	}
-	if got.ColorMapURL != asset.ColorMapURL {
-		t.Errorf("GetShadeAsset ColorMapURL = %q, want %q", got.ColorMapURL, asset.ColorMapURL)
+	if got.ColorMapKey != asset.ColorMapKey {
+		t.Errorf("GetShadeAsset ColorMapKey = %q, want %q", got.ColorMapKey, asset.ColorMapKey)
 	}
 
 	byID, err := repo.GetShadeAssetByID(context.Background(), asset.ID)
