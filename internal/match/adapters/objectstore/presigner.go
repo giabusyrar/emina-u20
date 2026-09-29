@@ -15,6 +15,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
+// r2PseudoRegion is the region value Cloudflare R2 requires; it is not an AWS
+// region, so the SDK cannot derive a real host from it.
+const r2PseudoRegion = "auto"
+
 // Presigner turns an object key into a time-limited GET URL.
 type Presigner interface {
 	Presign(ctx context.Context, key string) (string, error)
@@ -43,6 +47,12 @@ func New(c Config) (Presigner, error) {
 	}
 	if c.TTL <= 0 {
 		return nil, errors.New("objectstore: TTL must be positive")
+	}
+	if c.Endpoint == "" && (c.Region == "" || c.Region == r2PseudoRegion) {
+		// Without an endpoint the SDK derives s3.<region>.amazonaws.com, which
+		// for these regions is a host that does not exist: links would look
+		// signed but never work.
+		return nil, fmt.Errorf("objectstore: S3_ENDPOINT is required unless S3_REGION names a real AWS region (got %q)", c.Region)
 	}
 	client := s3.NewFromConfig(aws.Config{
 		Region:      c.Region,

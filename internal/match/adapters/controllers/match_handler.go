@@ -286,13 +286,15 @@ func (h *MatchHandler) ExtractionCallback(c echo.Context) error {
 			FinishMapKey: payload.FinishMapKey,
 		})
 		if err != nil {
-			return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
+			slog.ErrorContext(c.Request().Context(), "save shade asset failed", "shade", shadeID, "err", err)
+			return goplatform.JSONError(c, http.StatusInternalServerError, "could not save extraction result")
 		}
 		target.AssetID = &asset.ID
 	}
 
 	if _, err := h.svc.UpdateShade(c.Request().Context(), *target); err != nil {
-		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
+		slog.ErrorContext(c.Request().Context(), "update shade after extraction failed", "shade", shadeID, "err", err)
+		return goplatform.JSONError(c, http.StatusInternalServerError, "could not save extraction result")
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true})
 }

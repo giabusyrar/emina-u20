@@ -15,9 +15,11 @@ type prefixSource struct {
 // host exists for it, so it never yields the AWS-form prefix.
 const r2PseudoRegion = "auto"
 
-// legacyPrefixes lists the two URL forms ai-worker's removed public_url()
-// ever wrote: {S3_PUBLIC_URL}/{key}, else {endpoint}/{bucket}/{key} with the
-// endpoint defaulting to AWS's regional host.
+// legacyPrefixes lists the URL forms rows may hold. ai-worker's committed
+// public_url() wrote {endpoint}/{bucket}/{key}, with the endpoint defaulting
+// to AWS's regional host. The {S3_PUBLIC_URL}/{key} form covers rows written
+// by an unreleased local variant that read S3_PUBLIC_URL; recognising it only
+// widens matching.
 func legacyPrefixes(s prefixSource) []string {
 	var out []string
 	if p := strings.TrimRight(s.PublicURL, "/"); p != "" {

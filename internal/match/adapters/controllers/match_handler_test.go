@@ -3,13 +3,20 @@ package controllers
 import (
 	"bytes"
 	"context"
+	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	"github.com/experience-gateway/apps/core-engine/internal/match/adapters/objectstore"
 	"github.com/experience-gateway/apps/core-engine/internal/match/entity"
@@ -262,5 +269,79 @@ func TestGetShadeAsset_NoFinishKeyOmitsFinishMapUrl(t *testing.T) {
 	rec := getShadeAsset(t, h, id)
 	if rec.Code != http.StatusOK || bytes.Contains(rec.Body.Bytes(), []byte("finishMapUrl")) {
 		t.Fatalf("status=%d body=%s, want 200 without finishMapUrl", rec.Code, rec.Body.String())
+	}
+}
+
+// failingDriver is a database/sql driver whose reads return one shade row and
+// whose every write fails with a recognisable message, so the callback's 500
+// paths can be driven without a database.
+type failingDriver struct{}
+
+const writeFailureDetail = "pq: secret-internal-detail"
+
+func (failingDriver) Open(string) (driver.Conn, error) { return failingConn{}, nil }
+
+type failingConn struct{}
+
+func (failingConn) Prepare(q string) (driver.Stmt, error) { return failingStmt{}, nil }
+func (failingConn) Close() error                          { return nil }
+func (failingConn) Begin() (driver.Tx, error)             { return nil, errors.New(writeFailureDetail) }
+
+type failingStmt struct{}
+
+func (failingStmt) Close() error  { return nil }
+func (failingStmt) NumInput() int { return -1 }
+func (failingStmt) Exec([]driver.Value) (driver.Result, error) {
+	return nil, errors.New(writeFailureDetail)
+}
+func (failingStmt) Query([]driver.Value) (driver.Rows, error) { return &oneShadeRows{}, nil }
+
+type oneShadeRows struct{ done bool }
+
+func (r *oneShadeRows) Columns() []string { return []string{"id"} }
+func (r *oneShadeRows) Close() error      { return nil }
+func (r *oneShadeRows) Next(dest []driver.Value) error {
+	if r.done {
+		return io.EOF
+	}
+	r.done = true
+	dest[0] = "shade-1"
+	return nil
+}
+
+func TestExtractionCallback_WriteFailureIs500WithoutEcho(t *testing.T) {
+	sql.Register("failing-callback-driver", failingDriver{})
+	sqlDB, err := sql.Open("failing-callback-driver", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	gdb, err := gorm.Open(postgres.New(postgres.Config{Conn: sqlDB}), &gorm.Config{
+		DisableAutomaticPing: true, Logger: logger.Discard,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := NewMatchHandler(service.NewMatchService(repository.NewMatchRepo(gdb), ""), fakePresigner{})
+
+	for name, payload := range map[string]map[string]string{
+		"SaveShadeAsset": {"status": "ready", "colorMapKey": "shades/1/color.png", "alphaMapKey": "shades/1/alpha.png"},
+		"UpdateShade":    {"status": "failed", "reason": "bad"},
+	} {
+		body, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := echo.New().NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues("shade-1")
+		if err := h.ExtractionCallback(c); err != nil {
+			t.Fatalf("%s: ExtractionCallback error: %v", name, err)
+		}
+		if rec.Code != http.StatusInternalServerError {
+			t.Fatalf("%s: status = %d, want 500; body=%s", name, rec.Code, rec.Body.String())
+		}
+		if strings.Contains(rec.Body.String(), "secret-internal-detail") {
+			t.Fatalf("%s: response leaks the internal error: %s", name, rec.Body.String())
+		}
 	}
 }
