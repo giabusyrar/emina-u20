@@ -16,12 +16,10 @@ import (
 )
 
 // recordedAnchors is testdata/anchors_fa-measure-1.json, written from the
-// ai-worker's anchors.py by the script in docs/superpowers/plans/
-// 2026-09-29-face-architecture-guidance.md (Task 1). Regenerate it from the
+// ai-worker's anchors.py by testdata/record_anchors.py. Regenerate it from the
 // repository root with:
 //
-//	PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=apps/ai-worker python /tmp/record_anchors.py \
-//	    > apps/core-engine/internal/facearch/measureclient/testdata/anchors_fa-measure-1.json
+//	python apps/core-engine/internal/facearch/measureclient/testdata/record_anchors.py > apps/core-engine/internal/facearch/measureclient/testdata/anchors_fa-measure-1.json
 type recordedAnchors struct {
 	Source     string           `json:"source"`
 	Sha256     string           `json:"sha256"`
@@ -29,6 +27,8 @@ type recordedAnchors struct {
 	EyeCorners map[string]int   `json:"eyeCorners"`
 	Regions    map[string][]int `json:"regions"`
 }
+
+const regenCmd = "python apps/core-engine/internal/facearch/measureclient/testdata/record_anchors.py > apps/core-engine/internal/facearch/measureclient/testdata/anchors_fa-measure-1.json"
 
 func loadRecordedAnchors(t *testing.T) recordedAnchors {
 	t.Helper()
@@ -67,7 +67,7 @@ func TestRecordingMatchesAiWorkerAnchorsSource(t *testing.T) {
 	require.NoError(t, err, "the ai-worker source %s must be in this checkout (same repository)", r.Source)
 	sum := sha256.Sum256(bytes.ReplaceAll(src, []byte("\r\n"), []byte("\n")))
 	assert.Equal(t, r.Sha256, hex.EncodeToString(sum[:]),
-		"%s changed since testdata/anchors_fa-measure-1.json was recorded: regenerate it (see recordedAnchors) and update anchors.go", r.Source)
+		"%s changed since testdata/anchors_fa-measure-1.json was recorded: regenerate it from the repository root with `%s` and update anchors.go", r.Source, regenCmd)
 }
 
 func TestRegionsOf(t *testing.T) {

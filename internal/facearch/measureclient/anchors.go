@@ -9,7 +9,11 @@ import "sort"
 // for guidance resolution and validation, and pinned by anchors_test.go
 // against testdata/anchors_fa-measure-1.json and the SHA-256 of anchors.py:
 // if anchors.py changes, that test fails until the recording is regenerated
-// (command in the test) and this table is brought back in line.
+// (from the repository root, run
+//
+//	python apps/core-engine/internal/facearch/measureclient/testdata/record_anchors.py > apps/core-engine/internal/facearch/measureclient/testdata/anchors_fa-measure-1.json
+//
+// ) and this table is brought back in line.
 
 // NLandmarks is the number of FaceLandmarker points the worker returns
 // (anchors.N_LANDMARKS: 468 mesh points plus 10 iris points).
