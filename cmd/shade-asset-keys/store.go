@@ -39,7 +39,7 @@ func countColumns(db *gorm.DB, names ...string) (int, error) {
 }
 
 // unkeyedRows counts rows that still hold a URL with no key to replace it.
-// Legacy rows without a finish map hold '' rather than NULL, so an empty
+// Legacy rows without a finish map hold an empty string rather than NULL, so an empty
 // URL counts as absent.
 const unkeyedRows = "SELECT count(*) FROM " + table + " WHERE " +
 	"(NULLIF(color_map_url, '') IS NOT NULL AND (color_map_key IS NULL OR color_map_key = '')) OR " +
