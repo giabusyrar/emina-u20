@@ -156,15 +156,19 @@ because it already owns per-brand configuration in the database.
 ### Files
 
 - `vision/models/face_landmarker.py` — MediaPipe FaceLandmarker (Tasks API,
-  image mode, one face, iris refinement, transformation matrix). Loaded once
-  at profile startup; missing model means the endpoint answers 503. There is
-  no synthetic fallback.
+  image mode, iris refinement, transformation matrix). It asks for up to two
+  faces (`num_faces=2`) so that several faces are detected and refused rather
+  than one measured at random. Loaded at profile startup; missing model means
+  the endpoint answers 503, and loading is retried on the next request. There
+  is no synthetic fallback.
 - `vision/facegeom/manifests/*.json` — one manifest per supported model file,
   matched by the file's SHA-256: name, variant, licence, source URL,
   `landmarkErrorIod` (single-image range from the model card), `maxRollDeg`
   (8, model card out-of-scope limit). These are properties of one exact model
   file, so a model with no matching manifest is refused (503) rather than
-  measured with another model's error figures.
+  measured with another model's error figures. Manifests ship inside the
+  Python package (pyproject `package-data`, read through
+  `importlib.resources`), not next to the model file.
 - `vision/facegeom/` — pure numpy, no I/O:
   - `anchors.py` — the named mapping from mesh index to the point it stands
     in for (table below), one module, versioned, sources cited.
@@ -185,7 +189,7 @@ docstring. Defaults are flagged under Open literals.
 
 | Setting | Meaning |
 |---|---|
-| `VISION_FACE_LANDMARKER_PATH` | Path to `face_landmarker.task`; manifest is read from the same directory. |
+| `VISION_FACE_LANDMARKER_PATH` | Path to `face_landmarker.task`. Its manifest is matched by SHA-256 from the package's `facegeom/manifests/`, not from this directory. |
 | `FACE_MEASURE_MAX_YAW_DEG`, `FACE_MEASURE_MAX_PITCH_DEG` | Pose gate (product policy). |
 | `FACE_MEASURE_MIN_IOD_PX` | Minimum eye-centre distance in pixels (resolution gate). |
 | `FACE_MEASURE_NOISE_SAMPLES` | Perturbation samples for noise bands. |
@@ -204,9 +208,17 @@ docstring. Defaults are flagged under Open literals.
    `jaw`, `brows`, `eyes`, `nose`, `lips`. Each is `observed`, `occluded` or
    `unknown`. Colour consistency can only judge skin regions (`forehead`,
    `contour_*`, `jaw`); feature regions (eyes, brows, nose, lips) are always
-   `unknown` in v1, their values computed and marked so. v1 detector: compare the CIELAB colour statistics inside each
-   region's mesh polygon with a cheek reference patch; beyond
-   `FACE_MEASURE_OCCLUSION_DELTA_E` the region is `occluded`. The detector sits
+   `unknown` in v1, their values computed and marked so. v1 detector: compare
+   the mean CIELAB colour of each skin region's sample with a mid-cheek
+   reference (two disks); beyond `FACE_MEASURE_OCCLUSION_DELTA_E` (CIE76) the
+   region is `occluded`. The sample is part of the detector's definition:
+   forehead and jaw use their mesh polygon shrunk toward its own centroid;
+   `contour_*` use an inward strip (the outline chain lerped 0.2 to 0.4 toward
+   the nose tip), because the chain itself lies on the outline over ear, hair
+   and background; and every skin sample excludes the brow, eye, nose and lip
+   hulls dilated by 0.08 IOD, so make-up (the jaw polygon encloses the mouth)
+   is never read as cover. With the threshold unset (the default) only
+   out-of-frame regions are ever `occluded`. The detector sits
    behind an interface so the existing hijab detector can replace it if the
    licence audit clears it.
    **Out of frame.** A region with any landmark outside the image is
@@ -216,12 +228,25 @@ docstring. Defaults are flagged under Open literals.
    menton), so a cropped chin is treated like a covered one.
 5. **Measure.** Every catalogue entry declares the regions it needs. If any is
    `occluded`, the entry is returned with `visibility: "occluded"` and no
-   value. `unknown` computes the value and marks it `unknown`.
-6. **Noise bands.** Perturb every landmark with isotropic Gaussian noise whose
-   standard deviation is the upper bound of the manifest's
-   `landmarkErrorIod`, `FACE_MEASURE_NOISE_SAMPLES` times, seeded from the
-   image hash so a result is reproducible. The band is the 5th-95th percentile
-   of the recomputed values.
+   value. `unknown` computes the value and marks it `unknown`. The canonical
+   frame itself is built from the eye corners, so when `eyes` is `occluded`
+   every measurement is withheld with reason
+   `canonical frame requires region eyes`. A definition that is undefined for
+   this face (a zero divisor, no brow tail) returns no value, visibility
+   `unknown` and reason `degenerate geometry`; nothing non-finite reaches the
+   response.
+6. **Noise bands.** Perturb every landmark with independent isotropic
+   Gaussian noise, `FACE_MEASURE_NOISE_SAMPLES` times, seeded from the image
+   hash so a result is reproducible. The per-axis sigma comes from the
+   manifest's worst regional mean error (`landmarkErrorIod.singleImageMax`)
+   through the Rayleigh mean: sigma = error × IOD / sqrt(pi/2). The band is
+   the noise spread re-centred on the measured value:
+   `value + (P5 − P50)` to `value + (P95 − P50)` of the recomputed values, so
+   it always contains the value; it is not a confidence interval of the true
+   value. Percentiles ignore undefined samples; if fewer than 90% of samples
+   are finite the band is `null`. Real landmark error is spatially correlated,
+   so this independent-noise model makes bands conservative (wide) for local
+   measures.
 
 ### Anchor mapping (initial)
 
@@ -236,7 +261,7 @@ what each point is a proxy for.
 | `glabella` | midpoint of 9 and 8 | glabella (mid brow band; 168 sits at eye level, nearer nasion, on the fixture face) |
 | `nose_tip` | 1 | pronasale |
 | `subnasale` | 2 | subnasale |
-| `alar_r`, `alar_l` | 98, 327 | alare |
+| `alar_base_r`, `alar_base_l` | 98, 327 | nostril base, a proxy for alare (widest alar point); 129/358 are candidates but unverified, so the alar width ratios are `proxy: true` |
 | `exo_r`, `exo_l` | 33, 263 | exocanthion |
 | `endo_r`, `endo_l` | 133, 362 | endocanthion |
 | `iris_r`, `iris_l` | 468, 473 | iris centre |
@@ -302,7 +327,7 @@ banded. It never changes a definition. A definition change bumps
   "model": {"name": "face_landmarker", "version": "...", "manifestSha256": "..."},
   "quality": {
     "rollDeg": 2.1, "yawDeg": -4.0, "pitchDeg": 3.2, "iodPx": 118,
-    "gatesPassed": ["face_count", "roll", "yaw", "pitch", "iod_px"],
+    "gatesPassed": ["roll", "yaw", "pitch", "iod_px"],
     "warnings": ["perspective_not_corrected"]
   },
   "regions": {"forehead": "occluded", "jaw": "observed", "...": "..."},
@@ -323,9 +348,11 @@ banded. It never changes a definition. A definition change bumps
 sets `landmarks=true`; core-engine always sets it, because guidance polygons
 need it.
 
-`GET /api/v1/face-measure/catalogue` returns every key with unit, required
-regions, `proxy`, `supported` and `catalogueVersion`. core-engine validates
-profiles against it.
+`GET /api/v1/face-measure/catalogue` returns every key with unit, `shape`
+(`"scalar"` for a number, `"list"` for a list of numbers: `fifths`,
+`jaw_contour_angles`), required regions, landmarks, `proxy`, `supported` and
+`catalogueVersion`. core-engine validates profiles against it, including
+shape, instead of keeping its own table of list-valued keys.
 
 ### Errors
 
@@ -334,7 +361,7 @@ profiles against it.
 | No model file or manifest | 503 `face_landmarker_unavailable` |
 | Unreadable image | 400 |
 | Zero or several faces | 422 `face_count` |
-| Any gate failed | 422 with `failedGates[{gate, value, limit}]` |
+| Any gate failed | 422 with `failedGates[{gate, value, limit, passed}]` |
 
 ## Interpretation layer (core-engine)
 
@@ -605,11 +632,13 @@ Each is config or profile data, named, documented and defined once:
 | Value | Where | Proposed default and source |
 |---|---|---|
 | Pose gate yaw / pitch | ai-worker env | 15° / 15°. Product policy: the ICAO ±5° (U) is too strict for selfies; 3D tolerance studies (±16° yaw, U) do not transfer to 2D. To be tightened from benchmark gate-rejection data. |
-| Minimum eye-centre distance | ai-worker env | 60 px. Keeps the model card's ~3% IOD error under ~2 px. Policy. |
+| Minimum eye-centre distance | ai-worker env | 60 px. At 60 px the model card's worst regional mean error (3.85% IOD) is about 2.3 px. Policy. |
 | Noise samples | ai-worker env | 64. Compute cost vs band stability; no accuracy claim. |
 | Occlusion ΔE threshold | ai-worker env | No default. While unset the detector reports every region `unknown` and adds a `visibility_detector_unconfigured` warning, so values are computed but never presented as observed. Set it from the fixture and the first benchmark images (hijab slice). |
 | Seed profile centres, spreads, trait thresholds, templates | seed JSON | Consumer face-shape heuristics and Perfect Corp's published contour guidance, each cited in `calibration.sources`; labelled uncalibrated in every response. |
 | `blendMargin` | profile | 0.6, Zafar & Popa 2016. |
+| Visibility sampling geometry | code, `visibility.py` | Sampling-definition constants, not policy: region shrink 0.2, contour strip 0.2-0.4 toward the nose tip, feature exclusion 0.08 IOD (`_FEATURE_EXCLUSION_IOD`), cheek reference at 0.5 with radius 0.12 IOD, minimum 20 pixels. Starting values from synthetic scenes and the fixture, not fitted; changing one changes what `regionDeltaE` means, so the threshold must be recalibrated. |
+| Minimum finite sample fraction | code, `noise.py` | 0.9 (`_MIN_FINITE_SAMPLE_FRACTION`). Band-definition choice: below it a band is `null` rather than drawn from a biased subset. |
 
 Facts kept in code or the model manifest, not config: the anchor mapping
 (MediaPipe topology), the eye-centre definition and landmark error (model
