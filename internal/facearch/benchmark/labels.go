@@ -149,6 +149,8 @@ type LabelSet struct {
 	// NoConsensus counts, per attribute, images that raters labelled
 	// without reaching a consensus.
 	NoConsensus map[string]int
+	// MinConsensusRaters is the rule the rater consensus was built with.
+	MinConsensusRaters int
 }
 
 // BuildLabels maps results through the label map. A vendor value the map
@@ -166,6 +168,8 @@ func BuildLabels(results []ResultRow, m *LabelMap, targets map[string]Target, mi
 		Abstained:   map[string]map[string]int{},
 		Unmapped:    map[string]int{},
 		NoConsensus: map[string]int{},
+
+		MinConsensusRaters: minConsensusRaters,
 	}
 	var problems []string
 	for _, r := range results {
