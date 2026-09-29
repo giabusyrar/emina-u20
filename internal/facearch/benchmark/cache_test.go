@@ -3,6 +3,7 @@ package benchmark_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -103,4 +104,74 @@ func TestPutCatalogueRefusesSilentDefinitionChange(t *testing.T) {
 	require.NoError(t, err)
 	_, err = empty.Catalogue()
 	assert.ErrorIs(t, err, os.ErrNotExist)
+}
+
+const fixSHA = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+func newTestCache(t *testing.T) (*benchmark.Cache, string) {
+	dir := t.TempDir()
+	c, err := benchmark.NewCache(dir, testModel, "fa-measure/1")
+	require.NoError(t, err)
+	return c, dir
+}
+
+func TestPutRefusesBodyThatDisagreesWithCache(t *testing.T) {
+	c, dir := newTestCache(t)
+	body := measureBody(map[string]any{"width_length_ratio": 0.75})
+	err := c.Put(benchmark.Record{ImageSHA256: fixSHA, ModelSHA256: testModel, CatalogueVersion: "fa-measure/2", Status: 200, Body: body})
+	assert.ErrorContains(t, err, "does not belong")
+	// Record and cache agree on a catalogue the body does not carry.
+	c2, err := benchmark.NewCache(dir, testModel, "fa-measure/2")
+	require.NoError(t, err)
+	err = c2.Put(benchmark.Record{ImageSHA256: fixSHA, ModelSHA256: testModel, CatalogueVersion: "fa-measure/2", Status: 200, Body: body})
+	assert.ErrorContains(t, err, "cached body is catalogue fa-measure/1, record says fa-measure/2")
+	other := strings.Repeat("cd", 32)
+	c3, err := benchmark.NewCache(dir, other, "fa-measure/1")
+	require.NoError(t, err)
+	err = c3.Put(benchmark.Record{ImageSHA256: fixSHA, ModelSHA256: other, CatalogueVersion: "fa-measure/1", Status: 200, Body: body})
+	assert.ErrorContains(t, err, "cached body is model "+testModel)
+	entries, _ := os.ReadDir(dir)
+	assert.Empty(t, entries, "nothing written")
+}
+
+func TestNumbersSurviveTheCacheTextually(t *testing.T) {
+	c, _ := newTestCache(t)
+	body := measureBody(map[string]any{"a": 0.5})
+	body = []byte(strings.Replace(string(body), `"value":0.5`, `"value":1e-7,"x":0.30000000000000004,"y":1.0`, 1))
+	require.NoError(t, c.Put(benchmark.Record{ImageSHA256: fixSHA, ModelSHA256: testModel, CatalogueVersion: "fa-measure/1", Status: 200, Body: body}))
+	rec, ok, err := c.Get(fixSHA)
+	require.NoError(t, err)
+	require.True(t, ok)
+	for _, lit := range []string{`1e-7`, `0.30000000000000004`, `1.0`} {
+		assert.Contains(t, string(rec.Body), lit)
+	}
+}
+
+func TestPutNeverReplacesFinalWithNonFinal(t *testing.T) {
+	c, _ := newTestCache(t)
+	good := benchmark.Record{ImageSHA256: fixSHA, ModelSHA256: testModel, CatalogueVersion: "fa-measure/1", Status: 200, Body: measureBody(map[string]any{"a": 0.5})}
+	require.NoError(t, c.Put(good))
+	err := c.Put(benchmark.Record{ImageSHA256: fixSHA, ModelSHA256: testModel, CatalogueVersion: "fa-measure/1", Status: 503, Body: noModelBody})
+	assert.ErrorIs(t, err, benchmark.ErrFinalRecordExists)
+	rec, _, err := c.Get(fixSHA)
+	require.NoError(t, err)
+	assert.Equal(t, 200, rec.Status)
+
+	// Non-final over non-final, and final over non-final, are allowed.
+	other := strings.Repeat("1", 64)
+	nf := benchmark.Record{ImageSHA256: other, ModelSHA256: testModel, CatalogueVersion: "fa-measure/1", Status: 503, Body: noModelBody}
+	require.NoError(t, c.Put(nf))
+	require.NoError(t, c.Put(nf))
+	nf.Status, nf.Body = 422, gateBody
+	require.NoError(t, c.Put(nf))
+}
+
+func TestImageSHAIsValidated(t *testing.T) {
+	c, _ := newTestCache(t)
+	for _, bad := range []string{"", "../x", strings.ToUpper(fixSHA), fixSHA[:63]} {
+		_, _, err := c.Get(bad)
+		assert.ErrorContains(t, err, "64 lowercase hex digits", bad)
+		err = c.Put(benchmark.Record{ImageSHA256: bad, ModelSHA256: testModel, CatalogueVersion: "fa-measure/1", Status: 422, Body: gateBody})
+		assert.ErrorContains(t, err, "64 lowercase hex digits", bad)
+	}
 }

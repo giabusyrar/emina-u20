@@ -54,9 +54,10 @@ type Record struct {
 	Body             json.RawMessage `json:"body"`
 }
 
-// Final reports whether measure should skip this image next time. A 503
-// says the worker had no model, not something about the image, so it is
-// recorded (evaluate counts it) but measured again on the next run.
+// Final reports whether measure should skip this image next time. Every
+// status except 503 is final. A 503 is explicitly NON-final: it says the
+// worker was unavailable (no usable model), not something about the image,
+// so it is recorded (evaluate counts it) but measured again on the next run.
 func (r *Record) Final() bool { return r.Status != 503 }
 
 // Outcome classifies the record.
@@ -107,6 +108,18 @@ func (r *Record) Response() (*measureclient.Response, error) {
 }
 
 var sha256Hex = regexp.MustCompile(`^[0-9a-f]{64}$`)
+
+// ErrFinalRecordExists is returned by Put when a non-final record (a 503)
+// would replace a final one. The final record is kept and nothing is
+// written; callers may ignore this error with errors.Is.
+var ErrFinalRecordExists = errors.New("a final record already exists; a non-final record never replaces it")
+
+func checkImageSHA256(s string) error {
+	if !sha256Hex.MatchString(s) {
+		return fmt.Errorf("image SHA-256 must be 64 lowercase hex digits, got %q", s)
+	}
+	return nil
+}
 
 // Cache holds records for one model (manifest SHA-256) and one catalogue
 // version, keyed by image SHA-256:
@@ -164,6 +177,9 @@ func FileSHA256(path string) (string, error) {
 
 // Get returns the record for an image, or ok false when there is none.
 func (c *Cache) Get(imageSHA256 string) (*Record, bool, error) {
+	if err := checkImageSHA256(imageSHA256); err != nil {
+		return nil, false, err
+	}
 	raw, err := os.ReadFile(filepath.Join(c.base(), imageSHA256+".json"))
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil, false, nil
@@ -181,11 +197,29 @@ func (c *Cache) Get(imageSHA256 string) (*Record, bool, error) {
 	return &r, true, nil
 }
 
-// Put writes a record (replacing any earlier one) through a temporary
-// file, so an interrupted run never leaves half a record.
+// Put writes a record through a temporary file, so an interrupted run never
+// leaves half a record. It replaces an earlier record, except that a
+// non-final record never replaces a final one (ErrFinalRecordExists). A 200
+// record's body must itself carry the cache's model and catalogue version;
+// otherwise nothing is written.
 func (c *Cache) Put(r Record) error {
 	if r.ModelSHA256 != c.modelSHA256 || r.CatalogueVersion != c.catalogueVersion {
 		return fmt.Errorf("record for model %s catalogue %s does not belong in cache for %s %s", r.ModelSHA256, r.CatalogueVersion, c.modelSHA256, c.catalogueVersion)
+	}
+	if err := checkImageSHA256(r.ImageSHA256); err != nil {
+		return err
+	}
+	if r.Status == 200 {
+		if _, err := r.Response(); err != nil {
+			return fmt.Errorf("record refused: %w", err)
+		}
+	}
+	if !r.Final() {
+		if old, ok, err := c.Get(r.ImageSHA256); err != nil {
+			return err
+		} else if ok && old.Final() {
+			return fmt.Errorf("image %s: %w", r.ImageSHA256, ErrFinalRecordExists)
+		}
 	}
 	raw, err := json.MarshalIndent(r, "", "  ")
 	if err != nil {

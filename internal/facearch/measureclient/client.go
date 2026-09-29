@@ -47,8 +47,12 @@ type Client struct {
 // New returns a Client for the ai-worker at baseURL (VISION_AI_WORKER_URL).
 func New(baseURL string, timeout time.Duration) *Client {
 	return &Client{
-		baseURL:    strings.TrimRight(baseURL, "/"),
-		httpClient: &http.Client{Timeout: timeout},
+		baseURL: strings.TrimRight(baseURL, "/"),
+		httpClient: &http.Client{
+			Timeout: timeout,
+			// Never follow a redirect: images only go to the configured URL.
+			CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+		},
 	}
 }
 

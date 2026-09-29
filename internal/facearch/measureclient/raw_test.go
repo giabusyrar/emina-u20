@@ -73,3 +73,21 @@ func TestCatalogueRaw(t *testing.T) {
 	_, err = mc.New(bad.URL, time.Second).CatalogueRaw(context.Background())
 	assert.ErrorIs(t, err, mc.ErrUnavailable)
 }
+
+func TestNeverFollowsRedirects(t *testing.T) {
+	hit := false
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { hit = true }))
+	defer target.Close()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, target.URL+r.URL.Path, http.StatusTemporaryRedirect)
+	}))
+	defer srv.Close()
+	c := mc.New(srv.URL, time.Second)
+
+	status, _, err := c.MeasureRaw(context.Background(), []byte("x"), "f.jpg")
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusTemporaryRedirect, status)
+	_, err = c.Measure(context.Background(), []byte("x"), "f.jpg")
+	assert.ErrorIs(t, err, mc.ErrUnavailable)
+	assert.False(t, hit, "the redirect target received nothing")
+}
