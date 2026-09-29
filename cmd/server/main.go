@@ -44,6 +44,11 @@ import (
 	visionInference "github.com/experience-gateway/apps/core-engine/internal/vision/inference"
 	visionOrchestrator "github.com/experience-gateway/apps/core-engine/internal/vision/orchestrator"
 	visionWorkers "github.com/experience-gateway/apps/core-engine/internal/vision/workers"
+
+	// Face Architecture
+	"github.com/experience-gateway/apps/core-engine/internal/facearch"
+	faceMeasure "github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
+	faceProfile "github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
 )
 
 const serviceName = "core-engine"
@@ -83,6 +88,7 @@ func run() error {
 		&matchEntity.ProductGroup{},
 		&matchEntity.Shade{},
 		&matchEntity.ShadeAsset{},
+		&faceProfile.FaceArchitectureProfile{},
 	); err != nil {
 		deps.Log.Error("automigrate failed", "err", err)
 	}
@@ -120,6 +126,12 @@ func run() error {
 		cfg.VisionDAGTimeout,
 	)
 	visionHandler := visionControllers.NewVisionController(visionOrch, visionReferenceCatalog)
+
+	// Face Architecture (measurements from the ai-worker, per-brand profile)
+	faceArchHandler := facearch.NewHandler(
+		faceMeasure.New(cfg.VisionAIWorkerURL, cfg.FaceMeasureTimeout),
+		faceProfile.NewGormStore(db),
+	)
 
 	e := goplatform.NewEcho(goplatform.ServerOptions{
 		Logger:           deps.Log,
@@ -195,6 +207,7 @@ func run() error {
 		g.POST("/evaluate", visionHandler.AnalyzeImage)
 		g.GET("/config/:brandId/:applicationId", visionHandler.GetConfig)
 		g.GET("/registry", visionHandler.GetRegistry)
+		g.POST("/face-architecture/:brandId/:applicationId", faceArchHandler.Analyze)
 	}
 	mountVisionRoutes(e.Group("/core/vision-engine"))
 	mountVisionRoutes(e.Group("/api/v1/vision"))

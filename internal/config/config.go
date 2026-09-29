@@ -32,6 +32,14 @@ const (
 	DefaultParadevGatewayURL   = "http://127.0.0.1:9080/paradev/scoring"
 )
 
+// DefaultFaceMeasureTimeout bounds one synchronous ai-worker face-measure
+// call (facearch/measureclient): landmarker plus FACE_MEASURE_NOISE_SAMPLES
+// re-measurements. Unlike the defaults above it is new, not a moved
+// literal, and no latency has been measured yet: it is the same bound as
+// DefaultVisionDispatchTimeout, the other synchronous ai-worker model call,
+// until benchmark timings replace it.
+const DefaultFaceMeasureTimeout = 20 * time.Second
+
 // defaultCORSAllowHeaders is what core-engine allowed before standardization.
 var defaultCORSAllowHeaders = []string{"*"}
 
@@ -62,6 +70,7 @@ type Config struct {
 	VisionDispatchTimeout  time.Duration
 	VisionDAGTimeout       time.Duration
 	SegmenterTimeout       time.Duration
+	FaceMeasureTimeout     time.Duration
 }
 
 // Load reads .env files (see goplatform.LoadDotEnv), then the environment.
@@ -102,6 +111,7 @@ func FromEnv() (*Config, error) {
 		{"VISION_DISPATCH_TIMEOUT", DefaultVisionDispatchTimeout, &cfg.VisionDispatchTimeout},
 		{"VISION_DAG_TIMEOUT", DefaultVisionDAGTimeout, &cfg.VisionDAGTimeout},
 		{"SEGMENTER_TIMEOUT", DefaultSegmenterTimeout, &cfg.SegmenterTimeout},
+		{"FACE_MEASURE_TIMEOUT", DefaultFaceMeasureTimeout, &cfg.FaceMeasureTimeout},
 	} {
 		if *d.dst, err = goplatform.Duration(d.key, d.def); err != nil {
 			return nil, err
