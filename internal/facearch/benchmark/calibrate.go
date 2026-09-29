@@ -284,7 +284,7 @@ func Calibrate(in CalibrateInput) (*CalibrateResult, error) {
 		BenchmarkRunID: &runID,
 		Target:         &target,
 		HeldOutMetrics: metrics,
-		Sources:        append(keptSources(in.Base.Doc.Calibration.Sources, fit.Owners, in.Base.SHA256, in.RunID), fit.Sources...),
+		Sources:        append(keptSources(in.Base.Doc, fit.Owners, in.Base.SHA256, in.RunID), fit.Sources...),
 	}
 	if err := profile.Validate(doc, in.Catalogue); err != nil {
 		return nil, fmt.Errorf("calibrated profile does not validate: %w", err)
@@ -306,37 +306,93 @@ func Calibrate(in CalibrateInput) (*CalibrateResult, error) {
 // A kept source whose For is an ancestor of a fitted number (e.g. a class,
 // its prototype, or a trait's rules) may still quote the base's centres,
 // spreads or bands, so its Note is prefixed with SupersededPrefix. Other
-// kept sources are unchanged.
-func keptSources(base []profile.Source, owners []string, baseSHA, runID string) []profile.Source {
+// kept sources are unchanged. A source that names a trait rule by its
+// label (traits.<key>.rules.<label>...) is read as naming every rule of
+// the base profile with that label (traits.<key>.rules.<i>...).
+func keptSources(doc *profile.Document, owners []string, baseSHA, runID string) []profile.Source {
 	out := []profile.Source{}
-	for _, s := range base {
+	for _, s := range doc.Calibration.Sources {
 		refitted, ancestor := false, false
-		for _, o := range owners {
-			if s.For == o || strings.HasPrefix(s.For, o+".") {
-				refitted = true
-				break
-			}
-			if strings.HasPrefix(o, s.For+".") {
-				ancestor = true
+		for _, p := range sourcePaths(doc, s.For) {
+			for _, o := range owners {
+				if p == o || strings.HasPrefix(p, o+".") {
+					refitted = true
+				}
+				if strings.HasPrefix(o, p+".") {
+					ancestor = true
+				}
 			}
 		}
 		if refitted {
 			continue
 		}
 		if ancestor {
-			s.Note = SupersededPrefix(baseSHA, runID) + s.Note
+			s.Note = SupersededPrefix(baseSHA, runID) + stripSupersededPrefix(s.Note)
 		}
 		out = append(out, s)
 	}
 	return out
 }
 
+// sourcePaths returns the index paths a source's For stands for: For
+// itself, or, when it names a trait rule by label, one path per base rule
+// with that label (the rest of the path kept).
+func sourcePaths(doc *profile.Document, path string) []string {
+	parts := strings.SplitN(path, ".", 5)
+	if len(parts) < 4 || parts[0] != "traits" || parts[2] != "rules" {
+		return []string{path}
+	}
+	rest := ""
+	if len(parts) == 5 {
+		rest = "." + parts[4]
+	}
+	var out []string
+	for _, tr := range doc.Traits {
+		if tr.Key != parts[1] {
+			continue
+		}
+		for i, r := range tr.Rules {
+			if r.Label == parts[3] {
+				out = append(out, fmt.Sprintf("traits.%s.rules.%d%s", tr.Key, i, rest))
+			}
+		}
+	}
+	if len(out) == 0 {
+		return []string{path}
+	}
+	return out
+}
+
+const (
+	supersededHead = "Base profile "
+	supersededMid  = ": centres, spreads and thresholds named here are superseded by face-benchmark run "
+	supersededTail = " (see the sources beneath this path); this source still covers weights, requires, labels, operators and rule order. "
+)
+
 // SupersededPrefix is prepended to the Note of a kept base source that
 // sits above a fitted number, so the numbers it quotes are not read as
 // current.
 func SupersededPrefix(baseSHA, runID string) string {
-	return "Base profile " + baseSHA + ": centres, spreads and thresholds named here are superseded by face-benchmark run " +
-		runID + " (see the sources beneath this path); this source still covers weights, requires, labels, operators and rule order. "
+	return supersededHead + baseSHA + supersededMid + runID + supersededTail
+}
+
+// stripSupersededPrefix removes a leading SupersededPrefix (any base sha,
+// any run id), so recalibrating replaces the prefix instead of stacking
+// another.
+func stripSupersededPrefix(note string) string {
+	rest, ok := strings.CutPrefix(note, supersededHead)
+	if !ok {
+		return note
+	}
+	sha, rest, ok := strings.Cut(rest, supersededMid)
+	if !ok || sha == "" || strings.ContainsAny(sha, " :") {
+		return note
+	}
+	run, rest, ok := strings.Cut(rest, supersededTail)
+	if !ok || run == "" || strings.Contains(run, " ") {
+		return note
+	}
+	return rest
 }
 
 // heldOutMetrics scores a profile on the held-out items against the

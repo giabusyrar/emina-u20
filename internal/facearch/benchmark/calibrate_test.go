@@ -382,6 +382,8 @@ func TestCalibrateTheShippedSeed(t *testing.T) {
 		"classifiers.faceShape.classes.Oval",
 		"traits.noseWidth.rules",
 		"traits.eyeShape.rules",
+		// Names a rule by label: an ancestor of that rule's fitted values.
+		"traits.lipShape.rules.Wide",
 	} {
 		require.Contains(t, seedNotes, p)
 		assert.Equal(t, prefix+seedNotes[p], got[p], p)
@@ -394,6 +396,36 @@ func TestCalibrateTheShippedSeed(t *testing.T) {
 		require.Contains(t, seedNotes, p)
 		assert.Equal(t, seedNotes[p], got[p], p)
 	}
+}
+
+// Calibrating an already calibrated profile replaces the superseded
+// prefix instead of stacking a second one.
+func TestCalibrateRecalibrationKeepsOnePrefix(t *testing.T) {
+	f, hashes, results := calibrationSet(t)
+	cat := facearchtest.Catalogue()
+	run := func(base *benchmark.ProfileFile, runID string) *benchmark.CalibrateResult {
+		res, err := benchmark.Calibrate(benchmark.CalibrateInput{Items: f.items(t), Hashes: hashes, Base: base,
+			Labels: f.labels(t, base, results), Target: "perfectcorp", Catalogue: cat, Params: testParams(), RunID: runID})
+		require.NoError(t, err)
+		return res
+	}
+	first := run(f.profile(t, testDoc), "fb-first")
+	second := f.profile(t, string(first.JSON))
+	res := run(second, "fb-second")
+
+	want := benchmark.SupersededPrefix(second.SHA256, "fb-second")
+	checked := 0
+	for _, s := range res.Doc.Calibration.Sources {
+		n := strings.Count(s.Note, "superseded by face-benchmark run")
+		switch s.For {
+		case "classifiers.faceShape.classes.Long", "traits.noseWidth.rules":
+			assert.Equal(t, want, s.Note, s.For)
+			checked++
+		}
+		assert.LessOrEqual(t, n, 1, s.For)
+		assert.NotContains(t, s.Note, "fb-first", s.For)
+	}
+	assert.Equal(t, 2, checked)
 }
 
 func heldOutItems(ids ...string) []benchmark.Item {
