@@ -21,7 +21,7 @@ const seedPath = "seed/seagull-default-uncalibrated.json"
 func TestValidateSeed(t *testing.T) {
 	code, out, errOut := runCLI(testDeps(nil), "validate", seedPath)
 	require.Equal(t, 0, code, errOut)
-	assert.Contains(t, out, "valid against fa-measure/1 (1 classifiers, 10 traits, 0 guidance templates, 0 guidance rules, calibration uncalibrated)")
+	assert.Contains(t, out, "valid against fa-measure/1 (1 classifiers, 10 traits, 11 guidance templates, 7 guidance rules, calibration uncalibrated)")
 }
 
 func TestUpsertSeedAsGlobalDefault(t *testing.T) {

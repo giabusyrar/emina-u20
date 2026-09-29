@@ -29,7 +29,25 @@
       {"cite": "placeholder pending benchmark (no source)", "for": "traits.lipShape.rules", "note": "Heavy Upper Lip at upper_lower_lip_ratio > 1.0 follows from the words (upper lip taller than lower). Every other lipShape threshold (tilt > 5 deg, ratio < 0.5, fullness > 0.45 / > 0.5 / < 0.3, bow depth > 0.05) and the rule order have no source."},
       {"cite": "Farkas et al. 1985 neoclassical canon (mouth width = 1.5 x nasal width)", "for": "traits.lipShape.rules.Wide", "note": "alar_width_to_mouth_ratio 0.667 = 1/1.5 centres Wide (< 0.60) and Narrow (> 0.75); the band edges are placeholders pending benchmark. The measurement uses the nostril-base points (ALAR_BASE, mesh 98/327), a proxy for alare (proxy: true), so the canon centre is applied to a proxy of the width it defines."},
       {"cite": "Farkas et al. 1985 neoclassical canon (nasal width = intercanthal width)", "for": "traits.noseWidth.rules", "note": "Centre 1.0 from the canon. The +/-0.1 Average band is a placeholder pending benchmark (no source). alar_width_to_intercanthal_ratio uses the nostril-base points (ALAR_BASE, mesh 98/327), a proxy for alare (proxy: true), so the canon centre is applied to a proxy of the width it defines."},
-      {"cite": "Equal facial thirds canon (Jayaratne et al. 2012 found it met in 0% of 103 adults: a heuristic midpoint, not a norm)", "for": "traits.noseLength.rules", "note": "Equal middle and lower thirds give nose_length_ratio 0.5. The +/-0.03 Average band is a placeholder pending benchmark (no source)."}
+      {"cite": "Equal facial thirds canon (Jayaratne et al. 2012 found it met in 0% of 103 adults: a heuristic midpoint, not a norm)", "for": "traits.noseLength.rules", "note": "Equal middle and lower thirds give nose_length_ratio 0.5. The +/-0.03 Average band is a placeholder pending benchmark (no source)."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (perfectcorp.com/business/blog/makeup/ai-face-shape-finder-recommend-contour-for-different-face-shapes, read 2026-09-29): contour on the sides of the forehead (Round, Oval, Square, Heart)", "for": "guidance.templates.contour_forehead_side_r", "note": "Placement words sourced; geometry ours, uncalibrated: the outline from mesh 103 through 54 to 21, closed by an inner edge at lerp t 0.35 toward the brow (105) and 0.3 / 0.25 toward the forehead midline (151). No source gives a width."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29): contour on the sides of the forehead (Round, Oval, Square, Heart)", "for": "guidance.templates.contour_forehead_side_l", "note": "Mirror of contour_forehead_side_r (332, 284, 251; brow 334; midline 151), same t values; geometry ours, uncalibrated."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29): contour beneath / under the cheekbones (Round, Oval, Heart; 'contour diagonally under the cheekbone')", "for": "guidance.templates.contour_cheek_hollow_r", "note": "Placement words sourced; geometry ours, uncalibrated: a tapered band from the outline just below the oval extreme (234, a face-width proxy, not zygion) diagonally toward the mouth corner (61), upper edge lerp t 0.1 to 0.5 on 234-61, lower edge t 0.05 to 0.35 on 93-61."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29): contour beneath / under the cheekbones (Round, Oval, Heart)", "for": "guidance.templates.contour_cheek_hollow_l", "note": "Mirror of contour_cheek_hollow_r (454, 323, 291), same t values; geometry ours, uncalibrated."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29): contour along the jawline (Round, Square)", "for": "guidance.templates.contour_jaw_r", "note": "Placement words sourced; geometry ours, uncalibrated: the jaw outline 58-172-150 and the same points lerped t 0.15 toward the nose tip (1). The mesh has no gonion; 172 is a jaw-width proxy."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29): contour along the jawline (Round, Square)", "for": "guidance.templates.contour_jaw_l", "note": "Mirror of contour_jaw_r (288, 397, 379), same t; geometry ours, uncalibrated."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29): highlight the center of the forehead (Oval, Square, Heart)", "for": "guidance.templates.highlight_forehead_centre", "note": "Placement words sourced; geometry ours, uncalibrated: a diamond on the forehead midline, top lerp t 0.2 from mesh top (10, not the hairline) toward 151, sides t 0.35 from 151 toward 338 / 109, bottom t 0.7 from 151 toward 9 (above the brow band)."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29): highlight the nose (Oval) / nose bridge (its general highlighting list)", "for": "guidance.templates.highlight_nose_bridge", "note": "Placement words sourced; geometry ours, uncalibrated: a strip from 168 to lerp t 0.7 from 6 toward the nose tip (1), 0.03 IOD either side of the landmarks."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29): highlight the chin (Oval, Heart)", "for": "guidance.templates.highlight_chin", "note": "Placement words sourced; geometry ours, uncalibrated: a diamond below the lower lip (17) toward menton (152), top t 0.3, bottom t 0.75, sides t 0.35 from 377 / 148 toward 17."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29): highlight the cheekbones (Square)", "for": "guidance.templates.highlight_cheekbone_r", "note": "Placement words sourced; geometry ours, uncalibrated: a triangle above the cheek hollow, vertices lerped toward the nose tip (1) from 127 (t 0.12), from the outer eye corner 33 (t 0.3) and from 234 (t 0.2)."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29): highlight the cheekbones (Square)", "for": "guidance.templates.highlight_cheekbone_l", "note": "Mirror of highlight_cheekbone_r (356, 263, 454), same t; geometry ours, uncalibrated."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29), Contour for Round Face", "for": "guidance.rules.round-contour", "note": "Placements sourced (sides of the forehead, jawline, beneath the cheekbones). Intensity 0.6 is a placeholder pending benchmark (no source; the page gives shade depth, 1-2 tones darker, not an amount). The page names no highlight for Round, so the seed gives Round none."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29), Contour for Oval Face", "for": "guidance.rules.oval-contour", "note": "Placements sourced (sides of the forehead, under the cheekbones). Intensity 0.6 is a placeholder pending benchmark (no source)."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29), Contour for Oval Face", "for": "guidance.rules.oval-highlight", "note": "Placements sourced (center of the forehead, nose, chin). Intensity 0.5 is a placeholder pending benchmark (no source)."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29), Contour for Square Face", "for": "guidance.rules.square-contour", "note": "Placements sourced (jawline, sides of the forehead). Intensity 0.6 is a placeholder pending benchmark (no source)."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29), Contour for Square Face", "for": "guidance.rules.square-highlight", "note": "Placements sourced (center of the forehead, cheekbones). Intensity 0.5 is a placeholder pending benchmark (no source)."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29), Contour for Heart-Shaped Face", "for": "guidance.rules.heart-contour", "note": "Placements sourced (sides of the forehead, beneath the cheekbones). Intensity 0.6 is a placeholder pending benchmark (no source)."},
+      {"cite": "Perfect Corp, AI Face Shape Analyzer for Contour & Makeup (read 2026-09-29), Contour for Heart-Shaped Face", "for": "guidance.rules.heart-highlight", "note": "Placements sourced (center of the forehead, chin). Intensity 0.5 is a placeholder pending benchmark (no source)."}
     ]
   },
   "measurementsShown": [
@@ -136,5 +154,59 @@
     {"key": "noseLength", "default": "Average", "rules": [
       {"label": "Long", "when": [{"measurement": "nose_length_ratio", "op": ">", "value": 0.53}]},
       {"label": "Short", "when": [{"measurement": "nose_length_ratio", "op": "<", "value": 0.47}]}]}
-  ]
+  ],
+  "guidance": {
+    "templates": {
+      "contour_forehead_side_r": {"role": "contour", "points": [
+        {"index": 103}, {"index": 54}, {"index": 21},
+        {"lerp": [21, 105, 0.35]}, {"lerp": [54, 151, 0.3]}, {"lerp": [103, 151, 0.25]}]},
+      "contour_forehead_side_l": {"role": "contour", "points": [
+        {"index": 332}, {"index": 284}, {"index": 251},
+        {"lerp": [251, 334, 0.35]}, {"lerp": [284, 151, 0.3]}, {"lerp": [332, 151, 0.25]}]},
+      "contour_cheek_hollow_r": {"role": "contour", "points": [
+        {"lerp": [234, 61, 0.1]}, {"lerp": [234, 61, 0.5]}, {"lerp": [93, 61, 0.35]}, {"lerp": [93, 61, 0.05]}]},
+      "contour_cheek_hollow_l": {"role": "contour", "points": [
+        {"lerp": [454, 291, 0.1]}, {"lerp": [454, 291, 0.5]}, {"lerp": [323, 291, 0.35]}, {"lerp": [323, 291, 0.05]}]},
+      "contour_jaw_r": {"role": "contour", "points": [
+        {"index": 58}, {"index": 172}, {"index": 150},
+        {"lerp": [150, 1, 0.15]}, {"lerp": [172, 1, 0.15]}, {"lerp": [58, 1, 0.15]}]},
+      "contour_jaw_l": {"role": "contour", "points": [
+        {"index": 288}, {"index": 397}, {"index": 379},
+        {"lerp": [379, 1, 0.15]}, {"lerp": [397, 1, 0.15]}, {"lerp": [288, 1, 0.15]}]},
+      "highlight_forehead_centre": {"role": "highlight", "points": [
+        {"lerp": [10, 151, 0.2]}, {"lerp": [151, 338, 0.35]}, {"lerp": [151, 9, 0.7]}, {"lerp": [151, 109, 0.35]}]},
+      "highlight_nose_bridge": {"role": "highlight", "points": [
+        {"index": 168, "offsetIod": [-0.03, 0]}, {"index": 168, "offsetIod": [0.03, 0]},
+        {"lerp": [6, 1, 0.7], "offsetIod": [0.03, 0]}, {"lerp": [6, 1, 0.7], "offsetIod": [-0.03, 0]}]},
+      "highlight_chin": {"role": "highlight", "points": [
+        {"lerp": [17, 152, 0.3]}, {"lerp": [377, 17, 0.35]}, {"lerp": [17, 152, 0.75]}, {"lerp": [148, 17, 0.35]}]},
+      "highlight_cheekbone_r": {"role": "highlight", "points": [
+        {"lerp": [127, 1, 0.12]}, {"lerp": [33, 1, 0.3]}, {"lerp": [234, 1, 0.2]}]},
+      "highlight_cheekbone_l": {"role": "highlight", "points": [
+        {"lerp": [356, 1, 0.12]}, {"lerp": [263, 1, 0.3]}, {"lerp": [454, 1, 0.2]}]}
+    },
+    "rules": [
+      {"id": "round-contour", "when": {"faceShape": ["Round"]}, "textKeys": ["facearch.guidance.round.contour"], "apply": [
+        {"template": "contour_forehead_side_r", "intensity": 0.6}, {"template": "contour_forehead_side_l", "intensity": 0.6},
+        {"template": "contour_jaw_r", "intensity": 0.6}, {"template": "contour_jaw_l", "intensity": 0.6},
+        {"template": "contour_cheek_hollow_r", "intensity": 0.6}, {"template": "contour_cheek_hollow_l", "intensity": 0.6}]},
+      {"id": "oval-contour", "when": {"faceShape": ["Oval"]}, "textKeys": ["facearch.guidance.oval.contour"], "apply": [
+        {"template": "contour_forehead_side_r", "intensity": 0.6}, {"template": "contour_forehead_side_l", "intensity": 0.6},
+        {"template": "contour_cheek_hollow_r", "intensity": 0.6}, {"template": "contour_cheek_hollow_l", "intensity": 0.6}]},
+      {"id": "oval-highlight", "when": {"faceShape": ["Oval"]}, "textKeys": ["facearch.guidance.oval.highlight"], "apply": [
+        {"template": "highlight_forehead_centre", "intensity": 0.5}, {"template": "highlight_nose_bridge", "intensity": 0.5},
+        {"template": "highlight_chin", "intensity": 0.5}]},
+      {"id": "square-contour", "when": {"faceShape": ["Square"]}, "textKeys": ["facearch.guidance.square.contour"], "apply": [
+        {"template": "contour_jaw_r", "intensity": 0.6}, {"template": "contour_jaw_l", "intensity": 0.6},
+        {"template": "contour_forehead_side_r", "intensity": 0.6}, {"template": "contour_forehead_side_l", "intensity": 0.6}]},
+      {"id": "square-highlight", "when": {"faceShape": ["Square"]}, "textKeys": ["facearch.guidance.square.highlight"], "apply": [
+        {"template": "highlight_forehead_centre", "intensity": 0.5},
+        {"template": "highlight_cheekbone_r", "intensity": 0.5}, {"template": "highlight_cheekbone_l", "intensity": 0.5}]},
+      {"id": "heart-contour", "when": {"faceShape": ["Heart"]}, "textKeys": ["facearch.guidance.heart.contour"], "apply": [
+        {"template": "contour_forehead_side_r", "intensity": 0.6}, {"template": "contour_forehead_side_l", "intensity": 0.6},
+        {"template": "contour_cheek_hollow_r", "intensity": 0.6}, {"template": "contour_cheek_hollow_l", "intensity": 0.6}]},
+      {"id": "heart-highlight", "when": {"faceShape": ["Heart"]}, "textKeys": ["facearch.guidance.heart.highlight"], "apply": [
+        {"template": "highlight_forehead_centre", "intensity": 0.5}, {"template": "highlight_chin", "intensity": 0.5}]}
+    ]
+  }
 }
