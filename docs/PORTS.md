@@ -12,6 +12,7 @@ services from two repos still collide on the same machine.
 | 8086 | reference-service | Seagull-core |
 | 8088 | ai-worker (vision profile) | Seagull-core |
 | 8090 | ai-worker (tryon profile) | Seagull-core |
+| 8092 | ai-worker (colour profile) | Seagull-core |
 | 9080 | APISIX (data plane) | Seagull-gateway |
 | 9180 | APISIX (Admin API) | Seagull-gateway |
 | 2379 | etcd | Seagull-gateway |

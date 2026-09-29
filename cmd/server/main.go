@@ -27,6 +27,8 @@ import (
 	// Score Engine
 	scoreCache "github.com/experience-gateway/apps/core-engine/internal/score/adapters/cache"
 	scoreControllers "github.com/experience-gateway/apps/core-engine/internal/score/adapters/controllers"
+	scoreVisionProvider "github.com/experience-gateway/apps/core-engine/internal/score/adapters/visionprovider"
+	scoreDomain "github.com/experience-gateway/apps/core-engine/internal/score/domain"
 	scoreEntity "github.com/experience-gateway/apps/core-engine/internal/score/entity"
 	scoreRepo "github.com/experience-gateway/apps/core-engine/internal/score/repository"
 	scoreService "github.com/experience-gateway/apps/core-engine/internal/score/service"
@@ -37,6 +39,14 @@ import (
 	matchEntity "github.com/experience-gateway/apps/core-engine/internal/match/entity"
 	matchRepo "github.com/experience-gateway/apps/core-engine/internal/match/repository"
 	matchService "github.com/experience-gateway/apps/core-engine/internal/match/service"
+
+	// Colour Engine (WCPA personal colour analysis + photo try-on)
+	colourControllers "github.com/experience-gateway/apps/core-engine/internal/colour/adapters/controllers"
+	colourWorker "github.com/experience-gateway/apps/core-engine/internal/colour/adapters/workerclient"
+	colourDomain "github.com/experience-gateway/apps/core-engine/internal/colour/domain"
+	colourEntity "github.com/experience-gateway/apps/core-engine/internal/colour/entity"
+	colourRepo "github.com/experience-gateway/apps/core-engine/internal/colour/repository"
+	colourService "github.com/experience-gateway/apps/core-engine/internal/colour/service"
 
 	// Vision Engine
 	visionControllers "github.com/experience-gateway/apps/core-engine/internal/vision/adapters/controllers"
@@ -83,6 +93,7 @@ func run() error {
 		&matchEntity.ProductGroup{},
 		&matchEntity.Shade{},
 		&matchEntity.ShadeAsset{},
+		&colourEntity.ShadeColorimetry{},
 	); err != nil {
 		deps.Log.Error("automigrate failed", "err", err)
 	}
@@ -100,6 +111,14 @@ func run() error {
 	paradevClient := formVisionClient.New(cfg.ParadevGatewayURL, cfg.ParadevGatewayAPIKey, cfg.ParadevTimeout)
 	fService := formService.NewSurveyService(fRepo, formC, scoreEngine, paradevClient)
 	formHandler := formControllers.NewSurveyHandler(fService)
+
+	// Unified evaluate (Fase 3+4): Score Engine now owns the whole evaluate
+	// pipeline, reaching into Form Engine's survey lookup and a vision
+	// provider registry — currently just Paradev, wrapped around the same
+	// visionclient.Client the pre-Fase-5 form-engine orchestration still uses.
+	visionProviderRegistry := scoreDomain.NewVisionProviderRegistry(scoreVisionProvider.NewParadev(paradevClient))
+	sService.WithEvaluateV2Deps(fService, visionProviderRegistry)
+	evaluateV2Handler := scoreControllers.NewEvaluateV2Handler(sService)
 
 	// Match Engine
 	matchC := matchCache.NewMatchCache(rdb, cfg.MatchCacheTTL)
@@ -120,6 +139,21 @@ func run() error {
 		cfg.VisionDAGTimeout,
 	)
 	visionHandler := visionControllers.NewVisionController(visionOrch, visionReferenceCatalog)
+
+	// Colour Engine. A missing or invalid WCPA config disables only these
+	// routes (503 with the reason), not the whole service.
+	var colourHandler *colourControllers.Handler
+	colourCfg, colourCfgErr := colourDomain.LoadConfig(cfg.WCPAConfigPath)
+	if colourCfgErr != nil {
+		deps.Log.Warn("colour engine disabled", "err", colourCfgErr)
+	} else {
+		colourHandler = colourControllers.NewHandler(colourService.New(
+			colourCfg,
+			colourRepo.New(db),
+			colourWorker.New(cfg.ColourWorkerURL, cfg.ColourWorkerTimeout),
+			cfg.ColourDebugEnabled,
+		), cfg.ColourMaxImageBytes)
+	}
 
 	e := goplatform.NewEcho(goplatform.ServerOptions{
 		Logger:           deps.Log,
@@ -152,6 +186,7 @@ func run() error {
 	mountScoreRoutes := func(g *echo.Group) {
 		g.GET("/health", health)
 		g.POST("/evaluate", scoreHandler.Evaluate)
+		g.POST("/evaluate/:code", evaluateV2Handler.Evaluate)
 		g.POST("/simulate", scoreHandler.Simulate)
 		g.GET("/rulesets", scoreHandler.ListRulesets)
 		g.GET("/rulesets/active", scoreHandler.GetActiveRuleset)
@@ -199,6 +234,26 @@ func run() error {
 	mountVisionRoutes(e.Group("/core/vision-engine"))
 	mountVisionRoutes(e.Group("/api/v1/vision"))
 	mountVisionRoutes(e.Group("/api/vision"))
+
+	// --- COLOUR ENGINE (WCPA) ---
+	mountColourRoutes := func(g *echo.Group) {
+		if colourHandler == nil {
+			disabled := colourControllers.Disabled(colourCfgErr)
+			g.GET("/health", colourControllers.DisabledHealth(serviceName, colourCfgErr))
+			g.POST("/analyze", disabled)
+			g.POST("/tryon", disabled)
+			g.GET("/catalog", disabled)
+			g.GET("/quadrants", disabled)
+			return
+		}
+		g.GET("/health", health)
+		g.POST("/analyze", colourHandler.Analyze)
+		g.POST("/tryon", colourHandler.TryOn)
+		g.GET("/catalog", colourHandler.Catalog)
+		g.GET("/quadrants", colourHandler.Quadrants)
+	}
+	mountColourRoutes(e.Group("/core/colour-engine"))
+	mountColourRoutes(e.Group("/api/colour"))
 
 	return goplatform.Run(ctx, e, ":"+cfg.Port, cfg.ShutdownTimeout)
 }

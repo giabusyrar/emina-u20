@@ -144,6 +144,14 @@ func (s *SurveyService) Evaluate(ctx context.Context, code string, req domain.Su
 }
 
 func (s *SurveyService) EvaluateWithModel(ctx context.Context, survey *domain.SurveyModel, req domain.SurveyEvaluateRequest) (*domain.EvaluationOutput, error) {
+	// isRequired is only enforced when answers were actually submitted — a
+	// vision-only call (no data at all) never fails this check.
+	if len(req.Data) > 0 {
+		if verrs := domain.ValidateRequiredAnswers(survey, req.Data); verrs.HasErrors() {
+			return nil, verrs
+		}
+	}
+
 	answerList, dimensionRefs, customerCondition, labels, err := domain.ExtractEvaluationData(survey, req.Data)
 	if err != nil {
 		return nil, err

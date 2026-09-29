@@ -1,0 +1,113 @@
+{
+  "version": "wcpa-2026-09-28",
+  "source": "wcpa_pipeline_colab.ipynb §1, §5-§8; shade bands from the WCPA 'Shade Classification Score' slide (2026-09-28)",
+
+  "quadrants": [
+    { "code": "HV_LC", "technicalName": "High Value x Low Chroma" },
+    { "code": "HV_HC", "technicalName": "High Value x High Chroma" },
+    { "code": "MM",    "technicalName": "Moderate x Moderate" },
+    { "code": "LV_LC", "technicalName": "Low Value x Low Chroma" },
+    { "code": "LV_HC", "technicalName": "Low Value x High Chroma" }
+  ],
+
+  "person": {
+    "status": "placeholder",
+    "note": "[KARANGAN] in the notebook. Anchored around the Indonesian average V 5.85; to be calibrated from cube_readings.csv + analyst labels.",
+    "valueHigh": 6.3, "valueLow": 5.4,
+    "chromaHigh": 5.5, "chromaLow": 4.3,
+    "centres": {
+      "HV_LC": [6.8, 3.8], "HV_HC": [6.8, 6.0], "MM": [5.85, 4.9],
+      "LV_LC": [4.9, 3.8], "LV_HC": [4.9, 6.0]
+    },
+    "scale": [2.0, 2.2]
+  },
+
+  "shade": {
+    "status": "wcpa",
+    "note": "Bands from the WCPA slide: Value light 7-10 / medium 4-6.5 / deep 1-3.5; Chroma bright-clear 6-9 / muted 3-5.5. Centres are band midpoints (derived). MM chroma centre 5.75 is the midpoint between muted and bright because the slide defines no medium chroma band - confirm with the colourist.",
+    "value": { "high": [7.0, 10.0], "medium": [4.0, 6.5], "low": [1.0, 3.5] },
+    "chroma": { "high": [6.0, 9.0], "low": [3.0, 5.5] },
+    "centres": {
+      "HV_LC": [8.5, 4.25], "HV_HC": [8.5, 7.5], "MM": [5.25, 5.75],
+      "LV_LC": [2.25, 4.25], "LV_HC": [2.25, 7.5]
+    },
+    "centresStatus": "derived",
+    "scale": [3.5, 2.0],
+    "scaleNote": "Notebook value (SKALA_SHADE); not re-derived for the new bands."
+  },
+
+  "temperature": {
+    "status": "wcpa",
+    "note": "b* - a* thresholds from the Cocory report.",
+    "warmAtLeast": 5.6,
+    "coolAtMost": 4.4
+  },
+
+  "foundationBands": {
+    "status": "wcpa",
+    "note": "L* bands from the Cocory report; first band whose lower bound L* exceeds wins.",
+    "bands": [
+      { "above": 70, "name": "very light" },
+      { "above": 66, "name": "light" },
+      { "above": 63, "name": "medium" },
+      { "above": 60, "name": "healthy" },
+      { "above": -1, "name": "tan" }
+    ]
+  },
+
+  "complementary": {
+    "status": "interpretation",
+    "note": "[INTERPRETASI] closest reading of the brief; confirm with the colourist before showing to consumers.",
+    "map": {
+      "HV_LC": { "codes": ["HV_HC"], "temperature": "neutral_to_cool" },
+      "HV_HC": { "codes": ["HV_LC"], "temperature": "neutral" },
+      "MM":    { "codes": ["HV_LC", "LV_LC"], "temperature": "neutral_to_warm" },
+      "LV_LC": { "codes": ["LV_HC"], "temperature": "neutral" },
+      "LV_HC": { "codes": ["LV_LC"], "temperature": "neutral_to_cool" }
+    }
+  },
+
+  "recommendation": {
+    "perCategory": 10,
+    "note": "Notebook export keeps the first 10 non-outside shades per category.",
+    "categories": ["lip", "blush", "complexion", "eyeshadow"],
+    "categoriesNote": "Categories the quadrant rules rate. The notebook rated every category, including black mascara and eyeliner and brown brow products, where a skin quadrant says nothing about fit; those are offered unrated in the try-on catalog. Empty list = rate every category (notebook behaviour)."
+  },
+
+  "flags": {
+    "unevenSkinToneLRange": 6.0,
+    "note": "Notebook §5: L* range across face sites above this is flagged."
+  },
+
+  "hueNames": {
+    "status": "brief",
+    "categories": ["lip", "blush", "complexion"],
+    "categoriesNote": "The brief's hue families (Beige ... Brown, by hue angle only) describe lip, cheek and skin colours. On eye products they mislabel (a light cream eyeshadow reads 'Brown', black mascara 'Red'), so eye categories get no hue name. Empty list = every category (notebook behaviour).",
+    "ranges": [
+      { "name": "Beige", "from": 40,  "to": 70 },
+      { "name": "Peach", "from": 20,  "to": 40 },
+      { "name": "Coral", "from": 10,  "to": 20 },
+      { "name": "Red",   "from": 0,   "to": 10 },
+      { "name": "Rose",  "from": 345, "to": 360 },
+      { "name": "Pink",  "from": 325, "to": 345 },
+      { "name": "Berry", "from": 300, "to": 325 },
+      { "name": "Brown", "from": 70,  "to": 95 }
+    ]
+  },
+
+  "presentation": {
+    "status": "pending_brand",
+    "note": "Quadrant display names wait for the brand; the season table is a first draft to be reviewed by a colourist.",
+    "displayNames": { "HV_LC": "", "HV_HC": "", "MM": "", "LV_LC": "", "LV_HC": "" },
+    "undertone": { "warm": "hangat (kuning)", "neutral": "netral", "cool": "sejuk (merah)" },
+    "valueLabel": { "high": "terang", "medium": "sedang", "low": "dalam" },
+    "chromaLabel": { "high": "jernih", "medium": "sedang", "low": "lembut" },
+    "seasonEquivalents": {
+      "HV_LC": { "cool": ["Light Summer", "Soft Summer"], "neutral": ["Light Summer", "Light Spring"], "warm": ["Light Spring"] },
+      "HV_HC": { "cool": ["Bright Winter"], "neutral": ["Bright Spring", "Bright Winter"], "warm": ["Bright Spring", "True Spring"] },
+      "MM":    { "cool": ["True Summer"], "neutral": ["Soft Summer", "Soft Autumn"], "warm": ["Soft Autumn", "True Autumn"] },
+      "LV_LC": { "cool": ["Dark Winter"], "neutral": ["Dark Winter", "Dark Autumn"], "warm": ["Dark Autumn"] },
+      "LV_HC": { "cool": ["True Winter", "Dark Winter"], "neutral": ["True Winter", "True Autumn"], "warm": ["True Autumn"] }
+    }
+  }
+}

@@ -60,6 +60,27 @@ func TestRulesetVisionSignals_InvertsHealthToConcern(t *testing.T) {
 	}
 }
 
+// TestRulesetVisionSignals_FullPathAvoidsPoreCollision reproduces the real
+// bug found in staging: the vendor's response repeats "Pores" under both
+// results.skin_level (1-5 severity grade) and results.skin_scoring (0-100
+// health score). field_mapping must reference the full dot-path so it can
+// only ever match the intended one, never the other short-name collision.
+func TestRulesetVisionSignals_FullPathAvoidsPoreCollision(t *testing.T) {
+	schema := `{"field_mapping": {
+		"pore_severity": {"vision": "inference_result.results.skin_scoring.Pores"}
+	}}`
+	vendorFields := map[string]float64{
+		"inference_result.results.skin_level.Pores":   3,  // 1-5 grade — must NOT be picked
+		"inference_result.results.skin_scoring.Pores": 41, // 0-100 health score — the intended one
+	}
+
+	got := domain.RulesetVisionSignals(schema, vendorFields)
+
+	if got["pore_severity"] != 59 {
+		t.Errorf("pore_severity = %v, want 59 (100 - 41, the skin_scoring reading)", got["pore_severity"])
+	}
+}
+
 func TestResolveRulesetCode(t *testing.T) {
 	candidates := []domain.RulesetSchemaWithCode{
 		{Code: "skinverse_skin_character", Status: "ACTIVE", Schema: `{"form_survey_code": "skinverse_q1_q6"}`},

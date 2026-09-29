@@ -30,6 +30,9 @@ RUN apk add --no-cache ca-certificates tzdata
 WORKDIR /app
 
 COPY --from=builder /bin/core-engine /app/core-engine
+# WCPA rules for the colour engine (internal/colour); read at startup.
+COPY apps/core-engine/config/wcpa.json /app/config/wcpa.json
+ENV WCPA_CONFIG_PATH=/app/config/wcpa.json
 
 ENV PORT=8082
 EXPOSE 8082

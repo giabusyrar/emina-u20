@@ -67,3 +67,40 @@ func TestSurveyService_Evaluate(t *testing.T) {
 		t.Fatalf("unexpected answers: %+v", evalOut.AnswerList)
 	}
 }
+
+func TestSurveyService_EvaluateWithModel_RequiredValidation(t *testing.T) {
+	schemaJSON := []byte(`{
+		"title": "t", "code": "c",
+		"pages": [{"name": "page1", "elements": [
+			{"type": "radiogroup", "name": "q1", "isRequired": true, "choices": [{"value": "yes", "text": "Ya", "score": 1}]},
+			{"type": "radiogroup", "name": "q2", "choices": [{"value": "yes", "text": "Ya", "score": 1}]}
+		]}]
+	}`)
+	model, err := domain.ParseSurveySchema(schemaJSON)
+	if err != nil {
+		t.Fatalf("failed to parse schema: %v", err)
+	}
+
+	svc := service.NewSurveyService(nil, nil, nil, nil)
+	ctx := context.Background()
+
+	// Data sent (q2 answered) but the required q1 is missing -> validation error.
+	_, err = svc.EvaluateWithModel(ctx, model, domain.SurveyEvaluateRequest{
+		BrandID: "wardah", ApplicationID: "skin_app",
+		Data: map[string]interface{}{"q2": "yes"},
+	})
+	if err == nil {
+		t.Fatalf("expected a validation error for a missing required answer")
+	}
+
+	// No data at all (vision-only call) -> required check does not run.
+	evalOut, err := svc.EvaluateWithModel(ctx, model, domain.SurveyEvaluateRequest{
+		BrandID: "wardah", ApplicationID: "skin_app",
+	})
+	if err != nil {
+		t.Fatalf("vision-only call (no data) should skip isRequired validation, got: %v", err)
+	}
+	if !evalOut.Success {
+		t.Fatalf("expected success")
+	}
+}
