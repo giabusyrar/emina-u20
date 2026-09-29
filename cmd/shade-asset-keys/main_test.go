@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"strings"
 	"testing"
 )
@@ -12,12 +13,16 @@ type fakeStore struct {
 	rows       []legacyRow
 	prepared   bool
 	applied    []keyedRow
+	applyErr   error
 }
 
-func (f *fakeStore) HasURLColumns(context.Context) (bool, error)  { return f.hasURLCols, nil }
+func (f *fakeStore) HasURLColumns(context.Context) (bool, error)     { return f.hasURLCols, nil }
 func (f *fakeStore) LegacyRows(context.Context) ([]legacyRow, error) { return f.rows, nil }
-func (f *fakeStore) Prepare(context.Context) error                  { f.prepared = true; return nil }
-func (f *fakeStore) Apply(_ context.Context, rows []keyedRow) error { f.applied = rows; return nil }
+func (f *fakeStore) Prepare(context.Context) error                   { f.prepared = true; return nil }
+func (f *fakeStore) Apply(_ context.Context, rows []keyedRow) error {
+	f.applied = rows
+	return f.applyErr
+}
 
 var testPrefixes = prefixSource{PublicURL: "https://pub.example.dev"}
 
@@ -85,5 +90,13 @@ func TestNoPrefixesIsAnError(t *testing.T) {
 	code := run(context.Background(), []string{"-apply"}, &out, &out, &fakeStore{hasURLCols: true, rows: goodRows()}, prefixSource{})
 	if code != 1 || !strings.Contains(out.String(), "S3_PUBLIC_URL") {
 		t.Fatalf("code=%d out=%q", code, out.String())
+	}
+}
+
+func TestApplyFailureExitsNonZero(t *testing.T) {
+	s := &fakeStore{hasURLCols: true, rows: goodRows(), applyErr: errors.New("1 row(s) gained URLs during the run; nothing dropped, re-run")}
+	code, out := runWith(t, s, "-apply")
+	if code != 1 || !strings.Contains(out, "re-run") {
+		t.Fatalf("code=%d out=%q", code, out)
 	}
 }

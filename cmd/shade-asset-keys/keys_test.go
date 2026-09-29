@@ -52,3 +52,17 @@ func TestPlanRowsAllOrNothing(t *testing.T) {
 		t.Fatalf("bad = %v", bad)
 	}
 }
+
+func TestLegacyPrefixesAutoRegionHasNoAWSForm(t *testing.T) {
+	if got := legacyPrefixes(prefixSource{Bucket: "bkt", Region: "auto"}); len(got) != 0 {
+		t.Fatalf("got %v", got)
+	}
+}
+
+func TestPlanRowsFinishOnly(t *testing.T) {
+	finish := "https://pub.example.dev/shades/1/finish.png"
+	planned, bad := planRows([]legacyRow{{ID: "f1", FinishURL: &finish}}, []string{"https://pub.example.dev/"})
+	if len(bad) != 0 || len(planned) != 1 || planned[0].FinishKey != "shades/1/finish.png" {
+		t.Fatalf("planned=%+v bad=%v", planned, bad)
+	}
+}
