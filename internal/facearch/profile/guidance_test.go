@@ -52,7 +52,7 @@ func TestParse_Guidance(t *testing.T) {
 	assert.Equal(t, 234, *tpl.Points[0].Index)
 	assert.Nil(t, tpl.Points[0].Lerp)
 	assert.Equal(t, profile.Lerp{A: 93, B: 61, T: 0.35}, *tpl.Points[2].Lerp)
-	assert.Equal(t, [2]float64{0, -0.05}, *tpl.Points[2].OffsetIod)
+	assert.Equal(t, profile.Offset{0, -0.05}, *tpl.Points[2].OffsetIod)
 	assert.Equal(t, []int{93, 61}, tpl.Points[2].Anchors())
 	assert.Equal(t, []int{234}, tpl.Points[0].Anchors())
 	r := d.Guidance.Rules[0]
@@ -71,6 +71,12 @@ func TestParse_GuidanceIsStrict(t *testing.T) {
 		"exponent index":    strings.Replace(guidanceJSON, `[234, 61, 0.5]`, `[2e2, 61, 0.5]`, 1),
 		"two-element lerp":  strings.Replace(guidanceJSON, `[234, 61, 0.5]`, `[234, 61]`, 1),
 		"string t":          strings.Replace(guidanceJSON, `[234, 61, 0.5]`, `[234, 61, "half"]`, 1),
+		"quoted t":          strings.Replace(guidanceJSON, `[234, 61, 0.5]`, `[234, 61, "0.5"]`, 1),
+		"quoted index":      strings.Replace(guidanceJSON, `[234, 61, 0.5]`, `["234", 61, 0.5]`, 1),
+		"four-element lerp": strings.Replace(guidanceJSON, `[234, 61, 0.5]`, `[234, 61, 0.5, 1]`, 1),
+		"offset of one":     strings.Replace(guidanceJSON, `[0.0, -0.05]`, `[0.0]`, 1),
+		"offset of three":   strings.Replace(guidanceJSON, `[0.0, -0.05]`, `[0.0, -0.05, 1]`, 1),
+		"quoted offset":     strings.Replace(guidanceJSON, `[0.0, -0.05]`, `[0.0, "-0.05"]`, 1),
 		"misspelt rule key": strings.Replace(guidanceJSON, `"textKeys"`, `"textKey"`, 1),
 	} {
 		t.Run(name, func(t *testing.T) {

@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -37,9 +38,56 @@ type Template struct {
 // (+x toward the subject's left, which is image right; +y down; the eye
 // line horizontal). Exactly one of Index and Lerp is set (Validate).
 type Point struct {
-	Index     *int        `json:"index,omitempty"`
-	Lerp      *Lerp       `json:"lerp,omitempty"`
-	OffsetIod *[2]float64 `json:"offsetIod,omitempty"`
+	Index     *int    `json:"index,omitempty"`
+	Lerp      *Lerp   `json:"lerp,omitempty"`
+	OffsetIod *Offset `json:"offsetIod,omitempty"`
+}
+
+// Offset is [dx, dy]. It is a JSON array of exactly two numbers; a plain
+// [2]float64 would truncate [0,1,2] and zero-pad [0].
+type Offset [2]float64
+
+// MarshalJSON writes [dx, dy].
+func (o Offset) MarshalJSON() ([]byte, error) {
+	return json.Marshal([2]float64(o))
+}
+
+// UnmarshalJSON reads exactly two JSON numbers.
+func (o *Offset) UnmarshalJSON(b []byte) error {
+	nums, err := numberTokens(b)
+	if err != nil {
+		return fmt.Errorf("offsetIod must be [dx, dy]: %w", err)
+	}
+	if len(nums) != 2 {
+		return fmt.Errorf("offsetIod must be [dx, dy], got %d elements", len(nums))
+	}
+	for i, n := range nums {
+		v, err := n.Float64()
+		if err != nil {
+			return fmt.Errorf("offsetIod element %q: %w", n, err)
+		}
+		o[i] = v
+	}
+	return nil
+}
+
+// numberTokens decodes a JSON array whose every element must be a bare JSON
+// number token; quoted numbers ("0.5") are refused, which json.Number alone
+// would accept.
+func numberTokens(b []byte) ([]json.Number, error) {
+	var elems []json.RawMessage
+	if err := json.Unmarshal(b, &elems); err != nil {
+		return nil, err
+	}
+	out := make([]json.Number, len(elems))
+	for i, e := range elems {
+		t := bytes.TrimSpace(e)
+		if len(t) == 0 || t[0] == '"' {
+			return nil, fmt.Errorf("element %d is not a JSON number: %s", i, t)
+		}
+		out[i] = json.Number(t)
+	}
+	return out, nil
 }
 
 // Lerp is the JSON triple [a, b, t]: landmark indices a and b (integers)
@@ -61,8 +109,8 @@ func (l Lerp) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON reads [a, b, t]. a and b must be JSON integers: 1.5 or 1e2
 // is not a landmark index and is refused rather than truncated.
 func (l *Lerp) UnmarshalJSON(b []byte) error {
-	var raw []json.Number
-	if err := json.Unmarshal(b, &raw); err != nil {
+	raw, err := numberTokens(b)
+	if err != nil {
 		return fmt.Errorf("lerp must be [a, b, t]: %w", err)
 	}
 	if len(raw) != 3 {
