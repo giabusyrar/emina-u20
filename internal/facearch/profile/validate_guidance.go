@@ -14,6 +14,11 @@ const minPolygonPoints = 3
 
 // guidance checks the guidance section (spec "Validation": every template
 // index is 0-477). Rules:
+//   - the document's catalogueVersion is measureclient.RegionsCatalogueVersion:
+//     anchors are checked against the worker region table recorded for that
+//     version, which another version may define differently;
+//   - template names and rule ids contain no "." (a source's "for" path
+//     guidance.templates.a would otherwise also cover a template "a.b");
 //   - templates: known role; at least 3 points; each point exactly one of
 //     index / lerp; indices in [0, measureclient.NLandmarks); lerp ends
 //     differ and t is in [0, 1]; offsetIod finite; every anchor landmark
@@ -27,6 +32,9 @@ const minPolygonPoints = 3
 //     empty or containing whitespace.
 func (c *checker) guidance(d *Document) {
 	g := d.Guidance
+	if d.CatalogueVersion != measureclient.RegionsCatalogueVersion {
+		c.addf("guidance", "the ai-worker region table is recorded for %s, document targets %s", measureclient.RegionsCatalogueVersion, d.CatalogueVersion)
+	}
 	if len(g.Templates) == 0 {
 		c.addf("guidance.templates", "needs at least 1 template")
 	}
@@ -46,6 +54,9 @@ func (c *checker) guidance(d *Document) {
 func (c *checker) template(path, name string, t Template) {
 	if strings.TrimSpace(name) == "" {
 		c.addf(path, "template name is empty")
+	}
+	if strings.Contains(name, ".") {
+		c.addf(path, "template name must not contain %q (source paths are dot-separated)", ".")
 	}
 	switch t.Role {
 	case RoleContour, RoleHighlight, RoleBlush, RoleBrow:
@@ -121,6 +132,9 @@ func (c *checker) guidanceRule(path string, r GuidanceRule, g *Guidance, labels 
 		c.addf(path+".id", "is empty")
 	} else if ids[r.ID] {
 		c.addf(path+".id", "duplicate rule %q", r.ID)
+	}
+	if strings.Contains(r.ID, ".") {
+		c.addf(path+".id", "rule id must not contain %q (source paths are dot-separated)", ".")
 	}
 	ids[r.ID] = true
 

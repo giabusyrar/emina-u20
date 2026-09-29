@@ -84,6 +84,12 @@ func TestValidate_GuidanceRules(t *testing.T) {
 			"must be in (0, 1], got 1.5"},
 		"no text keys": {func(g *profile.Guidance) { g.Rules[0].TextKeys = nil },
 			"textKeys: needs at least 1 i18n key"},
+		"dotted template name": {func(g *profile.Guidance) {
+			g.Templates["cheek.r"] = g.Templates["cheek_r"]
+		},
+			`guidance.templates.cheek.r: template name must not contain "."`},
+		"dotted rule id": {func(g *profile.Guidance) { g.Rules[0].ID = "long.contour" },
+			`guidance.rules[0].id: rule id must not contain "."`},
 		"prose text key": {func(g *profile.Guidance) { g.Rules[0].TextKeys = []string{"Contour under the cheekbones"} },
 			"must be a non-empty i18n key without whitespace"},
 	}
@@ -131,4 +137,19 @@ func TestLoad_ChecksGuidanceStructure(t *testing.T) {
 	require.NoError(t, err)
 	_, err = profile.Load(&profile.FaceArchitectureProfile{Document: string(b)})
 	assert.ErrorContains(t, err, "needs index or lerp")
+}
+
+// The worker region table core-engine validates anchors against is recorded
+// for one catalogue version; a guidance section for another is refused.
+func TestValidate_GuidanceCatalogueVersion(t *testing.T) {
+	d := withGuidance(t)
+	d.CatalogueVersion = "fa-measure/2"
+	msg := problems(t, profile.Validate(d, nil))
+	assert.Contains(t, msg, "guidance: the ai-worker region table is recorded for fa-measure/1, document targets fa-measure/2")
+
+	d.Guidance = nil
+	err := profile.Validate(d, nil)
+	if err != nil {
+		assert.NotContains(t, err.Error(), "region table", "no guidance section, nothing to refuse")
+	}
 }
