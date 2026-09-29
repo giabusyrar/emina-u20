@@ -115,3 +115,23 @@ func TestMeasureRefusesNonJSONBodies(t *testing.T) {
 	assert.Equal(t, 1, sum.Failed)
 	assert.Empty(t, sum.Recorded)
 }
+
+func TestMeasureRefusesUnexpectedStatuses(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "a.jpg", "img-a")
+	rows, err := benchmark.ReadManifest(writeFile(t, dir, "manifest.csv", "image_id,image_path,subject_id,consent_ref,hijab,notes\na,a.jpg,s1,c,false,\n"))
+	require.NoError(t, err)
+	w := &fakeWorker{catalog: facearchtest.CatalogueJSON()}
+	w.answer("img-a", 500, []byte(`{"detail":"boom"}`))
+	var log bytes.Buffer
+	sum, err := benchmark.Measure(context.Background(), rows, w, filepath.Join(dir, "cache"), testModel, &log)
+	require.NoError(t, err)
+	assert.Equal(t, 1, sum.Failed)
+	assert.Empty(t, sum.Recorded)
+	assert.Contains(t, log.String(), "a: unexpected status 500")
+	cache, err := benchmark.NewCache(filepath.Join(dir, "cache"), testModel, "fa-measure/1")
+	require.NoError(t, err)
+	items, err := benchmark.LoadItems(rows, cache)
+	require.NoError(t, err)
+	assert.Equal(t, benchmark.OutcomeNotMeasured, items[0].Outcome)
+}

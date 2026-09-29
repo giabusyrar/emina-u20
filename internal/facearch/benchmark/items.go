@@ -3,7 +3,9 @@ package benchmark
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"io/fs"
 	"math"
 	"os"
 	"path/filepath"
@@ -32,7 +34,11 @@ func LoadItems(rows []ManifestRow, c *Cache) ([]Item, error) {
 	for _, row := range rows {
 		sha, err := FileSHA256(row.ImagePath)
 		if err != nil {
-			return nil, fmt.Errorf("%s: cannot read image file: %w", row.ImageID, err)
+			cause := "cannot read file"
+			if errors.Is(err, fs.ErrNotExist) {
+				cause = "file not found"
+			}
+			return nil, fmt.Errorf("image %s: %s", row.ImageID, cause)
 		}
 		rec, ok, err := c.Get(sha)
 		if err != nil {
@@ -104,23 +110,7 @@ func Answers(p *profile.FaceArchitectureProfile, doc *profile.Document, resp *me
 	out := facearch.Interpret(p, doc, resp)
 	answers := map[Target]Answer{}
 	for key, r := range out.Classifications {
-		a := Answer{Status: r.Status}
-		if r.Status == classify.StatusSingle || r.Status == classify.StatusBlend {
-			score, ok := r.Scores[r.Primary]
-			if !ok || math.IsNaN(score) || math.IsInf(score, 0) || score < 0 || score > 1 {
-				// Interpret returns no scores when they are not finite;
-				// the metrics accept only finite scores in [0,1].
-				a.Status = classify.StatusInsufficientEvidence
-			} else {
-				a.Label = r.Primary
-				a.Top2 = []string{r.Primary}
-				if r.Status == classify.StatusBlend {
-					a.Top2 = append(a.Top2, r.Secondary)
-				}
-				a.Score = ptr(score)
-			}
-		}
-		answers[Target{Kind: KindClassifier, Key: key}] = a
+		answers[Target{Kind: KindClassifier, Key: key}] = ReduceClassification(key, r)
 	}
 	for key, r := range out.Traits {
 		a := Answer{Status: r.Status}
@@ -134,4 +124,28 @@ func Answers(p *profile.FaceArchitectureProfile, doc *profile.Document, resp *me
 		answers[Target{Kind: KindTrait, Key: key}] = a
 	}
 	return answers
+}
+
+// ReduceClassification reduces one classifier result to an Answer. The
+// classifier reports single or blend only with a finite primary score in
+// [0,1] (it returns insufficient_evidence with empty Scores otherwise), and
+// the metrics accept nothing else; a result that breaks this is a bug in
+// classify, so it panics rather than reporting an abstention the endpoint
+// never made.
+func ReduceClassification(key string, r classify.Result) Answer {
+	a := Answer{Status: r.Status}
+	if r.Status != classify.StatusSingle && r.Status != classify.StatusBlend {
+		return a
+	}
+	score, ok := r.Scores[r.Primary]
+	if !ok || math.IsNaN(score) || math.IsInf(score, 0) || score < 0 || score > 1 {
+		panic(fmt.Sprintf("classify returned %s for %s with no finite primary score in [0,1]", r.Status, key))
+	}
+	a.Label = r.Primary
+	a.Top2 = []string{r.Primary}
+	if r.Status == classify.StatusBlend {
+		a.Top2 = append(a.Top2, r.Secondary)
+	}
+	a.Score = ptr(score)
+	return a
 }

@@ -77,6 +77,13 @@ func Measure(ctx context.Context, rows []ManifestRow, w Worker, cacheDir, modelS
 			fmt.Fprintf(log, "%s: %v\n", row.ImageID, err)
 			continue
 		}
+		switch status {
+		case 200, 400, 422, 503:
+		default:
+			sum.Failed++
+			fmt.Fprintf(log, "%s: unexpected status %d; not cached\n", row.ImageID, status)
+			continue
+		}
 		if !json.Valid(body) {
 			sum.Failed++
 			fmt.Fprintf(log, "%s: status %d with a body that is not JSON\n", row.ImageID, status)

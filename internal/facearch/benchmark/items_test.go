@@ -3,6 +3,7 @@ package benchmark_test
 import (
 	"encoding/json"
 	"math"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/benchmark"
+	"github.com/experience-gateway/apps/core-engine/internal/facearch/classify"
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/facearchtest"
 	mc "github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
 )
@@ -66,4 +68,34 @@ func TestAnswers(t *testing.T) {
 	assert.False(t, a[shape].Answered())
 	assert.Nil(t, a[shape].Score)
 	assert.True(t, a[nose].Answered())
+}
+
+func TestReduceClassificationPanicsOnBrokenInvariant(t *testing.T) {
+	for name, scores := range map[string]map[string]float64{
+		"no scores":    {},
+		"nan":          {"Long": math.NaN()},
+		"out of range": {"Long": 1.5},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert.PanicsWithValue(t,
+				"classify returned single for faceShape with no finite primary score in [0,1]",
+				func() {
+					benchmark.ReduceClassification("faceShape", classify.Result{Status: classify.StatusSingle, Primary: "Long", Scores: scores})
+				})
+		})
+	}
+	a := benchmark.ReduceClassification("faceShape", classify.Result{Status: classify.StatusInsufficientEvidence, Scores: map[string]float64{}})
+	assert.Equal(t, benchmark.Answer{Status: "insufficient_evidence"}, a)
+}
+
+func TestLoadItemsErrorsNameTheImageNotThePath(t *testing.T) {
+	dir := t.TempDir()
+	cache, err := benchmark.NewCache(filepath.Join(dir, "cache"), testModel, "fa-measure/1")
+	require.NoError(t, err)
+	missing := filepath.Join(dir, "secret-subject-folder", "gone.jpg")
+	_, err = benchmark.LoadItems([]benchmark.ManifestRow{{ImageID: "img7", ImagePath: missing}}, cache)
+	require.Error(t, err)
+	assert.Equal(t, "image img7: file not found", err.Error())
+	assert.NotContains(t, err.Error(), "secret-subject-folder")
+	assert.NotContains(t, err.Error(), "gone.jpg")
 }
