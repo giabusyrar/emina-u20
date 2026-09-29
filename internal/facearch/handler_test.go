@@ -141,3 +141,54 @@ func TestAnalyze_ProfileFailures(t *testing.T) {
 	assert.Equal(t, facearch.CodeProfileDocumentInvalid, code(t, rec))
 	assert.Zero(t, m.calls)
 }
+
+func TestAnalyze_PassesThroughDetailList422(t *testing.T) {
+	body := `{"detail":[{"loc":["body","image"],"msg":"field required","type":"missing"}]}`
+	m := &fakeMeasurer{err: &measureclient.UpstreamError{Status: http.StatusUnprocessableEntity, Body: []byte(body)}}
+	rec := serve(t, facearch.NewHandler(m, storeWithTestDoc(t)), true)
+	assert.Equal(t, http.StatusUnprocessableEntity, rec.Code)
+	assert.JSONEq(t, body, rec.Body.String())
+}
+
+func TestAnalyze_NonDetailWorkerBodiesBecomeUnreachable(t *testing.T) {
+	for name, body := range map[string]string{
+		"html":          "<html>bad gateway</html>",
+		"empty":         "",
+		"array":         `[1]`,
+		"no detail key": `{"error":"x"}`,
+	} {
+		m := &fakeMeasurer{err: &measureclient.UpstreamError{Status: http.StatusServiceUnavailable, Body: []byte(body)}}
+		rec := serve(t, facearch.NewHandler(m, storeWithTestDoc(t)), true)
+		assert.Equal(t, http.StatusServiceUnavailable, rec.Code, name)
+		assert.Equal(t, facearch.CodeFaceMeasureUnreachable, code(t, rec), name)
+		assert.Contains(t, rec.Header().Get(echo.HeaderContentType), "application/json", name)
+	}
+}
+
+func TestAnalyze_UnreachableDoesNotLeakInternalURL(t *testing.T) {
+	m := &fakeMeasurer{err: fmt.Errorf("%w: Post \"http://ai-worker.internal:8088/face-measure\": refused", measureclient.ErrUnavailable)}
+	rec := serve(t, facearch.NewHandler(m, storeWithTestDoc(t)), true)
+	assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+	assert.NotContains(t, rec.Body.String(), "ai-worker.internal")
+	assert.NotContains(t, rec.Body.String(), "8088")
+}
+
+type nilFinder struct{}
+
+func (nilFinder) Active(context.Context, string, string) (*profile.FaceArchitectureProfile, error) {
+	return nil, nil
+}
+
+func TestAnalyze_NilProfileIs500(t *testing.T) {
+	m := &fakeMeasurer{}
+	rec := serve(t, facearch.NewHandler(m, nilFinder{}), true)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	assert.Equal(t, facearch.CodeProfileLookupFailed, code(t, rec))
+	assert.Zero(t, m.calls)
+}
+
+func TestAnalyze_NilMeasurementIs500(t *testing.T) {
+	rec := serve(t, facearch.NewHandler(&fakeMeasurer{}, storeWithTestDoc(t)), true)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	assert.Equal(t, facearch.CodeFaceMeasureUnreachable, code(t, rec))
+}

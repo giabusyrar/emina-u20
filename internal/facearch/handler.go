@@ -2,6 +2,7 @@ package facearch
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"log/slog"
@@ -84,6 +85,9 @@ func (h *Handler) Analyze(c echo.Context) error {
 	if errors.Is(err, profile.ErrNoActiveProfile) {
 		return c.JSON(http.StatusConflict, detail(CodeNoActiveProfile, map[string]any{"brandId": brandID, "applicationId": appID}))
 	}
+	if err == nil && p == nil {
+		err = errors.New("profile finder returned no profile and no error")
+	}
 	if err != nil {
 		slog.ErrorContext(ctx, "face-architecture profile lookup failed", "brandId", brandID, "applicationId", appID, "err", err)
 		return c.JSON(http.StatusInternalServerError, detail(CodeProfileLookupFailed, nil))
@@ -98,9 +102,29 @@ func (h *Handler) Analyze(c echo.Context) error {
 	var up *measureclient.UpstreamError
 	switch {
 	case errors.As(err, &up):
-		return c.Blob(up.Status, echo.MIMEApplicationJSON, up.Body)
+		if hasDetail(up.Body) {
+			return c.Blob(up.Status, echo.MIMEApplicationJSON, up.Body)
+		}
+		slog.ErrorContext(ctx, "face-measure returned a body without a detail key", "status", up.Status, "bytes", len(up.Body))
+		return c.JSON(http.StatusServiceUnavailable, detail(CodeFaceMeasureUnreachable, nil))
 	case err != nil:
-		return c.JSON(http.StatusServiceUnavailable, detail(CodeFaceMeasureUnreachable, map[string]any{"reason": err.Error()}))
+		slog.ErrorContext(ctx, "face-measure call failed", "err", err)
+		return c.JSON(http.StatusServiceUnavailable, detail(CodeFaceMeasureUnreachable, nil))
+	case m == nil:
+		slog.ErrorContext(ctx, "face-measure returned no measurement and no error")
+		return c.JSON(http.StatusInternalServerError, detail(CodeFaceMeasureUnreachable, nil))
 	}
 	return c.JSON(http.StatusOK, Interpret(p, doc, m))
+}
+
+// hasDetail reports whether body is a JSON object with a "detail" key (an
+// object, or a list as FastAPI's validation errors are). Anything else (an
+// HTML gateway page, an empty body) is not an ai-worker error to pass on.
+func hasDetail(body []byte) bool {
+	var top map[string]json.RawMessage
+	if json.Unmarshal(body, &top) != nil {
+		return false
+	}
+	_, ok := top["detail"]
+	return ok
 }
