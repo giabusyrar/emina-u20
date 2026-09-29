@@ -105,3 +105,87 @@ func TestBuildLabelsRejectsUnknownVendorValue(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), `results line 2: perfectcorp value "Oval" for faceShape is not in the label map`)
 }
+
+// consensus builds rater rows for one image "a" (votes is rater id -> raw
+// vendor value, "" for none) and returns the consensus label, if any.
+func consensus(t *testing.T, minRaters int, votes map[string]string) (string, bool, int) {
+	t.Helper()
+	m := readLabelMap(t, testLabelMap)
+	targets, err := m.Resolve(testDocument(t))
+	require.NoError(t, err)
+	var rows [][4]string
+	for r, v := range votes {
+		rows = append(rows, [4]string{"a", "rater:" + r, "faceShape", v})
+	}
+	ls, err := benchmark.BuildLabels(results(rows...), m, targets, minRaters)
+	require.NoError(t, err)
+	l, ok := ls.Labels["faceShape"][benchmark.TargetRaterConsensus]["a"]
+	return l, ok, ls.NoConsensus["faceShape"]
+}
+
+func TestRaterConsensusCountsAgreeingRaters(t *testing.T) {
+	cases := []struct {
+		name  string
+		min   int
+		votes map[string]string
+		want  string // "" = no consensus
+	}{
+		{"2-2 tie", 2, map[string]string{"r1": "long", "r2": "long", "r3": "wide", "r4": "wide"}, ""},
+		{"2-1 majority, min 1", 1, map[string]string{"r1": "long", "r2": "wide", "r3": "long"}, "Long"},
+		{"single rater, min 1", 1, map[string]string{"r1": "long"}, "Long"},
+		{"min 3, 2 Long 1 Wide", 3, map[string]string{"r1": "long", "r2": "long", "r3": "wide"}, ""},
+		{"min 3, 3 Long 1 Wide", 3, map[string]string{"r1": "long", "r2": "long", "r3": "long", "r4": "wide"}, "Long"},
+		{"min 2, 2 agree", 2, map[string]string{"r1": "long", "r2": "long"}, "Long"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			l, ok, none := consensus(t, c.min, c.votes)
+			if c.want == "" {
+				assert.False(t, ok)
+				assert.Equal(t, 1, none)
+				return
+			}
+			assert.True(t, ok)
+			assert.Equal(t, c.want, l)
+			assert.Equal(t, 0, none)
+		})
+	}
+}
+
+func TestRaterConsensusOneOneOneSplit(t *testing.T) {
+	m := readLabelMap(t, `{"attributes": {"noseWidth": {"ours": "noseWidth", "values": {
+	  "rater": {"b": "Broad", "n": "Narrow", "a": "Average"}}}}}`)
+	targets, err := m.Resolve(testDocument(t))
+	require.NoError(t, err)
+	ls, err := benchmark.BuildLabels(results(
+		[4]string{"a", "rater:r1", "noseWidth", "b"},
+		[4]string{"a", "rater:r2", "noseWidth", "n"},
+		[4]string{"a", "rater:r3", "noseWidth", "a"},
+	), m, targets, 1)
+	require.NoError(t, err)
+	assert.Equal(t, 1, ls.NoConsensus["noseWidth"])
+	assert.Empty(t, ls.Labels["noseWidth"][benchmark.TargetRaterConsensus])
+}
+
+func TestRaterAbstentionCountsTowardNeither(t *testing.T) {
+	m := readLabelMap(t, `{"attributes": {"faceShape": {"ours": "faceShape", "values": {
+	  "rater": {"long": "Long", "wide": "Wide", "unsure": null}}}}}`)
+	targets, err := m.Resolve(testDocument(t))
+	require.NoError(t, err)
+	ls, err := benchmark.BuildLabels(results(
+		[4]string{"a", "rater:r1", "faceShape", "long"},
+		[4]string{"a", "rater:r2", "faceShape", "long"},
+		[4]string{"a", "rater:r3", "faceShape", "unsure"},
+	), m, targets, 2)
+	require.NoError(t, err)
+	assert.Equal(t, "Long", ls.Labels["faceShape"][benchmark.TargetRaterConsensus]["a"])
+	assert.Equal(t, 1, ls.Abstained["faceShape"]["rater:r3"])
+}
+
+func TestBuildLabelsRejectsMinConsensusBelowOne(t *testing.T) {
+	m := readLabelMap(t, testLabelMap)
+	targets, err := m.Resolve(testDocument(t))
+	require.NoError(t, err)
+	_, err = benchmark.BuildLabels(nil, m, targets, 0)
+	assert.ErrorContains(t, err, "at least 1")
+}

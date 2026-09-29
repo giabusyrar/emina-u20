@@ -153,8 +153,9 @@ type LabelSet struct {
 
 // BuildLabels maps results through the label map. A vendor value the map
 // does not list is an error, never a guess. The rater consensus of an
-// image is the label given by a strict majority of the raters who answered,
-// and needs at least minConsensusRaters answers.
+// image is a label that both (a) at least minConsensusRaters raters agreed on
+// and (b) a strict majority of the raters who answered gave. Abstentions
+// (null labels) count toward neither.
 func BuildLabels(results []ResultRow, m *LabelMap, targets map[string]Target, minConsensusRaters int) (*LabelSet, error) {
 	if minConsensusRaters < 1 {
 		return nil, fmt.Errorf("minimum consensus raters must be at least 1, got %d", minConsensusRaters)
@@ -215,7 +216,7 @@ func BuildLabels(results []ResultRow, m *LabelMap, targets map[string]Target, mi
 					winner = l
 				}
 			}
-			if total < minConsensusRaters || winner == "" {
+			if winner == "" || v[winner] < minConsensusRaters {
 				ls.NoConsensus[attr]++
 				continue
 			}
