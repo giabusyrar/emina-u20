@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/benchmark"
+	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
 )
 
 // evalImages: with testDoc (Long 0.6 / Wide 0.9, spread 0.1; noseWidth
@@ -265,4 +266,19 @@ func TestWriteReportHoldsNoPathsOrIDs(t *testing.T) {
 	} {
 		assert.Contains(t, string(md), want)
 	}
+}
+
+// A calibrated profile scored on the image set it was fitted on is scored
+// in-sample; the report must say so, and say where the out-of-sample
+// figures are.
+func TestReportMarksCalibratedProfilesInSample(t *testing.T) {
+	_, r, err := evaluateFixtureWith(t, benchmark.DefaultParams())
+	require.NoError(t, err)
+	assert.NotContains(t, r.Markdown(), "in-sample", "an uncalibrated profile was fitted on nothing")
+
+	r.Profile.CalibrationStatus = profile.CalibrationCalibrated
+	md := r.Markdown()
+	assert.Contains(t, md, "calibration **calibrated**")
+	assert.Contains(t, md, "**Figures on the image set this profile was calibrated on are in-sample.**")
+	assert.Contains(t, md, "only calibrate's `heldOutMetrics` are out-of-sample")
 }

@@ -38,16 +38,26 @@ func NewHTTPWorker(baseURL string, timeout time.Duration) *HTTPWorker {
 // BaseURL is where images are sent.
 func (w *HTTPWorker) BaseURL() string { return w.baseURL }
 
-// Catalogue implements Worker.
+// workerSentinels are the errors a caller may test an HTTPWorker error
+// for; sanitizeError keeps them reachable.
+var workerSentinels = []error{measureclient.ErrUnavailable, context.Canceled, context.DeadlineExceeded}
+
+// Catalogue implements Worker. An error names the worker URL only as
+// SafeURL renders it.
 func (w *HTTPWorker) Catalogue(ctx context.Context) ([]byte, error) {
-	return w.client.CatalogueRaw(ctx)
+	raw, err := w.client.CatalogueRaw(ctx)
+	if err != nil {
+		return nil, sanitizeError(err, workerSentinels...)
+	}
+	return raw, nil
 }
 
-// Measure implements Worker.
+// Measure implements Worker. An error names the worker URL only as
+// SafeURL renders it.
 func (w *HTTPWorker) Measure(ctx context.Context, image []byte, filename string) (int, []byte, error) {
 	status, raw, err := w.client.MeasureRaw(ctx, image, filename)
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, sanitizeError(err, workerSentinels...)
 	}
 	switch status {
 	case http.StatusOK, http.StatusBadRequest, http.StatusUnprocessableEntity, http.StatusServiceUnavailable:

@@ -184,6 +184,15 @@ func TestCalibrateRefusals(t *testing.T) {
 	_, err = benchmark.Calibrate(noRun)
 	assert.ErrorContains(t, err, "run id")
 
+	// The base sha256 goes into heldOutMetrics and every superseded note;
+	// an empty one would make them name no profile.
+	noSHA := in
+	baseCopy := *in.Base
+	baseCopy.SHA256 = ""
+	noSHA.Base = &baseCopy
+	_, err = benchmark.Calibrate(noSHA)
+	assert.ErrorContains(t, err, "base profile sha256")
+
 	delete(in.Hashes, "img-005")
 	_, err = benchmark.Calibrate(in)
 	assert.ErrorContains(t, err, "img-005: no perceptual hash")
@@ -486,10 +495,47 @@ func TestRegressions(t *testing.T) {
 	assert.Equal(t, "classifier:faceShape", got[0].Attribute)
 	assert.Equal(t, "macroF1", got[0].Metric)
 	assert.Equal(t, "kappa", got[1].Metric)
-	assert.Less(t, got[0].Fitted, got[0].Base)
-	assert.Less(t, got[1].Fitted, got[1].Base)
+	require.NotNil(t, got[0].Fitted)
+	require.NotNil(t, got[1].Fitted)
+	assert.Less(t, *got[0].Fitted, got[0].Base)
+	assert.Less(t, *got[1].Fitted, got[1].Base)
+}
 
-	// An undefined (nil) metric is not compared.
+// A fitted profile that answers nothing while the base scores is a
+// regression on every metric: macro-F1 and kappa are undefined (nil) for
+// the fitted profile, and it answered fewer images.
+func TestRegressionsWhenFittedAnswersNothing(t *testing.T) {
+	items := heldOutItems("a", "b", "c", "d", "e", "f")
+	base := map[string]benchmark.HeldOutScore{"classifier:faceShape": benchmark.CompareHeldOut(items, allCorrect(), faceShape, heldOutTruth, 10)}
 	empty := map[string]benchmark.HeldOutScore{"classifier:faceShape": benchmark.CompareHeldOut(items, map[string]map[benchmark.Target]benchmark.Answer{}, faceShape, heldOutTruth, 10)}
-	assert.Empty(t, benchmark.Regressions(empty, base))
+	got := benchmark.Regressions(empty, base)
+	require.Len(t, got, 3)
+	for i, m := range []string{"macroF1", "kappa", "answered"} {
+		assert.Equal(t, "classifier:faceShape", got[i].Attribute)
+		assert.Equal(t, m, got[i].Metric)
+	}
+	assert.Nil(t, got[0].Fitted, "undefined fitted macro-F1 is null, not zero")
+	assert.Nil(t, got[1].Fitted)
+	require.NotNil(t, got[2].Fitted)
+	assert.Equal(t, 0.0, *got[2].Fitted)
+	assert.Equal(t, 6.0, got[2].Base)
+
+	raw, err := json.Marshal(got[0])
+	require.NoError(t, err)
+	assert.Contains(t, string(raw), `"fitted":null`)
+}
+
+// Answering fewer images is a regression even when every answer is right.
+func TestRegressionsWhenFittedAnswersFewerButPerfectly(t *testing.T) {
+	items := heldOutItems("a", "b", "c", "d", "e", "f")
+	base := map[string]benchmark.HeldOutScore{"classifier:faceShape": benchmark.CompareHeldOut(items, allCorrect(), faceShape, heldOutTruth, 10)}
+	fewer := allCorrect()
+	fewer["d"][faceShape] = benchmark.Answer{Status: "insufficient_evidence"}
+	fitted := map[string]benchmark.HeldOutScore{"classifier:faceShape": benchmark.CompareHeldOut(items, fewer, faceShape, heldOutTruth, 10)}
+	got := benchmark.Regressions(fitted, base)
+	require.Len(t, got, 1)
+	assert.Equal(t, "answered", got[0].Metric)
+	require.NotNil(t, got[0].Fitted)
+	assert.Equal(t, 5.0, *got[0].Fitted)
+	assert.Equal(t, 6.0, got[0].Base)
 }

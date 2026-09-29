@@ -26,7 +26,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -171,16 +170,6 @@ func sameFile(a, b string) bool {
 	return errA == nil && errB == nil && filepath.Clean(absA) == filepath.Clean(absB)
 }
 
-// redacted removes the userinfo (user:password) from a URL before it is
-// printed; nothing else in the URL is altered or hidden.
-func redacted(raw string) string {
-	u, err := url.Parse(raw)
-	if err != nil {
-		return "(unparseable worker URL)"
-	}
-	return u.Redacted()
-}
-
 func measure(ctx context.Context, c common, stdout, stderr io.Writer, d deps) int {
 	rows, err := benchmark.ReadManifest(c.manifest)
 	if err != nil {
@@ -192,7 +181,7 @@ func measure(ctx context.Context, c common, stdout, stderr io.Writer, d deps) in
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	fmt.Fprintf(stdout, "measuring %d images with the ai-worker at %s (nothing is sent anywhere else)\n", len(rows), redacted(workerURL))
+	fmt.Fprintf(stdout, "measuring %d images with the ai-worker at %s (nothing is sent anywhere else)\n", len(rows), benchmark.SafeURL(workerURL))
 	sum, err := benchmark.Measure(ctx, rows, w, c.cache, c.model, stderr)
 	if sum != nil {
 		fmt.Fprintf(stdout, "catalogue %s: %d images, %d already cached, %d failed, recorded", sum.CatalogueVersion, sum.Images, sum.Cached, sum.Failed)
@@ -357,7 +346,7 @@ func calibrate(c common, l labelled, target string, stdout, stderr io.Writer, d 
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	if err := os.WriteFile(l.out, res.JSON, 0o600); err != nil {
+	if err := benchmark.WriteFileAtomic(l.out, res.JSON); err != nil {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
@@ -397,8 +386,22 @@ func printHeldOut(w io.Writer, h benchmark.HeldOutMetrics) {
 		}
 	}
 	for _, r := range h.Regressions {
-		fmt.Fprintf(w, "WARNING: fitted profile is worse than base on %s %s (fitted %.3f, base %.3f)\n", r.Attribute, r.Metric, r.Fitted, r.Base)
+		fitted := "none"
+		if r.Fitted != nil {
+			fitted = fmtRegression(r.Metric, *r.Fitted)
+		}
+		fmt.Fprintf(w, "WARNING: fitted profile is worse than base on %s %s (fitted %s, base %s)\n",
+			r.Attribute, r.Metric, fitted, fmtRegression(r.Metric, r.Base))
 	}
+}
+
+// fmtRegression prints a regression value: answered is a count of images,
+// every other metric a score.
+func fmtRegression(metric string, x float64) string {
+	if metric == benchmark.MetricAnswered {
+		return fmt.Sprintf("%d", int(x))
+	}
+	return fmt.Sprintf("%.3f", x)
 }
 
 func fmtPtr(x *float64) string {

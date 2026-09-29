@@ -59,9 +59,12 @@ type HeldOutMetrics struct {
 	// is, so a profile that abstains more cannot look better unnoticed.
 	Fitted map[string]HeldOutScore `json:"fitted"`
 	Base   map[string]HeldOutScore `json:"base"`
-	// Regressions lists every attribute and metric (macroF1, kappa) where
-	// the fitted profile scores below the base on the held-out images.
-	// Never null: an empty list means no regression was found.
+	// Regressions lists, for every attribute both profiles score, each of
+	// macroF1 and kappa where the fitted value is below the base's or is
+	// undefined while the base's is defined, and "answered" where the fitted
+	// profile answered fewer held-out images than the base. See the
+	// Regressions function. Never null: an empty list means none of those
+	// checks fired, not that the fitted profile is better on everything.
 	Regressions []Regression `json:"regressions"`
 }
 
@@ -78,13 +81,23 @@ type HeldOutScore struct {
 	Metrics Metrics `json:"metrics"`
 }
 
-// Regression is one metric on which the fitted profile scores below the
-// base profile on the held-out images.
+// Regression metric names, in the order Regressions lists them.
+const (
+	MetricMacroF1  = "macroF1"
+	MetricKappa    = "kappa"
+	MetricAnswered = "answered"
+)
+
+// Regression is one metric on which the fitted profile does worse than the
+// base profile on the held-out images. Metric is MetricMacroF1,
+// MetricKappa or MetricAnswered (a count of images, carried as a number).
+// Fitted is nil (JSON null) when the fitted profile's metric is undefined,
+// e.g. it answered no held-out image; Base is always defined.
 type Regression struct {
-	Attribute string  `json:"attribute"`
-	Metric    string  `json:"metric"`
-	Fitted    float64 `json:"fitted"`
-	Base      float64 `json:"base"`
+	Attribute string   `json:"attribute"`
+	Metric    string   `json:"metric"`
+	Fitted    *float64 `json:"fitted"`
+	Base      float64  `json:"base"`
 }
 
 // CompareHeldOut scores one attribute's answers on the held-out items
@@ -110,9 +123,14 @@ func CompareHeldOut(test []Item, answers map[string]map[Target]Answer, t Target,
 	return s
 }
 
-// Regressions lists, in attribute then metric order, where the fitted
-// profile's held-out macro-F1 or kappa is below the base's. Undefined
-// (nil) values are not compared. The result is never nil.
+// Regressions compares the fitted and the base profile attribute by
+// attribute (only attributes both score) and lists, in attribute order and
+// then in the order macroF1, kappa, answered:
+//   - macroF1 or kappa when the fitted value is below the base's, or is
+//     undefined (nil) while the base's is defined;
+//   - answered when the fitted profile answered fewer held-out images.
+//
+// A metric undefined for the base is not compared. The result is never nil.
 func Regressions(fitted, base map[string]HeldOutScore) []Regression {
 	out := []Regression{}
 	for _, attr := range sortedKeys(fitted) {
@@ -125,12 +143,16 @@ func Regressions(fitted, base map[string]HeldOutScore) []Regression {
 			name         string
 			fitted, base *float64
 		}{
-			{"macroF1", f.Metrics.MacroF1, b.Metrics.MacroF1},
-			{"kappa", f.Metrics.Kappa, b.Metrics.Kappa},
+			{MetricMacroF1, f.Metrics.MacroF1, b.Metrics.MacroF1},
+			{MetricKappa, f.Metrics.Kappa, b.Metrics.Kappa},
 		} {
-			if m.fitted != nil && m.base != nil && *m.fitted < *m.base {
-				out = append(out, Regression{Attribute: attr, Metric: m.name, Fitted: *m.fitted, Base: *m.base})
+			if m.base != nil && (m.fitted == nil || *m.fitted < *m.base) {
+				out = append(out, Regression{Attribute: attr, Metric: m.name, Fitted: m.fitted, Base: *m.base})
 			}
+		}
+		if f.Answered < b.Answered {
+			n := float64(f.Answered)
+			out = append(out, Regression{Attribute: attr, Metric: MetricAnswered, Fitted: &n, Base: float64(b.Answered)})
 		}
 	}
 	return out
@@ -176,6 +198,9 @@ func Calibrate(in CalibrateInput) (*CalibrateResult, error) {
 	}
 	if in.RunID == "" {
 		return nil, errors.New("calibrate: run id is required")
+	}
+	if in.Base.SHA256 == "" {
+		return nil, errors.New("calibrate: base profile sha256 is required (it is recorded in heldOutMetrics and in superseded source notes)")
 	}
 	if in.Labels.MinConsensusRaters != in.Params.MinConsensusRaters {
 		return nil, fmt.Errorf("calibrate: labels were built with MinConsensusRaters %d but Params.MinConsensusRaters is %d",
@@ -324,6 +349,12 @@ func keptSources(doc *profile.Document, owners []string, baseSHA, runID string) 
 			}
 		}
 		if refitted {
+			// Dropping a label-named source (see sourcePaths) because one
+			// of the rules it stands for was refitted relies on FitProfile
+			// being all-or-nothing: it refits every condition value of
+			// every trait or returns a FitError, so every condition value
+			// of a fitted trait is an owner and no number the source
+			// quotes survives unfitted.
 			continue
 		}
 		if ancestor {
@@ -396,7 +427,10 @@ func stripSupersededPrefix(note string) string {
 }
 
 // heldOutMetrics scores a profile on the held-out items against the
-// target labels (our key -> image id -> label), over all held-out images.
+// target labels (our key -> image id -> label). Per attribute, the metrics
+// cover only the held-out images that were measured, labelled by the
+// target for that attribute, and answered by the profile; HeldOutLabelled,
+// Answered and NoAnswer count the rest (see CompareHeldOut).
 func heldOutMetrics(test []Item, p *ProfileFile, labels map[string]map[string]string, bins int) map[string]HeldOutScore {
 	answers := map[string]map[Target]Answer{}
 	for _, it := range test {

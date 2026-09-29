@@ -268,6 +268,11 @@ func (c *Cache) Catalogue() (*measureclient.Catalogue, error) {
 	return &cat, nil
 }
 
+// WriteFileAtomic writes data to path the way the cache and the reports
+// are written: to a temporary file (mode 0600) in the same directory,
+// renamed over path, so a reader never sees a half-written file.
+func WriteFileAtomic(path string, data []byte) error { return writeAtomic(path, data) }
+
 func writeAtomic(path string, data []byte) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err

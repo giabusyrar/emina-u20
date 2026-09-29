@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+
+	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
 )
 
 // Report file names written by WriteReport.
@@ -43,6 +45,9 @@ func (r *Report) Markdown() string {
 	}
 	w(".\nModel `%s`, catalogue `%s`. %d images of %d subjects.\n\n",
 		r.ModelSHA256, r.CatalogueVersion, r.Images, r.Subjects)
+	if r.Profile.CalibrationStatus == profile.CalibrationCalibrated {
+		w("**Figures on the image set this profile was calibrated on are in-sample.** If this report covers that set, the profile's numbers were fitted to the training subjects among these images, so agreement here overstates how it will do on new faces; only calibrate's `heldOutMetrics` are out-of-sample.\n\n")
+	}
 	p := r.Params
 	w("Parameters used: held-out fraction %v, dHash max distance %d, min class count %d, ECE bins: %d, seed %d, min consensus raters %d (a rater consensus needs a strict majority of at least that many raters).\n\n",
 		p.HeldOutFraction, p.DedupMaxDistance, p.MinClassCount, p.ECEBins, p.Seed, p.MinConsensusRaters)

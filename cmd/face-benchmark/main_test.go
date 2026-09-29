@@ -5,10 +5,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -205,11 +208,45 @@ func TestMeasureExitsOneWhenImagesFail(t *testing.T) {
 func TestMeasureRedactsWorkerURLCredentials(t *testing.T) {
 	f := setup(t)
 	d := f.deps()
-	d.worker = func() (benchmark.Worker, string, error) { return f.w, "http://user:secret@ai-worker.test", nil }
+	d.worker = func() (benchmark.Worker, string, error) {
+		return f.w, "http://someuser:hunter2@ai-worker.test/base?token=secret#frag", nil
+	}
 	code, out, errOut := runCLI(d, "measure", "--manifest", f.manifest, "--cache", f.cache, "--model-sha256", model)
 	require.Equal(t, 0, code, errOut)
-	assert.NotContains(t, out+errOut, "secret")
-	assert.Contains(t, out, "ai-worker.test")
+	for _, leak := range []string{"someuser", "hunter2", "token", "secret", "frag"} {
+		assert.NotContains(t, out+errOut, leak)
+	}
+	assert.Contains(t, out, "http://ai-worker.test/base ")
+}
+
+// A transport failure is printed per image; the URL in it goes through the
+// same sanitiser as the banner, so no user, password or query token leaks.
+func TestMeasurePerImageErrorsCarryNoURLSecrets(t *testing.T) {
+	f := setup(t)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			_, _ = w.Write(facearchtest.CatalogueJSON())
+			return
+		}
+		// Drop the connection: a transport error, i.e. a *url.Error.
+		conn, _, err := w.(http.Hijacker).Hijack()
+		if err == nil {
+			_ = conn.Close()
+		}
+	}))
+	defer srv.Close()
+	raw := strings.Replace(srv.URL, "http://", "http://someuser:hunter2@", 1) + "?token=secret"
+	d := f.deps()
+	d.worker = func() (benchmark.Worker, string, error) {
+		w := benchmark.NewHTTPWorker(raw, 5*time.Second)
+		return w, w.BaseURL(), nil
+	}
+	code, out, errOut := runCLI(d, "measure", "--manifest", f.manifest, "--cache", f.cache, "--model-sha256", model)
+	assert.Equal(t, 1, code)
+	assert.Contains(t, errOut, "img-00: ", "a per-image error is printed")
+	for _, leak := range []string{"someuser", "hunter2", "token", "secret"} {
+		assert.NotContains(t, out+errOut, leak)
+	}
 }
 
 func TestEvaluateNeedsMeasurements(t *testing.T) {
@@ -354,8 +391,9 @@ func TestPrintHeldOutCountsAndWarnings(t *testing.T) {
 			"trait:noseWidth": {HeldOutLabelled: 9, Answered: 9, NoAnswer: 0, Metrics: benchmark.Metrics{MacroF1: f(0.75)}},
 		},
 		Regressions: []benchmark.Regression{
-			{Attribute: "trait:noseWidth", Metric: "macroF1", Fitted: 0.5, Base: 0.75},
-			{Attribute: "trait:noseWidth", Metric: "kappa", Fitted: 0.1, Base: 0.2},
+			{Attribute: "trait:noseWidth", Metric: "macroF1", Fitted: f(0.5), Base: 0.75},
+			{Attribute: "trait:noseWidth", Metric: "kappa", Fitted: nil, Base: 0.2},
+			{Attribute: "trait:noseWidth", Metric: "answered", Fitted: f(7), Base: 9},
 		},
 	}
 	var out bytes.Buffer
@@ -364,10 +402,13 @@ func TestPrintHeldOutCountsAndWarnings(t *testing.T) {
 	assert.Contains(t, s, "fitted labelled 9, answered 7, no answer 2")
 	assert.Contains(t, s, "base   labelled 9, answered 9, no answer 0")
 	first := "WARNING: fitted profile is worse than base on trait:noseWidth macroF1 (fitted 0.500, base 0.750)"
-	second := "WARNING: fitted profile is worse than base on trait:noseWidth kappa (fitted 0.100, base 0.200)"
+	second := "WARNING: fitted profile is worse than base on trait:noseWidth kappa (fitted none, base 0.200)"
+	third := "WARNING: fitted profile is worse than base on trait:noseWidth answered (fitted 7, base 9)"
 	require.Contains(t, s, first)
 	require.Contains(t, s, second)
+	require.Contains(t, s, third)
 	assert.Less(t, strings.Index(s, first), strings.Index(s, second), "list order")
+	assert.Less(t, strings.Index(s, second), strings.Index(s, third), "list order")
 
 	out.Reset()
 	h.Regressions = nil

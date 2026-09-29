@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -59,4 +60,42 @@ func TestHTTPWorkerSendsWhatTheEndpointSends(t *testing.T) {
 
 	_, _, err = w.Measure(context.Background(), []byte("other"), "image.jpg")
 	assert.ErrorIs(t, err, mc.ErrUnavailable)
+}
+
+func TestSafeURLDropsUserinfoQueryAndFragment(t *testing.T) {
+	for raw, want := range map[string]string{
+		"http://someuser:hunter2@ai-worker.test:8000/base?token=secret#frag": "http://ai-worker.test:8000/base",
+		"http://someuser@ai-worker.test?token=secret/api/v1/face-measure":    "http://ai-worker.test",
+		"https://ai-worker.test/": "https://ai-worker.test/",
+		"not a url":               benchmark.UnparseableURL,
+		"http://[::1":             benchmark.UnparseableURL,
+	} {
+		assert.Equal(t, want, benchmark.SafeURL(raw), raw)
+	}
+}
+
+// A transport failure from the real client is a *url.Error rendered into
+// measureclient's message; the worker's error carries no user, password
+// or token, and still says ErrUnavailable.
+func TestHTTPWorkerErrorsCarryNoURLSecrets(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		conn, _, err := w.(http.Hijacker).Hijack()
+		if err == nil {
+			_ = conn.Close()
+		}
+	}))
+	defer srv.Close()
+	raw := strings.Replace(srv.URL, "http://", "http://someuser:hunter2@", 1) + "?token=secret"
+	w := benchmark.NewHTTPWorker(raw, 5*time.Second)
+
+	_, catErr := w.Catalogue(context.Background())
+	_, _, measureErr := w.Measure(context.Background(), []byte("x"), "image.jpg")
+	for _, err := range []error{catErr, measureErr} {
+		require.Error(t, err)
+		assert.ErrorIs(t, err, mc.ErrUnavailable)
+		for _, leak := range []string{"someuser", "hunter2", "token", "secret"} {
+			assert.NotContains(t, err.Error(), leak)
+		}
+		assert.Contains(t, err.Error(), strings.TrimPrefix(srv.URL, "http://"), "the host is still named")
+	}
 }
