@@ -64,8 +64,10 @@ func (p Params) Validate() error {
 	if p.DedupMaxDistance < 0 || p.DedupMaxDistance > DHashBits {
 		return fmt.Errorf("DedupMaxDistance must be in 0..%d, got %d", DHashBits, p.DedupMaxDistance)
 	}
-	if p.MinClassCount < 1 {
-		return fmt.Errorf("MinClassCount must be at least 1, got %d", p.MinClassCount)
+	// Fitting takes a sample standard deviation (divisor n-1) per class and
+	// prototype measurement, which needs n-1 >= 1: two values at least.
+	if p.MinClassCount < 2 {
+		return fmt.Errorf("MinClassCount must be at least 2 (a sample standard deviation needs n-1 >= 1), got %d", p.MinClassCount)
 	}
 	if p.ECEBins < 1 {
 		return fmt.Errorf("ECEBins must be at least 1, got %d", p.ECEBins)

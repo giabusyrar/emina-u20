@@ -106,10 +106,28 @@ func TestCalibrateWritesAValidCalibratedProfile(t *testing.T) {
 	assert.Equal(t, 8, held.Split.HeldOutSubjects, "round(0.2 x 39)")
 	assert.Equal(t, 39, held.Split.TrainImages+held.Split.HeldOutImages)
 	fitted, base := held.Fitted["classifier:faceShape"], held.Base["classifier:faceShape"]
-	assert.Equal(t, held.Split.HeldOutImages, fitted.N)
-	assert.InDelta(t, 1.0, *fitted.ExactAgreement, 1e-12, "the classes are well separated")
-	assert.Equal(t, base.N, fitted.N, "base and fitted are scored on the same held-out images")
+	assert.Equal(t, held.Split.HeldOutImages, fitted.Metrics.N)
+	assert.Equal(t, held.Split.HeldOutImages, fitted.HeldOutLabelled)
+	assert.Equal(t, fitted.Metrics.N, fitted.Answered)
+	assert.Equal(t, 0, fitted.NoAnswer)
+	assert.InDelta(t, 1.0, *fitted.Metrics.ExactAgreement, 1e-12, "the classes are well separated")
+	assert.Equal(t, base.HeldOutLabelled, fitted.HeldOutLabelled, "base and fitted are scored on the same held-out images")
+	assert.Equal(t, base.Metrics.N, fitted.Metrics.N)
 	require.Contains(t, held.Fitted, "trait:noseWidth")
+	assert.NotNil(t, held.Regressions)
+	assert.Empty(t, held.Regressions, "fitted matches base on well-separated data")
+	assert.Contains(t, string(res.Doc.Calibration.HeldOutMetrics), `"regressions":[]`)
+
+	// Base sources above a fitted number say what the run superseded;
+	// the others are unchanged.
+	notes := map[string]string{}
+	for _, s := range res.Doc.Calibration.Sources {
+		notes[s.For] = s.Note
+	}
+	prefix := benchmark.SupersededPrefix(held.BaseProfileSHA, "fb-0123456789abcdef")
+	assert.True(t, strings.HasPrefix(notes["classifiers.faceShape.classes.Long"], prefix))
+	assert.True(t, strings.HasPrefix(notes["traits.noseWidth.rules"], prefix))
+	assert.Equal(t, "", notes["classifiers.faceShape.blendMargin"], "not an ancestor of a fitted number: unchanged")
 
 	// The cross-subject near-duplicate is reported for the operator (a
 	// likely labelling error), by image id, never in the written profile.
@@ -345,4 +363,101 @@ func TestCalibrateTheShippedSeed(t *testing.T) {
 	require.NoError(t, err)
 	assert.JSONEq(t, string(wantGuidance), string(gotGuidance))
 	assert.NotEqual(t, seed.Classifiers[0].Classes[0].Prototype, doc.Classifiers[0].Classes[0].Prototype)
+
+	// Seed notes that quote replaced numbers are marked superseded when
+	// their path is above a fitted number; others keep their note as-is.
+	seedNotes := map[string]string{}
+	for _, s := range seed.Calibration.Sources {
+		seedNotes[s.For] = s.Note
+	}
+	prefix := benchmark.SupersededPrefix(base.SHA256, "fb-seed")
+	got := map[string]string{}
+	for _, s := range doc.Calibration.Sources {
+		if _, ok := seedNotes[s.For]; ok {
+			got[s.For] = s.Note
+		}
+	}
+	for _, p := range []string{
+		"classifiers.faceShape.classes.Triangle.prototype",
+		"classifiers.faceShape.classes.Oval",
+		"traits.noseWidth.rules",
+		"traits.eyeShape.rules",
+	} {
+		require.Contains(t, seedNotes, p)
+		assert.Equal(t, prefix+seedNotes[p], got[p], p)
+	}
+	for _, p := range []string{
+		"classifiers.faceShape.blendMargin",
+		"classifiers.faceShape.minObservedWeight",
+		"guidance.rules.round-contour",
+	} {
+		require.Contains(t, seedNotes, p)
+		assert.Equal(t, seedNotes[p], got[p], p)
+	}
+}
+
+func heldOutItems(ids ...string) []benchmark.Item {
+	var out []benchmark.Item
+	for _, id := range ids {
+		out = append(out, benchmark.Item{Row: benchmark.ManifestRow{ImageID: id, SubjectID: "s-" + id}, Outcome: benchmark.OutcomeMeasured})
+	}
+	return out
+}
+
+func heldOutAnswer(label string) benchmark.Answer {
+	s := 0.9
+	return benchmark.Answer{Status: "single", Label: label, Top2: []string{label}, Score: &s}
+}
+
+var (
+	faceShape    = benchmark.Target{Kind: benchmark.KindClassifier, Key: "faceShape"}
+	heldOutTruth = map[string]string{"a": "Long", "b": "Wide", "c": "Long", "d": "Wide", "e": "Long", "f": "Wide"}
+)
+
+func allCorrect() map[string]map[benchmark.Target]benchmark.Answer {
+	out := map[string]map[benchmark.Target]benchmark.Answer{}
+	for id, l := range heldOutTruth {
+		out[id] = map[benchmark.Target]benchmark.Answer{faceShape: heldOutAnswer(l)}
+	}
+	return out
+}
+
+// A fitted profile that abstains where the base answers is scored on
+// fewer images; the counts make that visible instead of hiding it.
+func TestCompareHeldOutCountsAbstentions(t *testing.T) {
+	items := heldOutItems("a", "b", "c", "d", "e", "f", "unlabelled")
+	base := allCorrect()
+	fitted := allCorrect()
+	fitted["d"][faceShape] = benchmark.Answer{Status: "insufficient_evidence"}
+
+	b := benchmark.CompareHeldOut(items, base, faceShape, heldOutTruth, 10)
+	f := benchmark.CompareHeldOut(items, fitted, faceShape, heldOutTruth, 10)
+	assert.Equal(t, benchmark.HeldOutScore{HeldOutLabelled: 6, Answered: 6, NoAnswer: 0, Metrics: b.Metrics}, b)
+	assert.Equal(t, benchmark.HeldOutScore{HeldOutLabelled: 6, Answered: 5, NoAnswer: 1, Metrics: f.Metrics}, f)
+	assert.Equal(t, 5, f.Metrics.N)
+}
+
+func TestRegressions(t *testing.T) {
+	items := heldOutItems("a", "b", "c", "d", "e", "f")
+	base := map[string]benchmark.HeldOutScore{"classifier:faceShape": benchmark.CompareHeldOut(items, allCorrect(), faceShape, heldOutTruth, 10)}
+
+	same := map[string]benchmark.HeldOutScore{"classifier:faceShape": benchmark.CompareHeldOut(items, allCorrect(), faceShape, heldOutTruth, 10)}
+	none := benchmark.Regressions(same, base)
+	assert.NotNil(t, none)
+	assert.Empty(t, none)
+
+	worse := allCorrect()
+	worse["d"][faceShape] = heldOutAnswer("Long")
+	regressed := map[string]benchmark.HeldOutScore{"classifier:faceShape": benchmark.CompareHeldOut(items, worse, faceShape, heldOutTruth, 10)}
+	got := benchmark.Regressions(regressed, base)
+	require.Len(t, got, 2)
+	assert.Equal(t, "classifier:faceShape", got[0].Attribute)
+	assert.Equal(t, "macroF1", got[0].Metric)
+	assert.Equal(t, "kappa", got[1].Metric)
+	assert.Less(t, got[0].Fitted, got[0].Base)
+	assert.Less(t, got[1].Fitted, got[1].Base)
+
+	// An undefined (nil) metric is not compared.
+	empty := map[string]benchmark.HeldOutScore{"classifier:faceShape": benchmark.CompareHeldOut(items, map[string]map[benchmark.Target]benchmark.Answer{}, faceShape, heldOutTruth, 10)}
+	assert.Empty(t, benchmark.Regressions(empty, base))
 }

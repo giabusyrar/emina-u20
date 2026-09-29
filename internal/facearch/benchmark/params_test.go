@@ -31,6 +31,9 @@ func TestParamsValidate(t *testing.T) {
 	require.NoError(t, edge.Validate())
 	edge.DedupMaxDistance = benchmark.DHashBits
 	require.NoError(t, edge.Validate())
+	// Two is the smallest class count a sample standard deviation allows.
+	edge.MinClassCount = 2
+	require.NoError(t, edge.Validate())
 
 	for name, tc := range map[string]struct {
 		mutate func(*benchmark.Params)
@@ -41,7 +44,8 @@ func TestParamsValidate(t *testing.T) {
 		"held-out negative": {func(p *benchmark.Params) { p.HeldOutFraction = -0.1 }, "HeldOutFraction must be in (0,1), got -0.1"},
 		"held-out NaN":      {func(p *benchmark.Params) { p.HeldOutFraction = math.NaN() }, "HeldOutFraction must be in (0,1), got NaN"},
 		"ece bins":          {func(p *benchmark.Params) { p.ECEBins = 0 }, "ECEBins must be at least 1, got 0"},
-		"min class count":   {func(p *benchmark.Params) { p.MinClassCount = 0 }, "MinClassCount must be at least 1, got 0"},
+		"min class count":   {func(p *benchmark.Params) { p.MinClassCount = 0 }, "MinClassCount must be at least 2 (a sample standard deviation needs n-1 >= 1), got 0"},
+		"min class count 1": {func(p *benchmark.Params) { p.MinClassCount = 1 }, "MinClassCount must be at least 2 (a sample standard deviation needs n-1 >= 1), got 1"},
 		"min raters":        {func(p *benchmark.Params) { p.MinConsensusRaters = -2 }, "MinConsensusRaters must be at least 1, got -2"},
 		"dedup negative":    {func(p *benchmark.Params) { p.DedupMaxDistance = -1 }, "DedupMaxDistance must be in 0..64, got -1"},
 		"dedup too big":     {func(p *benchmark.Params) { p.DedupMaxDistance = 65 }, "DedupMaxDistance must be in 0..64, got 65"},

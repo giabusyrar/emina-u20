@@ -54,9 +54,86 @@ type HeldOutMetrics struct {
 	Split            SplitSummary `json:"split"`
 	// Fitted and Base are the calibrated and the base profile on the same
 	// held-out images, against the target, keyed "classifier:<key>" or
-	// "trait:<key>".
-	Fitted map[string]Metrics `json:"fitted"`
-	Base   map[string]Metrics `json:"base"`
+	// "trait:<key>". Each profile's metrics cover only the images it
+	// answered; HeldOutLabelled, Answered and NoAnswer say how many that
+	// is, so a profile that abstains more cannot look better unnoticed.
+	Fitted map[string]HeldOutScore `json:"fitted"`
+	Base   map[string]HeldOutScore `json:"base"`
+	// Regressions lists every attribute and metric (macroF1, kappa) where
+	// the fitted profile scores below the base on the held-out images.
+	// Never null: an empty list means no regression was found.
+	Regressions []Regression `json:"regressions"`
+}
+
+// HeldOutScore is one profile's result for one attribute on the held-out
+// images.
+type HeldOutScore struct {
+	// HeldOutLabelled counts held-out measured images the target labelled
+	// for this attribute; Answered of them got an answer from the profile
+	// and NoAnswer did not (HeldOutLabelled = Answered + NoAnswer).
+	HeldOutLabelled int `json:"heldOutLabelled"`
+	Answered        int `json:"answered"`
+	NoAnswer        int `json:"noAnswer"`
+	// Metrics are over the Answered images only (Metrics.N == Answered).
+	Metrics Metrics `json:"metrics"`
+}
+
+// Regression is one metric on which the fitted profile scores below the
+// base profile on the held-out images.
+type Regression struct {
+	Attribute string  `json:"attribute"`
+	Metric    string  `json:"metric"`
+	Fitted    float64 `json:"fitted"`
+	Base      float64 `json:"base"`
+}
+
+// CompareHeldOut scores one attribute's answers on the held-out items
+// against the target's labels (image id -> label), counting labelled
+// items the profile left unanswered.
+func CompareHeldOut(test []Item, answers map[string]map[Target]Answer, t Target, labels map[string]string, bins int) HeldOutScore {
+	var s HeldOutScore
+	for _, it := range test {
+		if it.Outcome != OutcomeMeasured {
+			continue
+		}
+		if _, ok := labels[it.Row.ImageID]; !ok {
+			continue
+		}
+		s.HeldOutLabelled++
+		if answers[it.Row.ImageID][t].Answered() {
+			s.Answered++
+		} else {
+			s.NoAnswer++
+		}
+	}
+	s.Metrics = Compare(PairsFor(test, answers, t, labels, SliceAll), bins)
+	return s
+}
+
+// Regressions lists, in attribute then metric order, where the fitted
+// profile's held-out macro-F1 or kappa is below the base's. Undefined
+// (nil) values are not compared. The result is never nil.
+func Regressions(fitted, base map[string]HeldOutScore) []Regression {
+	out := []Regression{}
+	for _, attr := range sortedKeys(fitted) {
+		b, ok := base[attr]
+		if !ok {
+			continue
+		}
+		f := fitted[attr]
+		for _, m := range []struct {
+			name         string
+			fitted, base *float64
+		}{
+			{"macroF1", f.Metrics.MacroF1, b.Metrics.MacroF1},
+			{"kappa", f.Metrics.Kappa, b.Metrics.Kappa},
+		} {
+			if m.fitted != nil && m.base != nil && *m.fitted < *m.base {
+				out = append(out, Regression{Attribute: attr, Metric: m.name, Fitted: *m.fitted, Base: *m.base})
+			}
+		}
+	}
+	return out
 }
 
 // CalibrateInput is everything calibrate needs, already loaded.
@@ -194,6 +271,7 @@ func Calibrate(in CalibrateInput) (*CalibrateResult, error) {
 	fitted := &ProfileFile{Entity: &profile.FaceArchitectureProfile{ID: "run:" + in.RunID, Code: in.RunID}, Doc: fit.Doc}
 	held.Fitted = heldOutMetrics(test, fitted, labels, in.Params.ECEBins)
 	held.Base = heldOutMetrics(test, in.Base, labels, in.Params.ECEBins)
+	held.Regressions = Regressions(held.Fitted, held.Base)
 
 	metrics, err := json.Marshal(held)
 	if err != nil {
@@ -206,7 +284,7 @@ func Calibrate(in CalibrateInput) (*CalibrateResult, error) {
 		BenchmarkRunID: &runID,
 		Target:         &target,
 		HeldOutMetrics: metrics,
-		Sources:        append(keptSources(in.Base.Doc.Calibration.Sources, fit.Owners), fit.Sources...),
+		Sources:        append(keptSources(in.Base.Doc.Calibration.Sources, fit.Owners, in.Base.SHA256, in.RunID), fit.Sources...),
 	}
 	if err := profile.Validate(doc, in.Catalogue); err != nil {
 		return nil, fmt.Errorf("calibrated profile does not validate: %w", err)
@@ -224,38 +302,58 @@ func Calibrate(in CalibrateInput) (*CalibrateResult, error) {
 // Everything else is kept: vocabulary, class- and trait-level sources
 // (which also cover unfitted weights, requires, rule order and labels),
 // blendMargin, minObservedWeight and guidance.
-func keptSources(base []profile.Source, owners []string) []profile.Source {
+//
+// A kept source whose For is an ancestor of a fitted number (e.g. a class,
+// its prototype, or a trait's rules) may still quote the base's centres,
+// spreads or bands, so its Note is prefixed with SupersededPrefix. Other
+// kept sources are unchanged.
+func keptSources(base []profile.Source, owners []string, baseSHA, runID string) []profile.Source {
 	out := []profile.Source{}
 	for _, s := range base {
-		refitted := false
+		refitted, ancestor := false, false
 		for _, o := range owners {
 			if s.For == o || strings.HasPrefix(s.For, o+".") {
 				refitted = true
 				break
 			}
+			if strings.HasPrefix(o, s.For+".") {
+				ancestor = true
+			}
 		}
-		if !refitted {
-			out = append(out, s)
+		if refitted {
+			continue
 		}
+		if ancestor {
+			s.Note = SupersededPrefix(baseSHA, runID) + s.Note
+		}
+		out = append(out, s)
 	}
 	return out
 }
 
+// SupersededPrefix is prepended to the Note of a kept base source that
+// sits above a fitted number, so the numbers it quotes are not read as
+// current.
+func SupersededPrefix(baseSHA, runID string) string {
+	return "Base profile " + baseSHA + ": centres, spreads and thresholds named here are superseded by face-benchmark run " +
+		runID + " (see the sources beneath this path); this source still covers weights, requires, labels, operators and rule order. "
+}
+
 // heldOutMetrics scores a profile on the held-out items against the
 // target labels (our key -> image id -> label), over all held-out images.
-func heldOutMetrics(test []Item, p *ProfileFile, labels map[string]map[string]string, bins int) map[string]Metrics {
+func heldOutMetrics(test []Item, p *ProfileFile, labels map[string]map[string]string, bins int) map[string]HeldOutScore {
 	answers := map[string]map[Target]Answer{}
 	for _, it := range test {
 		answers[it.Row.ImageID] = Answers(p.Entity, p.Doc, it.Response)
 	}
-	out := map[string]Metrics{}
+	out := map[string]HeldOutScore{}
 	for _, c := range p.Doc.Classifiers {
 		t := Target{Kind: KindClassifier, Key: c.Key}
-		out[answerKey(t)] = Compare(PairsFor(test, answers, t, labels[c.Key], SliceAll), bins)
+		out[answerKey(t)] = CompareHeldOut(test, answers, t, labels[c.Key], bins)
 	}
 	for _, tr := range p.Doc.Traits {
 		t := Target{Kind: KindTrait, Key: tr.Key}
-		out[answerKey(t)] = Compare(PairsFor(test, answers, t, labels[tr.Key], SliceAll), bins)
+		out[answerKey(t)] = CompareHeldOut(test, answers, t, labels[tr.Key], bins)
 	}
 	return out
 }
