@@ -22,8 +22,7 @@ const (
 	DefaultECEBins = 10
 	// DefaultSeed: seed of the subject split.
 	DefaultSeed = 1
-	// DefaultMinConsensusRaters: raters who must answer before their
-	// strict majority counts as a rater consensus.
+	// DefaultMinConsensusRaters: raters who must agree on the same label.
 	DefaultMinConsensusRaters = 2
 )
 
