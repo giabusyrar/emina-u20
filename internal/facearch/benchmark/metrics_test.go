@@ -1,6 +1,8 @@
 package benchmark_test
 
 import (
+	"math"
+	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -98,4 +100,47 @@ func TestCompareTop2AndScores(t *testing.T) {
 	assert.Nil(t, m.ExactAgreement)
 	assert.Nil(t, m.Top2Agreement)
 	assert.Nil(t, m.Kappa)
+}
+
+func TestKappaReproducibleAndSingleClass(t *testing.T) {
+	labels := []string{"a", "b", "c", "d", "e", "f"}
+	r := rand.New(rand.NewSource(7))
+	a, b := make([]string, 200), make([]string, 200)
+	for i := range a {
+		a[i], b[i] = labels[r.Intn(6)], labels[r.Intn(6)]
+	}
+	first := *benchmark.CohenKappa(a, b)
+	for i := 0; i < 50; i++ {
+		require.Equal(t, first, *benchmark.CohenKappa(a, b), "kappa must be bit-identical across runs")
+	}
+	k := benchmark.CohenKappa([]string{"x", "x"}, []string{"y", "y"})
+	require.NotNil(t, k)
+	assert.InDelta(t, 0.0, *k, 1e-12)
+}
+
+func TestECEEdgeScoreLeftClosed(t *testing.T) {
+	// 0.5 with 2 bins belongs to [0.5, 1]: mean conf 0.5, accuracy 1 -> 0.5.
+	e := benchmark.ECE([]float64{0.5}, []bool{true}, 2)
+	require.NotNil(t, e)
+	assert.InDelta(t, 0.5, *e, 1e-12)
+	// 0.5 in the lower bin would pair with 0.4: (0.4+0.5)/2=0.45 vs acc 1.
+	e = benchmark.ECE([]float64{0.5, 0.4}, []bool{true, true}, 2)
+	assert.InDelta(t, 0.5*0.5+0.5*0.6, *e, 1e-12)
+}
+
+func TestLoudFailures(t *testing.T) {
+	assert.Panics(t, func() { benchmark.ECE([]float64{math.NaN()}, []bool{true}, 10) })
+	assert.Panics(t, func() { benchmark.ECE([]float64{math.Inf(1)}, []bool{true}, 10) })
+	assert.Panics(t, func() { benchmark.ECE([]float64{1.1}, []bool{true}, 10) })
+	assert.Panics(t, func() { benchmark.ECE([]float64{-0.1}, []bool{true}, 10) })
+	assert.Panics(t, func() { benchmark.ECE([]float64{0.5}, []bool{true}, 0) })
+	assert.Panics(t, func() {
+		benchmark.Compare([]benchmark.Pair{{Truth: "a", Pred: "a", Top2: []string{"a", "b", "c"}}}, 10)
+	})
+	assert.Panics(t, func() { benchmark.NewConfusion([]string{"a"}, nil) })
+}
+
+func TestTop2CountsPredEqualTruthEvenIfOmitted(t *testing.T) {
+	m := benchmark.Compare([]benchmark.Pair{{Truth: "a", Pred: "a"}}, 10)
+	assert.InDelta(t, 1.0, *m.Top2Agreement, 1e-12)
 }

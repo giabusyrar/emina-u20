@@ -111,10 +111,13 @@ func CohenKappa(a, b []string) *float64 {
 		}
 	}
 	po := float64(same) / n
-	var pe float64
+	// pe from integers with one division, so the result does not depend on
+	// map iteration order.
+	var cross int64
 	for l, x := range ca {
-		pe += float64(x) / n * float64(cb[l]) / n
+		cross += int64(x) * int64(cb[l])
 	}
+	pe := float64(cross) / (n * n)
 	if pe >= 1 {
 		return nil
 	}
@@ -122,13 +125,25 @@ func CohenKappa(a, b []string) *float64 {
 }
 
 // ECE is sum over bins of (n_bin / N) * |accuracy_bin - mean confidence_bin|
-// with bins equal-width on [0, 1] (Naeini et al. 2015; Guo et al. 2017).
-// A confidence of exactly 1 falls in the last bin.
+// (Guo et al. 2017 define the metric). Bin convention, chosen here and not
+// taken from that paper: M equal-width bins on [0, 1], left-closed
+// [k/M, (k+1)/M), so a score exactly on an edge goes to the upper bin, and a
+// confidence of exactly 1 goes to the last bin. Panics on bins < 1 and on a
+// score that is non-finite or outside [0, 1]: those are programming errors
+// and must not reach report JSON.
 func ECE(conf []float64, correct []bool, bins int) *float64 {
 	if len(conf) != len(correct) {
 		panic(fmt.Sprintf("benchmark.ECE: %d confidences vs %d outcomes", len(conf), len(correct)))
 	}
-	if len(conf) == 0 || bins < 1 {
+	if bins < 1 {
+		panic(fmt.Sprintf("benchmark.ECE: bins %d < 1", bins))
+	}
+	for _, c := range conf {
+		if math.IsNaN(c) || math.IsInf(c, 0) || c < 0 || c > 1 {
+			panic(fmt.Sprintf("benchmark.ECE: score %v outside [0, 1]", c))
+		}
+	}
+	if len(conf) == 0 {
 		return nil
 	}
 	n := make([]int, bins)
@@ -162,6 +177,9 @@ func ECE(conf []float64, correct []bool, bins int) *float64 {
 
 // NewConfusion counts truth (rows) against pred (columns).
 func NewConfusion(truth, pred []string) Confusion {
+	if len(truth) != len(pred) {
+		panic(fmt.Sprintf("benchmark.NewConfusion: %d vs %d labels", len(truth), len(pred)))
+	}
 	labels := unionLabels(truth, pred)
 	at := make(map[string]int, len(labels))
 	for i, l := range labels {
@@ -186,11 +204,17 @@ func Compare(pairs []Pair, eceBins int) Metrics {
 	var correct []bool
 	for i, p := range pairs {
 		truth[i], pred[i] = p.Truth, p.Pred
+		if len(p.Top2) > 2 {
+			panic(fmt.Sprintf("benchmark.Compare: pair %d has %d top-2 labels", i, len(p.Top2)))
+		}
+		hit := p.Pred == p.Truth
 		for _, l := range p.Top2 {
 			if l == p.Truth {
-				top2++
-				break
+				hit = true
 			}
+		}
+		if hit {
+			top2++
 		}
 		if p.Score != nil {
 			conf = append(conf, *p.Score)
