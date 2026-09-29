@@ -561,6 +561,8 @@ eyebrowShortness, lipShape, noseWidth and noseLength; and contour, highlight,
 blush and brow templates and rules per face shape after Perfect Corp's
 published contour guidance. It is replaced by the first calibrated profile.
 
+Amendment (2026-09-29, user decision): the uncalibrated seed ships contour and highlight guidance only, for Round, Oval, Square and Heart (sourced shapes only); blush, brow and every other shape await Paragon's makeup team.
+
 ## Benchmark and calibration harness
 
 `apps/core-engine/cmd/face-benchmark`, a Go CLI. It calls the real ai-worker

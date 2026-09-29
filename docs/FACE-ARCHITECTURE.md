@@ -143,14 +143,17 @@ beginning `catalogue drift:`. Occlusion is not drift.
 ```json
 {"regions": [{"role": "contour", "template": "contour_cheek_hollow_r",
               "polygon": [[204.2, 330.2], [262.5, 411.1], [242.3, 413.2], [199.3, 367.4]],
-              "intensity": 0.6, "ruleId": "oval-contour",
+              "intensity": 0.6, "ruleId": "oval-contour", "match": "primary",
               "textKeys": ["facearch.guidance.oval.contour"],
-              "anchorVisibility": "unknown", "unverifiedRegions": ["contour_right"]}],
+              "anchorVisibility": "unknown", "unverifiedRegions": ["contour_right", "lips"]}],
  "droppedTemplates": [{"template": "highlight_chin", "ruleId": "oval-highlight",
+                       "match": "primary",
                        "reason": "region jaw is occluded (anchor landmark 152)"}]}
 ```
 
-The example is illustrative only: its numbers are not from a real photo, and `contour_right` is one of the worker's real region names. Both lists are always present. A face on which no rule
+The example is illustrative only: its numbers are not from a real photo; the region
+names are the worker's real ones (the template's lerps end at landmark 61, which is in
+`lips`). Both lists are always present. A face on which no rule
 matches gets `{"regions": [], "droppedTemplates": []}`: nothing is guessed (the
 classifier says `insufficient_evidence`, or the shape has no seed rule). `guidance`
 is `null` only when the profile has no guidance section.
@@ -159,6 +162,9 @@ is `null` only when the profile has no guidance section.
   **not clipped** to the image.
 - `role`: `contour`, `highlight`, `blush` or `brow`.
 - `intensity`: the rule's rendering strength in (0, 1]; not a measurement.
+- `match` (regions and dropped templates): the grade the applying rule matched at,
+  `primary` or `secondary` (see Rules). `secondary` means the placement rests on
+  weaker evidence: a blend's secondary class or a `boundaryUncertain` trait label.
 - `textKeys`: i18n keys; the brand's content owns the words.
 - `placeholder: true`: the rule's choice of this placement has no source (omitted when
   false). The whole profile's `provenance.calibration.status` still applies.
@@ -174,8 +180,9 @@ canonical frame:
 - units of eye-centre distance;
 - +x toward the subject's left (image right), +y down.
 
-core-engine rebuilds that frame from the returned landmarks exactly as the worker does,
-resolves each point there and maps it back to pixels.
+core-engine rebuilds that frame from the returned landmarks by the same definition as
+the worker (agrees to 1e-9 on the fixture), resolves each point there and maps it back
+to pixels.
 
 **Rules.** `when` maps a classifier or trait key to labels. Every entry must match.
 A rule has a grade, that of its weakest entry:
@@ -194,13 +201,19 @@ applying it again is skipped, even when the first rule's attempt was dropped.
 
 **Occlusion.** The worker reports a visibility per region. In the default deployment
 the occlusion threshold (`FACE_MEASURE_OCCLUSION_DELTA_E`, `docs/FACE-MEASURE.md`) is
-unset, so every region is `unknown` and nothing is dropped as occluded: a placed
-polygon **may sit over a hijab, a hand or anything else covering that part of the
-face**. Each placed region says so:
+unset, so every region is `unknown` except regions out of frame, which are
+`occluded`; nothing else is dropped as occluded, so a covered region is `unknown` and
+placed: a placed polygon **may sit over a hijab, a hand or anything else covering that
+part of the face**. Even with the threshold set, the feature regions (`brows`, `eyes`,
+`nose`, `lips`) are always `unknown` under the v1 colour detector (`occluded` only when
+out of frame), so a template anchored there can never be `observed`; every seed
+template has such an anchor. Each placed region says so:
 
 - `anchorVisibility` is `observed` only when every region containing any anchor
-  landmark of the template is `observed`; otherwise `unknown`.
-- `unverifiedRegions` lists (sorted, never null) the anchor regions that were not
+  landmark of the template is `observed`, and, when any point has an `offsetIod`, the
+  `eyes` region too (the offset is taken in the canonical frame, which is built from
+  the eye corners); otherwise `unknown`.
+- `unverifiedRegions` lists (sorted, never null) those regions that were not
   `observed`.
 
 Occlusion is judged **at the anchor landmarks** (an index, or either end of a lerp),
@@ -212,19 +225,25 @@ visible can still extend over covered skin.
 
 | reason | when |
 |---|---|
+| `region table recorded for <v>, worker measured with <w>` | The worker's `catalogueVersion` is not the one core-engine's region table was recorded for (see Regions of a landmark); every matched template is dropped. |
 | `canonical frame requires region eyes` | The eyes region is occluded (the frame is built from the eye corners). |
 | `region <r> is occluded (anchor landmark <i>)` | An anchor landmark is in a region the worker reports `occluded`. That includes regions **out of frame**, which the worker does not distinguish in `regions`. |
 | `region <r> not reported by the ai-worker (anchor landmark <i>)` | The worker's `regions` lacks that region. |
 | `anchor landmark <i> is in no ai-worker region` | Defence in depth; validation refuses such templates. |
-| `the ai-worker returned no landmarks`, `landmarks unusable: ...` | Landmarks are missing or malformed, or the frame is degenerate (`eye centres coincide`). |
+| `the ai-worker returned no landmarks`, `landmarks unusable: ...` | Landmarks are missing or malformed, or the frame is degenerate (`eye centres coincide`, `eye-centre distance is not finite`). |
+| `point <j> is not finite in pixels` | A finite but extreme offset or landmark overflowed when mapped to pixels. |
 | `template is not defined`, `landmark <i> is not available`, ... | A malformed stored document or landmark list. |
 
 **Regions of a landmark.** core-engine keeps one copy of the worker's region table
 (`anchors.REGIONS`, with the eye corners and the landmark count) in
-`internal/facearch/measureclient/anchors.go`. A test pins it to a recording of
-`apps/ai-worker/ai_worker/vision/facegeom/anchors.py` and to that file's SHA-256. Any
-change to `anchors.py` fails core-engine's tests until the recording is regenerated,
-from the repository root:
+`internal/facearch/measureclient/anchors.go`, recorded for catalogue
+`RegionsCatalogueVersion` (`fa-measure/1`). A test pins it to a recording of
+`apps/ai-worker/ai_worker/vision/facegeom/anchors.py` and to that file's SHA-256; the
+recording also holds `measures.CATALOGUE_VERSION` (parsed from `measures.py`'s text,
+which cannot be imported without numpy) and the SHA-256 of `facegeom/frame.py`, the
+frame definition guidance rebuilds. Any change to `anchors.py` or `frame.py`, or to the
+catalogue version, fails core-engine's tests until the recording is regenerated, from
+the repository root:
 
 ```
 python apps/core-engine/internal/facearch/measureclient/testdata/record_anchors.py > apps/core-engine/internal/facearch/measureclient/testdata/anchors_fa-measure-1.json
@@ -362,7 +381,11 @@ threshold. Validation reports every problem, not just the first:
   least 3 points; each point is exactly one of `index` / `lerp`; landmark indices are
   0-477, each in at least one worker region (a landmark in no region has no visibility,
   so its occlusion could not be detected: lerp between region landmarks instead); lerp
-  ends differ and `t` is in [0, 1]; offsets are finite.
+  ends differ and `t` is in [0, 1]; offsets are finite. A document with a guidance
+  section must target the catalogue the region table was recorded for
+  (`fa-measure/1`), reported at path `guidance`.
+- Template names and rule ids contain no `.` (source paths are dot-separated, so a
+  citation for `guidance.templates.a` would otherwise also cover a template `a.b`).
 - **Guidance rules:** unique `id`; `when` is non-empty, each key names exactly one
   classifier or trait of the document, and each label is one it can produce; at least
   one application of a defined template, none twice, `intensity` in (0, 1]; at least
