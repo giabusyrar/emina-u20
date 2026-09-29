@@ -3,18 +3,28 @@
 The interpretation layer over the ai-worker's face measurements: core-engine
 asks the ai-worker (`docs/FACE-MEASURE.md`) for measurements of one photo and
 applies a brand's stored **profile** to them, producing a face-shape
-classification and per-feature traits.
+classification, per-feature traits and makeup-placement polygons (guidance).
 
 - Spec: `docs/superpowers/specs/2026-09-29-face-architecture-engine-design.md`
-- Plan, including the **Seed profile literals** tables (every number in the seed,
+- Plans, including the **Seed profile literals** tables (every number in the seed,
   with its source status): `docs/superpowers/plans/2026-09-29-face-architecture-core.md`
+  (classifier and traits) and `docs/superpowers/plans/2026-09-29-face-architecture-guidance.md`
+  (guidance: **Seed guidance literals**).
 - Code: `apps/core-engine/internal/facearch/` (handler, `Interpret`, `classify/`,
-  `traits/`, `profile/`, `measureclient/`) and `apps/core-engine/cmd/facearch-profile/`.
+  `traits/`, `guidance/`, `profile/`, `measureclient/`) and `apps/core-engine/cmd/facearch-profile/`.
 
 ## What it does not do
 
-- **No guidance polygons.** `"guidance"` is always JSON `null` until the guidance
-  templates and rules (Plan 3) exist. Nothing is drawn or invented in the meantime.
+- **No validated makeup geometry.** Guidance polygons are placed from landmarks by
+  profile templates. The seed's templates translate Perfect Corp's published placement
+  words ("sides of the forehead", "beneath the cheekbones", ...) into landmark geometry
+  of our own; Perfect Corp publishes no geometry and no amount. Every seed guidance
+  number is ours or a placeholder (Seed guidance literals).
+- **No seed guidance for Diamond, Oblong, Triangle or InvTriangle, no Round highlight,
+  no blush and no brow.** The only public source used (Perfect Corp's per-shape contour
+  guidance) covers contour for Round, Oval, Square and Heart and highlight for Oval,
+  Square and Heart, and nothing else. Rather than invent placements, the seed leaves the
+  rest out: such faces get empty `regions`.
 - **No accuracy claim.** No benchmark has been run (Plan 4). Every response carries
   `provenance.calibration.status`; the only shipped profile is `uncalibrated`.
 - **The seed profile is uncalibrated.** Its numbers are heuristics or placeholders
@@ -31,8 +41,7 @@ Content-Type: multipart/form-data
 
 Also mounted under `/core/vision-engine/` and `/api/vision/`. The profile is
 looked up **before** the ai-worker is called, so a scope with no profile costs
-no inference. core-engine always asks the worker for landmarks; they are not
-returned yet.
+no inference. core-engine always asks the worker for landmarks; it uses them to place guidance polygons and does not return them.
 
 ## Response (200)
 
@@ -44,7 +53,7 @@ returned yet.
 | `measurementsMissing` | `measurementsShown` keys the worker did not return (catalogue drift). Omitted when empty. |
 | `classifications` | One entry per profile classifier (see below). |
 | `traits` | One entry per profile trait (see below). |
-| `guidance` | Always `null` for now. |
+| `guidance` | `null` when the profile has no `guidance` section; otherwise `regions` and `droppedTemplates` (see Guidance). |
 | `provenance` | `model`, `catalogueVersion` (the worker's), `profile` (`id`, `code`, `version`, and the `catalogueVersion` the profile targets), `calibration` (`status`, and `benchmarkRunId` / `target` when set). |
 
 ### Classifications
@@ -129,6 +138,114 @@ worker's, or a referenced measurement is missing, not supported or list-valued i
 the response, the affected classifier or trait is `unavailable` with a `reason`
 beginning `catalogue drift:`. Occlusion is not drift.
 
+### Guidance
+
+```json
+{"regions": [{"role": "contour", "template": "contour_cheek_hollow_r",
+              "polygon": [[204.2, 330.2], [262.5, 411.1], [242.3, 413.2], [199.3, 367.4]],
+              "intensity": 0.6, "ruleId": "oval-contour",
+              "textKeys": ["facearch.guidance.oval.contour"],
+              "anchorVisibility": "unknown", "unverifiedRegions": ["contour_right"]}],
+ "droppedTemplates": [{"template": "highlight_chin", "ruleId": "oval-highlight",
+                       "reason": "region jaw is occluded (anchor landmark 152)"}]}
+```
+
+The example is illustrative. Both lists are always present. A face on which no rule
+matches gets `{"regions": [], "droppedTemplates": []}`: nothing is guessed (the
+classifier says `insufficient_evidence`, or the shape has no seed rule). `guidance`
+is `null` only when the profile has no guidance section.
+
+- `polygon`: vertices in the uploaded image's pixels, in template order, unrounded and
+  **not clipped** to the image.
+- `role`: `contour`, `highlight`, `blush` or `brow`.
+- `intensity`: the rule's rendering strength in (0, 1]; not a measurement.
+- `textKeys`: i18n keys; the brand's content owns the words.
+- `placeholder: true`: the rule's choice of this placement has no source (omitted when
+  false). The whole profile's `provenance.calibration.status` still applies.
+- `anchorVisibility` and `unverifiedRegions`: see Occlusion below.
+
+**Templates.** Each point is a landmark `{"index": i}` or `{"lerp": [a, b, t]}`
+(a + t(b - a)). A point may be shifted by `offsetIod: [dx, dy]` in the ai-worker's
+canonical frame:
+
+- origin at the midpoint of the eye centres (an eye centre is the midpoint of that
+  eye's two corners);
+- eye line horizontal;
+- units of eye-centre distance;
+- +x toward the subject's left (image right), +y down.
+
+core-engine rebuilds that frame from the returned landmarks exactly as the worker does,
+resolves each point there and maps it back to pixels.
+
+**Rules.** `when` maps a classifier or trait key to labels. Every entry must match.
+A rule has a grade, that of its weakest entry:
+
+- A classifier entry matches at **primary** grade on its `primary` (status `single` or
+  `blend`), and at **secondary** grade on its `secondary` when the result is a `blend`.
+- A trait entry matches on its `label`, not on `alternative`: at primary grade, or at
+  secondary grade when the trait is `boundaryUncertain` (its label could flip under
+  noise, as a blend's secondary could be the primary).
+- `insufficient_evidence`, `not_assessable` and `unavailable` never match, nor does a
+  key with no result.
+
+Primary-grade rules apply first, then secondary-grade rules, each group in document
+order. Each template is placed once, by the first rule that applies it; a later rule
+applying it again is skipped, even when the first rule's attempt was dropped.
+
+**Occlusion.** The worker reports a visibility per region. In the default deployment
+the occlusion threshold (`FACE_MEASURE_OCCLUSION_DELTA_E`, `docs/FACE-MEASURE.md`) is
+unset, so every region is `unknown` and nothing is dropped as occluded: a placed
+polygon **may sit over a hijab, a hand or anything else covering that part of the
+face**. Each placed region says so:
+
+- `anchorVisibility` is `observed` only when every region containing any anchor
+  landmark of the template is `observed`; otherwise `unknown`.
+- `unverifiedRegions` lists (sorted, never null) the anchor regions that were not
+  `observed`.
+
+Occlusion is judged **at the anchor landmarks** (an index, or either end of a lerp),
+not at the offset vertices, and polygons are not clipped: a polygon whose anchors are
+visible can still extend over covered skin.
+
+**Dropped templates.** A template that a matching rule applied is dropped, with a
+`reason`, in these cases:
+
+| reason | when |
+|---|---|
+| `canonical frame requires region eyes` | The eyes region is occluded (the frame is built from the eye corners). |
+| `region <r> is occluded (anchor landmark <i>)` | An anchor landmark is in a region the worker reports `occluded`. That includes regions **out of frame**, which the worker does not distinguish in `regions`. |
+| `region <r> not reported by the ai-worker (anchor landmark <i>)` | The worker's `regions` lacks that region. |
+| `anchor landmark <i> is in no ai-worker region` | Defence in depth; validation refuses such templates. |
+| `the ai-worker returned no landmarks`, `landmarks unusable: ...` | Landmarks are missing or malformed, or the frame is degenerate (`eye centres coincide`). |
+| `template is not defined`, `landmark <i> is not available`, ... | A malformed stored document or landmark list. |
+
+**Regions of a landmark.** core-engine keeps one copy of the worker's region table
+(`anchors.REGIONS`, with the eye corners and the landmark count) in
+`internal/facearch/measureclient/anchors.go`. A test pins it to a recording of
+`apps/ai-worker/ai_worker/vision/facegeom/anchors.py` and to that file's SHA-256. Any
+change to `anchors.py` fails core-engine's tests until the recording is regenerated,
+from the repository root:
+
+```
+python apps/core-engine/internal/facearch/measureclient/testdata/record_anchors.py > apps/core-engine/internal/facearch/measureclient/testdata/anchors_fa-measure-1.json
+```
+
+**Seed guidance (uncalibrated).** Perfect Corp's page covers four shapes, and only
+contour and highlight. All seed geometry is translated by us from its placement lists.
+
+- Seeded (placements sourced, geometry ours): contour for Round, Oval, Square and
+  Heart; highlight for Oval, Square and Heart. 11 templates, 8 rules.
+- **Not seeded, deliberately:** any guidance for Diamond, Oblong, Triangle or
+  InvTriangle (the page does not cover them), a Round highlight (the page names none),
+  and any blush or brow guidance (the page gives no placement). A face classified into
+  one of those shapes gets `{"regions": [], "droppedTemplates": []}`. The engine
+  supports blush and brow roles and `placeholder: true` rules for profiles that add
+  them (a brand's makeup team, or a calibrated profile).
+- No seed rule is `placeholder: true`: its placements are sourced. Its intensities
+  (contour 0.6, highlight 0.5) are placeholders, stated in each rule's source note and
+  covered by `calibration.status: uncalibrated`. A rule is flagged `placeholder` only
+  when the choice of placement has no source, not for its intensity.
+
 ## Errors
 
 All core-engine errors have the shape `{"detail": {"code": "...", ...}}`, the same
@@ -184,7 +301,7 @@ go run ./apps/core-engine/cmd/facearch-profile upsert <file.json> --brand <id|*>
 
 Both fetch the ai-worker catalogue and validate the document against it.
 `validate` never touches the database and prints
-`<file>: valid against <catalogue> (N classifiers, N traits, calibration <status>)`.
+`<file>: valid against <catalogue> (N classifiers, N traits, N guidance templates, N guidance rules, calibration <status>)`.
 `upsert` then stores it, migrating only `face_architecture_profiles`.
 
 Exit codes: `0` success; `1` read, parse, validation, catalogue, database or upsert
@@ -217,7 +334,9 @@ measurementsShown [key],
 classifiers [{ key, blendMargin, minObservedWeight,
                classes [{ label, requires [key], prototype { key: {centre, spread, weight} } }] }],
 traits [{ key, default, rules [{ label, when [{measurement, op, value}] }] }],
-guidance   (opaque, reserved for Plan 3; carried unchanged, never read)
+guidance { templates { <name>: { role, points [{index} | {lerp [a, b, t]}, each with optional offsetIod [dx, dy]] } },
+           rules [{ id, when { <classifier|trait key>: [label] }, apply [{template, intensity}], textKeys [key], placeholder }] }
+           (optional; absent = "guidance": null)
 ```
 
 Parsing is strict: an unknown field is an error, so a misspelt key cannot drop a
@@ -239,10 +358,21 @@ threshold. Validation reports every problem, not just the first:
   conditions. The shape is read from the catalogue entry's `shape` (`scalar` or
   `list`); core-engine keeps no table of its own, and an entry with no recognised
   shape is refused rather than guessed.
+- **Guidance templates:** `role` is one of `contour | highlight | blush | brow`; at
+  least 3 points; each point is exactly one of `index` / `lerp`; landmark indices are
+  0-477, each in at least one worker region (a landmark in no region has no visibility,
+  so its occlusion could not be detected: lerp between region landmarks instead); lerp
+  ends differ and `t` is in [0, 1]; offsets are finite.
+- **Guidance rules:** unique `id`; `when` is non-empty, each key names exactly one
+  classifier or trait of the document, and each label is one it can produce; at least
+  one application of a defined template, none twice, `intensity` in (0, 1]; at least
+  one text key, with no whitespace.
 - **Source coverage (uncalibrated only):** a source covers path P when its `for` is P
   or a path under P. Every classifier's `blendMargin` and `minObservedWeight`, every
-  class (`classifiers.<key>.classes.<label>`) and every trait (`traits.<key>`) must
-  be covered. A `calibrated` profile is not subject to this rule.
+  class (`classifiers.<key>.classes.<label>`), every trait (`traits.<key>`), every
+  guidance template (`guidance.templates.<name>`) and every guidance rule
+  (`guidance.rules.<id>`) must be covered. A `calibrated` profile is not subject to
+  this rule.
 
 When a stored document is loaded at request time only its structure is checked (no
 catalogue); drift against the live catalogue is judged per request.
