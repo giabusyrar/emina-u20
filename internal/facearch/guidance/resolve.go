@@ -2,6 +2,7 @@ package guidance
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
@@ -20,7 +21,21 @@ type Region struct {
 	// Placeholder repeats the rule's flag: the choice of this placement has
 	// no source. Omitted when false.
 	Placeholder bool `json:"placeholder,omitempty"`
+	// AnchorVisibility is "observed" only when every region containing any
+	// anchor landmark of the template is observed; otherwise "unknown": the
+	// worker could not confirm the anchors are unobstructed (the default
+	// deployment reports every region as unknown).
+	AnchorVisibility string `json:"anchorVisibility"`
+	// UnverifiedRegions lists, sorted, the anchor regions not observed. Never
+	// null.
+	UnverifiedRegions []string `json:"unverifiedRegions"`
 }
+
+// Values of Region.AnchorVisibility.
+const (
+	AnchorObserved = measureclient.VisibilityObserved
+	AnchorUnknown  = measureclient.VisibilityUnknown
+)
 
 // Dropped is a template a matching rule applied that could not be placed.
 type Dropped struct {
@@ -99,7 +114,13 @@ func Resolve(g *profile.Guidance, ev Evidence, landmarks [][]float64, regions ma
 				drop(err.Error())
 				continue
 			}
+			unverified := unverifiedRegions(t, regions)
+			vis := AnchorObserved
+			if len(unverified) > 0 {
+				vis = AnchorUnknown
+			}
 			out.Regions = append(out.Regions, Region{
+				AnchorVisibility: vis, UnverifiedRegions: unverified,
 				Role: t.Role, Template: a.Template, Polygon: poly, Intensity: a.Intensity,
 				RuleID: r.ID, TextKeys: append([]string{}, r.TextKeys...), Placeholder: r.Placeholder,
 			})
@@ -144,11 +165,33 @@ func hidden(t profile.Template, regions map[string]string) string {
 	return ""
 }
 
+// unverifiedRegions lists, sorted and de-duplicated, the anchor regions whose
+// state is not observed. Call only after hidden returned "".
+func unverifiedRegions(t profile.Template, regions map[string]string) []string {
+	seen := map[string]bool{}
+	out := []string{}
+	for _, p := range t.Points {
+		for _, i := range p.Anchors() {
+			for _, name := range measureclient.RegionsOf(i) {
+				if regions[name] != measureclient.VisibilityObserved && !seen[name] {
+					seen[name] = true
+					out = append(out, name)
+				}
+			}
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
 // Place resolves a template's points to image pixels on one face: each
 // anchor goes into the canonical frame, a lerp is taken there, the offset
 // (IOD units) is added, and the point is mapped back to the image. It does
 // not judge occlusion (Resolve does).
 func Place(t profile.Template, f Frame, landmarks [][]float64) ([][2]float64, error) {
+	if !(f.IodPx() > 0) {
+		return nil, fmt.Errorf("canonical frame is not built")
+	}
 	at := func(i int) ([2]float64, error) {
 		if i < 0 || i >= len(landmarks) || len(landmarks[i]) != 2 {
 			return [2]float64{}, fmt.Errorf("landmark %d is not available", i)
@@ -174,11 +217,17 @@ func Place(t profile.Template, f Frame, landmarks [][]float64) ([][2]float64, er
 			if err != nil {
 				return nil, err
 			}
+			if !finite(p.Lerp.T) {
+				return nil, fmt.Errorf("point %d has a non-finite lerp t", j)
+			}
 			q = [2]float64{a[0] + p.Lerp.T*(b[0]-a[0]), a[1] + p.Lerp.T*(b[1]-a[1])}
 		default:
 			return nil, fmt.Errorf("point %d needs exactly one of index and lerp", j)
 		}
 		if p.OffsetIod != nil {
+			if !finite(p.OffsetIod[0]) || !finite(p.OffsetIod[1]) {
+				return nil, fmt.Errorf("point %d has a non-finite offset", j)
+			}
 			q[0] += p.OffsetIod[0]
 			q[1] += p.OffsetIod[1]
 		}

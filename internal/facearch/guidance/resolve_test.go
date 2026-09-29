@@ -154,3 +154,75 @@ func TestPlace_RejectsMissingLandmark(t *testing.T) {
 	_, err = guidance.Place(profile.Template{Role: "contour", Points: []profile.Point{{Index: &big}}}, f, l)
 	assert.ErrorContains(t, err, "landmark 900 is not available")
 }
+
+func TestResolve_AnchorVisibilityUnknownOnFixture(t *testing.T) {
+	l, regions := fixture()
+	res := guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l, regions)
+	require.Len(t, res.Regions, 1)
+	r := res.Regions[0]
+	assert.Equal(t, "unknown", r.AnchorVisibility)
+	assert.NotEmpty(t, r.UnverifiedRegions)
+	assert.IsIncreasing(t, r.UnverifiedRegions)
+	for _, name := range r.UnverifiedRegions {
+		assert.NotEqual(t, "observed", regions[name])
+	}
+}
+
+func TestResolve_AnchorVisibilityObserved(t *testing.T) {
+	l, regions := fixture()
+	for k := range regions {
+		regions[k] = "observed"
+	}
+	res := guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l, regions)
+	require.Len(t, res.Regions, 2)
+	for _, r := range res.Regions {
+		assert.Equal(t, "observed", r.AnchorVisibility)
+		assert.Equal(t, []string{}, r.UnverifiedRegions)
+	}
+	b, err := json.Marshal(res.Regions[0])
+	require.NoError(t, err)
+	assert.Contains(t, string(b), `"unverifiedRegions":[]`)
+	assert.Contains(t, string(b), `"anchorVisibility":"observed"`)
+}
+
+func TestPlace_RejectsUnbuiltFrameAndNonFinite(t *testing.T) {
+	l, _ := fixture()
+	one := 1
+	tpl := profile.Template{Role: "contour", Points: []profile.Point{{Index: &one}}}
+	_, err := guidance.Place(tpl, guidance.Frame{}, l)
+	assert.ErrorContains(t, err, "not built")
+
+	f, err := guidance.NewFrame(l)
+	require.NoError(t, err)
+	off := profile.Offset{math.NaN(), 0}
+	_, err = guidance.Place(profile.Template{Role: "contour", Points: []profile.Point{{Index: &one, OffsetIod: &off}}}, f, l)
+	assert.ErrorContains(t, err, "non-finite offset")
+
+	two := 2
+	_, err = guidance.Place(profile.Template{Role: "contour", Points: []profile.Point{{Lerp: &profile.Lerp{A: one, B: two, T: math.Inf(1)}}}}, f, l)
+	assert.ErrorContains(t, err, "non-finite lerp")
+}
+
+func TestResolve_SecondLerpEndOccluded(t *testing.T) {
+	l, regions := fixture()
+	g := testSpec(t)
+	g.Templates["mix"] = profile.Template{Role: "contour", Points: []profile.Point{
+		{Lerp: &profile.Lerp{A: 1, B: 150, T: 0.5}}}}
+	g.Rules[0].Apply = []profile.Application{{Template: "mix", Intensity: 0.5}}
+	res := guidance.Resolve(g, shape(classify.StatusSingle, "Oval", ""), l, regions)
+	placed, dropped := templates(res)
+	assert.Empty(t, placed)
+	require.Len(t, dropped, 1)
+	assert.Contains(t, dropped[0], "a:mix: region jaw is occluded (anchor landmark 150)")
+}
+
+func TestResolve_PlacedVerticesInsideImage(t *testing.T) {
+	l, regions := fixture()
+	res := guidance.Resolve(testSpec(t), shape(classify.StatusBlend, "Oval", "Round"), l, regions)
+	require.NotEmpty(t, res.Regions)
+	for _, r := range res.Regions {
+		for _, v := range r.Polygon {
+			assert.True(t, v[0] >= 0 && v[0] <= 960 && v[1] >= 0 && v[1] <= 640, "%s vertex %v outside 960x640", r.Template, v)
+		}
+	}
+}
