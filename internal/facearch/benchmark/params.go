@@ -49,9 +49,10 @@ func DefaultParams() Params {
 	}
 }
 
-// DHashBits is the length of a dHash in bits (an 8x9 grayscale grid gives
-// 8x8 horizontal-gradient comparisons: Neal Krawetz, "Kind of Like That",
-// 2013). It bounds any Hamming distance between two hashes.
+// DHashBits is the length of a dHash in bits. dHash, as described by Neal
+// Krawetz ("Kind of Like That", hackerfactor.com, 2013), is a 9x8 (width x
+// height) grayscale grid, each pixel compared with its right neighbour,
+// giving 8 x 8 = 64 bits. It bounds any Hamming distance between two hashes.
 const DHashBits = 64
 
 // Validate rejects tunables that would make a run meaningless or panic. Every
