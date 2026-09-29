@@ -30,7 +30,8 @@ type Region struct {
 	// anchor landmark of the template, and the eyes region when any point has
 	// an offset (the frame it is taken in), is observed; otherwise "unknown": the
 	// worker could not confirm the anchors are unobstructed (the default
-	// deployment reports every region as unknown).
+	// deployment reports every region in frame as unknown, and the v1
+	// detector never observes the feature regions: brows, eyes, nose, lips).
 	AnchorVisibility string `json:"anchorVisibility"`
 	// UnverifiedRegions lists, sorted, those regions not observed. Never
 	// null.
