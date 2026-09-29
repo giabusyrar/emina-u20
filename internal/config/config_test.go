@@ -15,7 +15,9 @@ var tunables = []string{"FORM_CACHE_TTL", "SCORE_CACHE_TTL", "MATCH_CACHE_TTL", 
 	"DB_SLOW_QUERY_THRESHOLD", "DEPENDENCY_PING_TIMEOUT",
 	// core-engine's own port and downstream service URLs.
 	"CORE_ENGINE_PORT", "PORT", "REFERENCE_SERVICE_URL", "VISION_AI_WORKER_URL",
-	"PARADEV_GATEWAY_URL", "PARADEV_GATEWAY_API_KEY"}
+	"PARADEV_GATEWAY_URL", "PARADEV_GATEWAY_API_KEY",
+	// S3 configuration for shade textures.
+	"S3_ENDPOINT", "S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY", "S3_REGION", "S3_PRESIGN_TTL"}
 
 // FromEnv, not Load: Load reads the repository's .env.
 func setBaseEnv(t *testing.T) {
@@ -78,5 +80,46 @@ func TestFromEnv_RejectsBadDurationAndMissingDatabase(t *testing.T) {
 	t.Setenv("DATABASE_URL", "")
 	if _, err := config.FromEnv(); err == nil {
 		t.Error("want error when DATABASE_URL is unset")
+	}
+}
+
+func TestFromEnv_S3IsOptionalWithDefaults(t *testing.T) {
+	setBaseEnv(t)
+	cfg, err := config.FromEnv()
+	if err != nil {
+		t.Fatalf("FromEnv: %v", err)
+	}
+	if cfg.S3Bucket != "" || cfg.S3AccessKeyID != "" || cfg.S3SecretAccessKey != "" || cfg.S3Endpoint != "" {
+		t.Fatalf("S3 fields should be empty when unset, got %+v", cfg)
+	}
+	if cfg.S3Region != config.DefaultS3Region || cfg.S3PresignTTL != config.DefaultS3PresignTTL {
+		t.Fatalf("S3Region=%q S3PresignTTL=%v, want defaults", cfg.S3Region, cfg.S3PresignTTL)
+	}
+}
+
+func TestFromEnv_S3Values(t *testing.T) {
+	setBaseEnv(t)
+	t.Setenv("S3_ENDPOINT", "https://acct.example-storage.com")
+	t.Setenv("S3_BUCKET", "bkt")
+	t.Setenv("S3_ACCESS_KEY_ID", "id")
+	t.Setenv("S3_SECRET_ACCESS_KEY", "secret")
+	t.Setenv("S3_REGION", "ap-southeast-1")
+	t.Setenv("S3_PRESIGN_TTL", "90s")
+	cfg, err := config.FromEnv()
+	if err != nil {
+		t.Fatalf("FromEnv: %v", err)
+	}
+	if cfg.S3Endpoint != "https://acct.example-storage.com" || cfg.S3Bucket != "bkt" ||
+		cfg.S3AccessKeyID != "id" || cfg.S3SecretAccessKey != "secret" ||
+		cfg.S3Region != "ap-southeast-1" || cfg.S3PresignTTL != 90*time.Second {
+		t.Fatalf("got %+v", cfg)
+	}
+}
+
+func TestFromEnv_S3PresignTTLInvalidIsAnError(t *testing.T) {
+	setBaseEnv(t)
+	t.Setenv("S3_PRESIGN_TTL", "soon")
+	if _, err := config.FromEnv(); err == nil {
+		t.Fatal("want an error for S3_PRESIGN_TTL=soon")
 	}
 }

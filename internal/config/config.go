@@ -40,6 +40,19 @@ const (
 // until benchmark timings replace it.
 const DefaultFaceMeasureTimeout = 20 * time.Second
 
+// Object storage for tryon shade textures. The S3_* names are the ones
+// ai-worker already reads, so one .env serves both services.
+const (
+	// DefaultS3Region matches ai-worker's S3_REGION default; Cloudflare R2
+	// requires "auto".
+	DefaultS3Region = "auto"
+	// DefaultS3PresignTTL is how long a shade texture link stays valid.
+	// Product policy, not a measurement: the web app fetches the shade asset
+	// and loads its images immediately and never keeps the URL, so minutes
+	// suffice. docs/superpowers/specs/2026-09-29-tryon-presigned-textures-design.md.
+	DefaultS3PresignTTL = 15 * time.Minute
+)
+
 // defaultCORSAllowHeaders is what core-engine allowed before standardization.
 var defaultCORSAllowHeaders = []string{"*"}
 
@@ -58,6 +71,15 @@ type Config struct {
 	// TryonEngineURL has no default. Shade extraction reports an error when
 	// it is unset.
 	TryonEngineURL string
+
+	// S3* reach the bucket holding tryon shade textures. All optional:
+	// without bucket and keys, shade asset links are unavailable (503).
+	S3Endpoint        string
+	S3Bucket          string
+	S3AccessKeyID     string
+	S3SecretAccessKey string
+	S3Region          string
+	S3PresignTTL      time.Duration
 
 	FormCacheTTL     time.Duration
 	ScoreCacheTTL    time.Duration
@@ -94,6 +116,11 @@ func FromEnv() (*Config, error) {
 		ParadevGatewayURL:    firstOr("PARADEV_GATEWAY_URL", DefaultParadevGatewayURL),
 		ParadevGatewayAPIKey: goplatform.First("PARADEV_GATEWAY_API_KEY"),
 		TryonEngineURL:       goplatform.First("TRYON_ENGINE_URL"),
+		S3Endpoint:           goplatform.First("S3_ENDPOINT"),
+		S3Bucket:             goplatform.First("S3_BUCKET"),
+		S3AccessKeyID:        goplatform.First("S3_ACCESS_KEY_ID"),
+		S3SecretAccessKey:    goplatform.First("S3_SECRET_ACCESS_KEY"),
+		S3Region:             firstOr("S3_REGION", DefaultS3Region),
 	}
 
 	for _, d := range []struct {
@@ -112,6 +139,7 @@ func FromEnv() (*Config, error) {
 		{"VISION_DAG_TIMEOUT", DefaultVisionDAGTimeout, &cfg.VisionDAGTimeout},
 		{"SEGMENTER_TIMEOUT", DefaultSegmenterTimeout, &cfg.SegmenterTimeout},
 		{"FACE_MEASURE_TIMEOUT", DefaultFaceMeasureTimeout, &cfg.FaceMeasureTimeout},
+		{"S3_PRESIGN_TTL", DefaultS3PresignTTL, &cfg.S3PresignTTL},
 	} {
 		if *d.dst, err = goplatform.Duration(d.key, d.def); err != nil {
 			return nil, err
