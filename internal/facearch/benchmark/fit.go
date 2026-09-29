@@ -36,9 +36,15 @@ func (e *FitError) Error() string {
 type Fit struct {
 	Doc     *profile.Document
 	Sources []profile.Source
-	// Owners are the document paths whose numbers were all refitted
-	// ("classifiers.<key>.classes.<label>", "traits.<key>"); base sources
-	// for these paths no longer describe them.
+	// Owners are exactly the paths of the numbers that were refitted, in
+	// the same dotted syntax as Source.For: each prototype term
+	// ("classifiers.<key>.classes.<label>.prototype.<measurement>.centre" and
+	// ".spread") and each trait threshold
+	// ("traits.<key>.rules.<i>.when.<j>.value"). Only base sources that name one
+	// of these paths, or a path beneath one, describe a replaced number.
+	// Every other base source (class weights, requires, labels, operators,
+	// blend margins, the class or trait as a whole) still describes
+	// something that was kept and must be kept.
 	Owners []string
 }
 
@@ -110,10 +116,14 @@ func FitProfile(base *profile.Document, train []Example, minClassCount int, runI
 
 	for ci := range doc.Classifiers {
 		spec := &doc.Classifiers[ci]
+		known := map[string]bool{}
+		for _, cl := range spec.Classes {
+			known[cl.Label] = true
+		}
+		problems = append(problems, unanswerable("classifiers."+spec.Key, spec.Key, known, train)...)
 		for li := range spec.Classes {
 			cl := &spec.Classes[li]
 			owner := fmt.Sprintf("classifiers.%s.classes.%s", spec.Key, cl.Label)
-			fit.Owners = append(fit.Owners, owner)
 			for _, m := range cl.SortedKeys() {
 				var xs []float64
 				for _, ex := range train {
@@ -137,8 +147,14 @@ func FitProfile(base *profile.Document, train []Example, minClassCount int, runI
 				term := cl.Prototype[m]
 				term.Centre, term.Spread = mean, sd
 				cl.Prototype[m] = term
-				fit.Sources = append(fit.Sources, profile.Source{Cite: cite, For: path,
-					Note: fmt.Sprintf("centre = mean, spread = sample standard deviation of %s over %d training images labelled %s by %s; weight %v is not fitted: it is the base profile's (calibration.heldOutMetrics.baseProfileSha256)", m, len(xs), cl.Label, target, term.Weight)})
+				for _, f := range []struct{ field, what string }{
+					{"centre", "mean"},
+					{"spread", "sample standard deviation (n-1)"},
+				} {
+					fit.Owners = append(fit.Owners, path+"."+f.field)
+					fit.Sources = append(fit.Sources, profile.Source{Cite: cite, For: path + "." + f.field,
+						Note: fmt.Sprintf("%s = %s of %s over %d training images labelled %s by %s; weight %v is not fitted: it is the base profile's", f.field, f.what, m, len(xs), cl.Label, target, term.Weight)})
+				}
 			}
 		}
 	}
@@ -146,7 +162,6 @@ func FitProfile(base *profile.Document, train []Example, minClassCount int, runI
 	for ti := range doc.Traits {
 		spec := &doc.Traits[ti]
 		owner := "traits." + spec.Key
-		fit.Owners = append(fit.Owners, owner)
 		var xs []Example
 		var truth []string
 		for _, ex := range train {
@@ -157,14 +172,12 @@ func FitProfile(base *profile.Document, train []Example, minClassCount int, runI
 			xs = append(xs, ex)
 			truth = append(truth, l)
 		}
+		problems = append(problems, unanswerable(owner, spec.Key, answerableOf(spec), train)...)
 		counts := map[string]int{}
 		for _, l := range truth {
 			counts[l]++
 		}
-		answerable := map[string]bool{spec.Default: true}
-		for _, r := range spec.Rules {
-			answerable[r.Label] = true
-		}
+		answerable := answerableOf(spec)
 		short := false
 		for _, l := range sortedKeys(answerable) {
 			if counts[l] < minClassCount {
@@ -211,8 +224,9 @@ func FitProfile(base *profile.Document, train []Example, minClassCount int, runI
 					}
 				}
 				cond.Value = best
-				fit.Sources = append(fit.Sources, profile.Source{Cite: cite, For: path,
-					Note: fmt.Sprintf("%s %s threshold fitted on %d training images labelled by %s (training macro-F1 %.3f); rule order, labels and operators kept from the base profile", cond.Measurement, cond.Op, len(xs), target, bestF1)})
+				fit.Owners = append(fit.Owners, path+".value")
+				fit.Sources = append(fit.Sources, profile.Source{Cite: cite, For: path + ".value",
+					Note: fmt.Sprintf("%s %s threshold fitted on %d training images labelled by %s (training macro-F1 at this step %.3f); rule order, labels and operators kept from the base profile", cond.Measurement, cond.Op, len(xs), target, bestF1)})
 			}
 		}
 	}
@@ -220,4 +234,28 @@ func FitProfile(base *profile.Document, train []Example, minClassCount int, runI
 		return nil, &FitError{Problems: problems}
 	}
 	return fit, nil
+}
+
+func answerableOf(spec *profile.TraitSpec) map[string]bool {
+	out := map[string]bool{spec.Default: true}
+	for _, r := range spec.Rules {
+		out[r.Label] = true
+	}
+	return out
+}
+
+// unanswerable reports every training label under key that the profile
+// cannot answer, so none is silently dropped or used.
+func unanswerable(owner, key string, known map[string]bool, train []Example) []string {
+	counts := map[string]int{}
+	for _, ex := range train {
+		if l, ok := ex.Labels[key]; ok && !known[l] {
+			counts[l]++
+		}
+	}
+	var out []string
+	for _, l := range sortedKeys(counts) {
+		out = append(out, fmt.Sprintf("%s: %d training images labelled %q, which the profile cannot answer", owner, counts[l], l))
+	}
+	return out
 }
