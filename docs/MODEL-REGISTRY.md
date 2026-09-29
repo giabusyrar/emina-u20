@@ -384,23 +384,25 @@ pytest apps/ai-worker      # or: npm run test:vision
 ```
 
 A bare `pytest apps/ai-worker` from the repository root collects all tests
-(vision, tryon, and core) and runs with the default markers. The dispatch
+(vision, tryon, colour, and core) and runs with the default markers. The dispatch
 benchmarks are wall-clock measurements (they export a real resnet18, and take
 minutes) and say nothing about correctness, so they are deselected from every
 ordinary run by the `addopts` in `apps/ai-worker/pyproject.toml`:
 
 ```
-addopts = '-m "not benchmark and not tryon"'
+addopts = '-m "not benchmark and not tryon and not colour"'
 ```
 
-This marker filter removes benchmarks and tryon tests by default. Run the suites
-as needed:
+This marker filter removes benchmarks, tryon and colour tests by default. Run
+the suites as needed:
 
-- `pytest apps/ai-worker` — collects vision, tryon, and core together (runs with
-  default markers: vision + core, deselects tryon)
+- `pytest apps/ai-worker` — collects vision, tryon, colour, and core together
+  (runs with default markers: vision + core, deselects tryon and colour)
 - `npm run test:vision` — vision and core tests only (same selection as above)
 - `npm run test:tryon` — tryon tests (requires torch; about 8 minutes, downloads
   models)
+- `npm run test:colour` — colour tests (the `colour` extra; most need
+  `face_landmarker.task`, see `docs/COLOUR-LOCAL-RUN.md`)
 - `npm run bench:vision` — dispatch benchmarks only
 
 The `tests/vision/test_db_schema.py` suite needs a real Postgres and skips

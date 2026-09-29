@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/experience-gateway/packages/goplatform"
@@ -40,6 +42,22 @@ const (
 // until benchmark timings replace it.
 const DefaultFaceMeasureTimeout = 20 * time.Second
 
+// Defaults for the colour engine (internal/colour): WCPA personal colour
+// analysis and photo try-on, measured and rendered by the ai-worker colour
+// profile. Carried over unchanged from the feat/tryon-engine branch, except
+// the worker URL, which follows that profile's port in docs/PORTS.md.
+const (
+	DefaultColourWorkerURL = "http://127.0.0.1:8092"
+	// Relative to the repository root, where the npm scripts run core-engine;
+	// the Docker image sets WCPA_CONFIG_PATH instead (Dockerfile).
+	DefaultWCPAConfigPath = "apps/core-engine/config/wcpa.json"
+	// Measurement and render run MediaPipe and numpy on the worker's CPU: a few
+	// seconds per photo, several times that on a slow laptop.
+	DefaultColourWorkerTimeout = 60 * time.Second
+	// Upload cap for /analyze and /tryon; a phone photo is a few MB.
+	DefaultColourMaxImageBytes int64 = 15 << 20
+)
+
 // defaultCORSAllowHeaders is what core-engine allowed before standardization.
 var defaultCORSAllowHeaders = []string{"*"}
 
@@ -58,6 +76,15 @@ type Config struct {
 	// TryonEngineURL has no default. Shade extraction reports an error when
 	// it is unset.
 	TryonEngineURL string
+
+	// Colour engine. ColourWorkerURL is the ai-worker colour profile;
+	// WCPAConfigPath holds the WCPA rules (thresholds, centres, labels);
+	// ColourDebugEnabled lets /analyze?debug=1 return the raw colorimetry.
+	ColourWorkerURL     string
+	WCPAConfigPath      string
+	ColourWorkerTimeout time.Duration
+	ColourMaxImageBytes int64
+	ColourDebugEnabled  bool
 
 	FormCacheTTL     time.Duration
 	ScoreCacheTTL    time.Duration
@@ -94,6 +121,8 @@ func FromEnv() (*Config, error) {
 		ParadevGatewayURL:    firstOr("PARADEV_GATEWAY_URL", DefaultParadevGatewayURL),
 		ParadevGatewayAPIKey: goplatform.First("PARADEV_GATEWAY_API_KEY"),
 		TryonEngineURL:       goplatform.First("TRYON_ENGINE_URL"),
+		ColourWorkerURL:      firstOr("COLOUR_WORKER_URL", DefaultColourWorkerURL),
+		WCPAConfigPath:       firstOr("WCPA_CONFIG_PATH", DefaultWCPAConfigPath),
 	}
 
 	for _, d := range []struct {
@@ -112,10 +141,17 @@ func FromEnv() (*Config, error) {
 		{"VISION_DAG_TIMEOUT", DefaultVisionDAGTimeout, &cfg.VisionDAGTimeout},
 		{"SEGMENTER_TIMEOUT", DefaultSegmenterTimeout, &cfg.SegmenterTimeout},
 		{"FACE_MEASURE_TIMEOUT", DefaultFaceMeasureTimeout, &cfg.FaceMeasureTimeout},
+		{"COLOUR_WORKER_TIMEOUT", DefaultColourWorkerTimeout, &cfg.ColourWorkerTimeout},
 	} {
 		if *d.dst, err = goplatform.Duration(d.key, d.def); err != nil {
 			return nil, err
 		}
+	}
+	if cfg.ColourMaxImageBytes, err = positiveInt64("COLOUR_MAX_IMAGE_BYTES", DefaultColourMaxImageBytes); err != nil {
+		return nil, err
+	}
+	if cfg.ColourDebugEnabled, err = boolean("COLOUR_DEBUG_ENABLED", false); err != nil {
+		return nil, err
 	}
 	return cfg, nil
 }
@@ -128,4 +164,36 @@ func firstOr(key, def string) string {
 		return v
 	}
 	return def
+}
+
+// positiveInt64 returns key parsed as a positive integer, or def when unset.
+// Like goplatform.Duration, a malformed or non-positive value is an error,
+// never a silent fallback: an upload cap of 0 would refuse every photo.
+func positiveInt64(key string, def int64) (int64, error) {
+	raw := goplatform.First(key)
+	if raw == "" {
+		return def, nil
+	}
+	n, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", key, err)
+	}
+	if n <= 0 {
+		return 0, fmt.Errorf("%s: must be positive, got %q", key, raw)
+	}
+	return n, nil
+}
+
+// boolean returns key parsed by strconv.ParseBool (true/false, 1/0, t/f), or
+// def when unset. A malformed value is an error, not false.
+func boolean(key string, def bool) (bool, error) {
+	raw := goplatform.First(key)
+	if raw == "" {
+		return def, nil
+	}
+	b, err := strconv.ParseBool(raw)
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", key, err)
+	}
+	return b, nil
 }
