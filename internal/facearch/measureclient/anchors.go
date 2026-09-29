@@ -7,13 +7,22 @@ import "sort"
 // fa-measure/1). They describe the MediaPipe mesh and the worker's region
 // definitions, not policy, so they are code. They are recorded here once,
 // for guidance resolution and validation, and pinned by anchors_test.go
-// against testdata/anchors_fa-measure-1.json and the SHA-256 of anchors.py:
-// if anchors.py changes, that test fails until the recording is regenerated
+// against testdata/anchors_fa-measure-1.json and the SHA-256 of anchors.py
+// (the recording also pins frame.py's SHA-256 and measures.py's
+// CATALOGUE_VERSION): if any of them changes, that test fails until the
+// recording is regenerated
 // (from the repository root, run
 //
 //	python apps/core-engine/internal/facearch/measureclient/testdata/record_anchors.py > apps/core-engine/internal/facearch/measureclient/testdata/anchors_fa-measure-1.json
 //
 // ) and this table is brought back in line.
+
+// RegionsCatalogueVersion is the worker catalogue (measures.CATALOGUE_VERSION)
+// the table below was recorded under. A worker measuring with another
+// version may define its regions differently: profile validation refuses a
+// guidance section for another version, and guidance resolution places
+// nothing for a response measured with another version.
+const RegionsCatalogueVersion = "fa-measure/1"
 
 // NLandmarks is the number of FaceLandmarker points the worker returns
 // (anchors.N_LANDMARKS: 468 mesh points plus 10 iris points).
