@@ -5,6 +5,7 @@
 package classify
 
 import (
+	"fmt"
 	"math"
 	"sort"
 
@@ -113,17 +114,22 @@ func (p *PrototypeClassifier) Classify(obs measureclient.Index) Result {
 	}
 
 	// Normalise in log space so far-off faces do not underflow to 0/0.
+	notFinite := false
 	if len(ok) > 0 {
 		maxLog := math.Inf(-1)
 		for _, s := range ok {
 			maxLog = math.Max(maxLog, s.log)
 		}
-		var sum float64
-		for _, s := range ok {
-			sum += math.Exp(s.log - maxLog)
-		}
-		for _, s := range ok {
-			res.Scores[s.label] = math.Exp(s.log-maxLog) / sum
+		if math.IsNaN(maxLog) || math.IsInf(maxLog, 0) {
+			notFinite = true
+		} else {
+			var sum float64
+			for _, s := range ok {
+				sum += math.Exp(s.log - maxLog)
+			}
+			for _, s := range ok {
+				res.Scores[s.label] = math.Exp(s.log-maxLog) / sum
+			}
 		}
 	}
 	if len(missing) > 0 {
@@ -139,8 +145,18 @@ func (p *PrototypeClassifier) Classify(obs measureclient.Index) Result {
 	}
 	res.ObservedWeightShare = &share
 
-	if share < p.spec.MinObservedWeight || len(ok) < 2 {
+	switch {
+	case notFinite:
 		res.Status = StatusInsufficientEvidence
+		res.Reason = "class scores are not finite (check prototype spreads)"
+		return res
+	case len(ok) < 2:
+		res.Status = StatusInsufficientEvidence
+		res.Reason = fmt.Sprintf("fewer than two assessable classes (%d)", len(ok))
+		return res
+	case share < p.spec.MinObservedWeight:
+		res.Status = StatusInsufficientEvidence
+		res.Reason = fmt.Sprintf("observed weight share %.3g below minObservedWeight %.3g", share, p.spec.MinObservedWeight)
 		return res
 	}
 	sort.SliceStable(ok, func(i, j int) bool {

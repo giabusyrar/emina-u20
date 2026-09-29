@@ -114,6 +114,7 @@ func TestClassWithNoUsableTermIsNotAssessable(t *testing.T) {
 	r := classify.NewPrototype(spec).Classify(obs(map[string]any{"m": 0.0}))
 	assert.Equal(t, []string{"B"}, r.NotAssessable)
 	assert.Equal(t, classify.StatusInsufficientEvidence, r.Status, "fewer than two assessable classes")
+	assert.Equal(t, "fewer than two assessable classes (1)", r.Reason)
 	assert.Empty(t, r.Primary)
 	assert.Equal(t, map[string]float64{"A": 1}, r.Scores, "assessable scores are still reported")
 }
@@ -129,6 +130,7 @@ func TestInsufficientWhenObservedShareBelowMinimum(t *testing.T) {
 	assert.Equal(t, classify.StatusInsufficientEvidence, r.Status)
 	assert.Equal(t, []string{"n"}, r.MissingMeasurements)
 	assert.Len(t, r.Scores, 2)
+	assert.Equal(t, "observed weight share 0.25 below minObservedWeight 0.5", r.Reason)
 }
 
 func TestNotSupportedAndListValuesAreNotUsable(t *testing.T) {
@@ -152,4 +154,32 @@ func TestUnavailable(t *testing.T) {
 	assert.Equal(t, "catalogue drift", r.Reason)
 	assert.NotNil(t, r.Scores)
 	assert.NotNil(t, r.NotAssessable)
+}
+
+func TestNonFiniteScoresAreInsufficientEvidence(t *testing.T) {
+	spec := twoClass()
+	spec.Classes[0].Prototype["m"] = term(0, 1e-200, 1)
+	spec.Classes[1].Prototype["m"] = term(2, 1e-200, 1)
+	r := classify.NewPrototype(spec).Classify(obs(map[string]any{"m": 1.0}))
+	assert.Equal(t, classify.StatusInsufficientEvidence, r.Status)
+	assert.Equal(t, "class scores are not finite (check prototype spreads)", r.Reason)
+	assert.NotNil(t, r.Scores)
+	assert.Empty(t, r.Scores)
+	assert.Empty(t, r.Primary)
+}
+
+func TestThreeClassesTopTwoByScoreNotSpecOrder(t *testing.T) {
+	spec := twoClass()
+	spec.Classes = []profile.ClassSpec{
+		{Label: "A", Prototype: map[string]profile.PrototypeTerm{"m": term(10, 1, 1)}},
+		{Label: "B", Prototype: map[string]profile.PrototypeTerm{"m": term(3, 1, 1)}},
+		{Label: "C", Prototype: map[string]profile.PrototypeTerm{"m": term(0.5, 1, 1)}},
+	}
+	spec.BlendMargin = 0.99
+	r := classify.NewPrototype(spec).Classify(obs(map[string]any{"m": 1.0}))
+	assert.Equal(t, classify.StatusBlend, r.Status)
+	// Distances from x=1: A 9, B 2, C 0.5. Score order C, B, A; spec order A, B, C.
+	assert.Equal(t, "C", r.Primary)
+	assert.Equal(t, "B", r.Secondary)
+	assert.Less(t, r.Scores["A"], r.Scores["B"])
 }
