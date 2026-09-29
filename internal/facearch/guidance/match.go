@@ -29,7 +29,10 @@ const (
 // Match grades rule r against the evidence. A classifier entry matches when
 // the result is single or blend and its primary is listed (MatchPrimary),
 // or the result is a blend and its secondary is listed (MatchSecondary). A
-// trait entry matches when the trait is assessed and its label is listed.
+// trait entry matches when the trait is assessed and its label is listed:
+// at MatchPrimary when the label is certain, at MatchSecondary when the
+// trait is BoundaryUncertain (the label could flip under noise, as a blend's
+// secondary could be the primary). A trait's Alternative never matches.
 // Every other status (insufficient_evidence, not_assessable, unavailable),
 // and a key with no result, never matches. The rule's grade is its weakest
 // entry's.
@@ -61,6 +64,9 @@ func matchKey(key string, labels []string, ev Evidence) Grade {
 		return NoMatch
 	}
 	if res, ok := ev.Traits[key]; ok && res.Status == traits.StatusAssessed && contains(labels, res.Label) {
+		if res.BoundaryUncertain {
+			return MatchSecondary
+		}
 		return MatchPrimary
 	}
 	return NoMatch

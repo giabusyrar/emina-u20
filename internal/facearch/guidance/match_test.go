@@ -49,6 +49,8 @@ func TestMatch_Trait(t *testing.T) {
 	assert.Equal(t, guidance.MatchPrimary, guidance.Match(r, ev(traits.Result{Status: traits.StatusAssessed, Label: "Straight"})))
 	assert.Equal(t, guidance.NoMatch, guidance.Match(r, ev(traits.Result{Status: traits.StatusAssessed, Label: "Rounded", BoundaryUncertain: true, Alternative: "Straight"})),
 		"the alternative label is not the label")
+	assert.Equal(t, guidance.MatchSecondary, guidance.Match(r, ev(traits.Result{Status: traits.StatusAssessed, Label: "Straight", BoundaryUncertain: true, Alternative: "Rounded"})),
+		"an uncertain label matches at secondary grade")
 	assert.Equal(t, guidance.NoMatch, guidance.Match(r, ev(traits.Result{Status: traits.StatusNotAssessable})))
 	assert.Equal(t, guidance.NoMatch, guidance.Match(r, ev(traits.Result{Status: traits.StatusUnavailable, Label: "Straight"})))
 }
@@ -61,4 +63,13 @@ func TestMatch_AllEntriesMustMatch_WeakestGradeWins(t *testing.T) {
 	ev.Traits["eyebrowShape"] = traits.Result{Status: traits.StatusAssessed, Label: "Rounded"}
 	assert.Equal(t, guidance.NoMatch, guidance.Match(r, ev))
 	assert.Equal(t, guidance.NoMatch, guidance.Match(profile.GuidanceRule{ID: "empty"}, ev), "a rule with no When never matches")
+}
+
+func TestMatch_UncertainTraitWeakensRule(t *testing.T) {
+	r := profile.GuidanceRule{ID: "r", When: map[string][]string{"faceShape": {"Round"}, "eyebrowShape": {"Straight"}}}
+	ev := shape(classify.StatusSingle, "Round", "")
+	ev.Traits["eyebrowShape"] = traits.Result{Status: traits.StatusAssessed, Label: "Straight", BoundaryUncertain: true, Alternative: "Rounded"}
+	assert.Equal(t, guidance.MatchSecondary, guidance.Match(r, ev))
+	ev.Traits["eyebrowShape"] = traits.Result{Status: traits.StatusAssessed, Label: "Straight"}
+	assert.Equal(t, guidance.MatchPrimary, guidance.Match(r, ev))
 }
