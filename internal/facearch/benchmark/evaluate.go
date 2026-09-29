@@ -76,8 +76,10 @@ type AgreementRow struct {
 	Abstained int `json:"abstained"`
 }
 
-// SourcePairRow is how two sources agree with each other on one attribute:
-// the practical ceiling for agreement with either of them.
+// SourcePairRow is how two sources agree with each other on one attribute,
+// over every image both labelled (not only the images we measured and
+// answered, so N differs from an ours-vs-source row). It is a reference
+// point for reading our agreement with either source, not a bound on it.
 type SourcePairRow struct {
 	Attribute      string   `json:"attribute"`
 	SourceA        string   `json:"sourceA"`
@@ -129,6 +131,10 @@ func Evaluate(in EvaluateInput) (*Report, error) {
 	if in.Profile == nil || in.Labels == nil {
 		return nil, errors.New("evaluate: profile and labels are required")
 	}
+	if in.Labels.MinConsensusRaters != in.Params.MinConsensusRaters {
+		return nil, fmt.Errorf("evaluate: labels were built with MinConsensusRaters %d but Params.MinConsensusRaters is %d",
+			in.Labels.MinConsensusRaters, in.Params.MinConsensusRaters)
+	}
 	doc := in.Profile.Doc
 	answers := map[string]map[Target]Answer{}
 	subjects := map[string]bool{}
@@ -159,11 +165,20 @@ func Evaluate(in EvaluateInput) (*Report, error) {
 	}
 
 	var targets []Target
+	have := map[Target]bool{}
 	for _, c := range doc.Classifiers {
 		targets = append(targets, Target{Kind: KindClassifier, Key: c.Key})
 	}
 	for _, t := range doc.Traits {
 		targets = append(targets, Target{Kind: KindTrait, Key: t.Key})
+	}
+	for _, t := range targets {
+		have[t] = true
+	}
+	for _, attr := range sortedKeys(in.Labels.Targets) {
+		if t := in.Labels.Targets[attr]; !have[t] {
+			return nil, fmt.Errorf("evaluate: labels for %q target %s %q, which the profile does not have (labels resolved against another profile?)", attr, t.Kind, t.Key)
+		}
 	}
 	for _, slice := range SliceNames {
 		cov := SliceCoverage{Outcomes: map[string]int{}, Answers: map[string]AnswerCoverage{}}

@@ -46,7 +46,7 @@ func (r *Report) Markdown() string {
 	p := r.Params
 	w("Parameters used: held-out fraction %v, dHash max distance %d, min class count %d, ECE bins: %d, seed %d, min consensus raters %d (a rater consensus needs a strict majority of at least that many raters).\n\n",
 		p.HeldOutFraction, p.DedupMaxDistance, p.MinClassCount, p.ECEBins, p.Seed, p.MinConsensusRaters)
-	w("**Vendor labels are not ground truth.** They are other systems' opinions: ambiguous, and vendors disagree with each other. Agreement with a source measures resemblance to that source, not correctness. Read each ours-vs-source figure next to the source-vs-source kappa in the same row and in the source-vs-source table: two sources agreeing with each other no better than we agree with either of them is the practical ceiling. No image paths or ids appear in this report.\n\n")
+	w("**Vendor labels are not ground truth.** They are other systems' opinions: ambiguous, and vendors disagree with each other. Agreement with a source measures resemblance to that source, not correctness. Read each ours-vs-source figure next to the source-vs-source kappa in the same row and in the source-vs-source table: agreement between two sources is the practical ceiling for our agreement with either. Source-vs-source covers every image both sources labelled, a different set from ours-vs-source (only images we measured and answered), so the figures are a reference point, not a bound. No image paths or ids appear in this report.\n\n")
 
 	w("## Coverage\n\n")
 	w("| slice | images |")
@@ -67,7 +67,7 @@ func (r *Report) Markdown() string {
 		w(" %s |\n", pct(c.GateRejectionRate))
 	}
 	w("\nNo-answer rate (insufficient_evidence, not_assessable or unavailable) over measured images:\n\n")
-	w("| classifier / trait | %s |\n|---|---|---|---|\n", strings.Join(SliceNames, " | "))
+	w("| classifier / trait | %s |\n|---|%s\n", strings.Join(SliceNames, " | "), strings.Repeat("---|", len(SliceNames)))
 	for _, k := range sortedKeys(r.Coverage[SliceAll].Answers) {
 		w("| %s |", k)
 		for _, s := range SliceNames {

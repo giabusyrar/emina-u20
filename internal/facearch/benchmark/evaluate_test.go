@@ -146,17 +146,61 @@ func TestEvaluateAgreement(t *testing.T) {
 func TestEvaluateSourceVsSource(t *testing.T) {
 	r := evaluateFixture(t)
 	type pair struct{ a, b string }
-	got := map[pair]float64{}
+	type stat struct {
+		n     int
+		exact float64
+		kappa float64
+	}
+	got := map[pair]stat{}
 	for _, p := range r.SourceAgreement {
 		assert.Equal(t, "faceShape", p.Attribute)
-		got[pair{p.SourceA, p.SourceB}] = *p.ExactAgreement
+		require.NotNil(t, p.ExactAgreement)
+		require.NotNil(t, p.Kappa)
+		got[pair{p.SourceA, p.SourceB}] = stat{p.N, *p.ExactAgreement, *p.Kappa}
 	}
-	assert.Equal(t, map[pair]float64{
-		{"perfectcorp", "rater-consensus"}: 1,
-		{"perfectcorp", "rater:r1"}:        1,
-		{"perfectcorp", "rater:r2"}:        2.0 / 3.0,
-		{"rater:r1", "rater:r2"}:           2.0 / 3.0,
-	}, got, "the consensus is never compared with the raters it is built from")
+	// N is the images both sources labelled, not the images we answered.
+	// perfectcorp vs r1: Long Wide Wide both, kappa 1. r1 vs r2: po 2/3,
+	// pe 4/9, kappa 0.4. consensus holds img-001 and img-003 only.
+	want := map[pair]stat{
+		{"perfectcorp", "rater-consensus"}: {2, 1, 1},
+		{"perfectcorp", "rater:r1"}:        {3, 1, 1},
+		{"perfectcorp", "rater:r2"}:        {3, 2.0 / 3.0, 0.4},
+		{"rater:r1", "rater:r2"}:           {3, 2.0 / 3.0, 0.4},
+	}
+	require.Len(t, got, len(want), "the consensus is never compared with the raters it is built from")
+	for k, w := range want {
+		g, ok := got[k]
+		require.True(t, ok, k)
+		assert.Equal(t, w.n, g.n, k)
+		assert.InDelta(t, w.exact, g.exact, 1e-12, k)
+		assert.InDelta(t, w.kappa, g.kappa, 1e-12, k)
+	}
+}
+
+func TestEvaluateRefusesLabelsBuiltWithOtherConsensusRule(t *testing.T) {
+	p := benchmark.DefaultParams()
+	p.MinConsensusRaters = 3 // labels below are built with the default, 2
+	_, r, err := evaluateFixtureWith(t, p)
+	require.Error(t, err)
+	assert.Nil(t, r)
+	assert.Contains(t, err.Error(), "3")
+	assert.Contains(t, err.Error(), "2")
+	assert.Contains(t, err.Error(), "MinConsensusRaters")
+}
+
+func TestEvaluateRefusesLabelsForAnotherProfile(t *testing.T) {
+	f := newFixture(t, evalImages())
+	p := f.profile(t, testDoc)
+	ls := f.labels(t, p, evalResults)
+	assert.Equal(t, benchmark.DefaultMinConsensusRaters, ls.MinConsensusRaters)
+	for _, tgt := range []benchmark.Target{{Kind: benchmark.KindClassifier, Key: "jawShape"}, {Kind: benchmark.KindTrait, Key: "lipFullness"}} {
+		ls.Targets = map[string]benchmark.Target{"other": tgt}
+		r, err := benchmark.Evaluate(benchmark.EvaluateInput{Items: f.items(t), Profile: p, Labels: ls,
+			ModelSHA256: testModel, CatalogueVersion: "fa-measure/1", Params: benchmark.DefaultParams()})
+		require.Error(t, err)
+		assert.Nil(t, r)
+		assert.Contains(t, err.Error(), tgt.Key)
+	}
 }
 
 func TestEvaluateCoverageByHijab(t *testing.T) {
@@ -209,6 +253,8 @@ func TestWriteReportHoldsNoPathsOrIDs(t *testing.T) {
 		"calibration **uncalibrated**",
 		"Vendor labels are not ground truth",
 		"source-vs-source",
+		"every image both sources labelled",
+		"agreement between two sources is the practical ceiling for our agreement with either",
 		"ECE bins: 10",
 		"held-out fraction",
 		"| hijab | 3 | 2 | 1 | 0 | 0 | 0 | 0 | 0 | 33.3% |",
