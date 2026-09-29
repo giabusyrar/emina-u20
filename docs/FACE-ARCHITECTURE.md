@@ -150,7 +150,7 @@ beginning `catalogue drift:`. Occlusion is not drift.
                        "reason": "region jaw is occluded (anchor landmark 152)"}]}
 ```
 
-The example is illustrative. Both lists are always present. A face on which no rule
+The example is illustrative only: its numbers are not from a real photo, and `contour_right` is one of the worker's real region names. Both lists are always present. A face on which no rule
 matches gets `{"regions": [], "droppedTemplates": []}`: nothing is guessed (the
 classifier says `insufficient_evidence`, or the shape has no seed rule). `guidance`
 is `null` only when the profile has no guidance section.
@@ -234,7 +234,7 @@ python apps/core-engine/internal/facearch/measureclient/testdata/record_anchors.
 contour and highlight. All seed geometry is translated by us from its placement lists.
 
 - Seeded (placements sourced, geometry ours): contour for Round, Oval, Square and
-  Heart; highlight for Oval, Square and Heart. 11 templates, 8 rules.
+  Heart; highlight for Oval, Square and Heart. 11 templates, 7 rules.
 - **Not seeded, deliberately:** any guidance for Diamond, Oblong, Triangle or
   InvTriangle (the page does not cover them), a Round highlight (the page names none),
   and any blush or brow guidance (the page gives no placement). A face classified into
