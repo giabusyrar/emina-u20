@@ -4,10 +4,10 @@
 package facearch
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/classify"
+	"github.com/experience-gateway/apps/core-engine/internal/facearch/guidance"
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/traits"
@@ -48,10 +48,10 @@ type Response struct {
 	MeasurementsMissing []string                   `json:"measurementsMissing,omitempty"`
 	Classifications     map[string]classify.Result `json:"classifications"`
 	Traits              map[string]traits.Result   `json:"traits"`
-	// Guidance is filled by Plan 3 (guidance templates and rules). Until
-	// then it is always JSON null: no polygons are invented.
-	Guidance   json.RawMessage `json:"guidance"`
-	Provenance Provenance      `json:"provenance"`
+	// Guidance is the profile's makeup placement for this face (package
+	// guidance); JSON null when the profile has no guidance section.
+	Guidance   *guidance.Result `json:"guidance"`
+	Provenance Provenance       `json:"provenance"`
 }
 
 // Interpret applies a loaded profile document to one measure response.
@@ -107,6 +107,11 @@ func Interpret(p *profile.FaceArchitectureProfile, doc *profile.Document, m *mea
 			continue
 		}
 		out.Traits[spec.Key] = traits.Evaluate(spec, idx)
+	}
+	if doc.Guidance != nil {
+		out.Guidance = guidance.Resolve(doc.Guidance,
+			guidance.Evidence{Classifications: out.Classifications, Traits: out.Traits},
+			m.Landmarks, m.Regions, m.CatalogueVersion)
 	}
 	return out
 }

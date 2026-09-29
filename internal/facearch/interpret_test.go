@@ -88,7 +88,7 @@ func TestInterpret_JSONShape(t *testing.T) {
 	require.NoError(t, err)
 	var body map[string]json.RawMessage
 	require.NoError(t, json.Unmarshal(b, &body))
-	assert.Equal(t, "null", string(body["guidance"]), "guidance is null until Plan 3")
+	assert.Equal(t, "null", string(body["guidance"]), "a profile without a guidance section answers null")
 	for _, k := range []string{"quality", "regions", "measurements", "classifications", "traits", "provenance"} {
 		assert.Contains(t, body, k)
 	}

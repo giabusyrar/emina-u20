@@ -115,8 +115,12 @@ func load(ctx context.Context, file string, stdout, stderr io.Writer, d deps) ([
 		fmt.Fprintf(stderr, "%s: %v\n", file, err)
 		return nil, false
 	}
-	fmt.Fprintf(stdout, "%s: valid against %s (%d classifiers, %d traits, calibration %s)\n",
-		file, cat.CatalogueVersion, len(doc.Classifiers), len(doc.Traits), doc.Calibration.Status)
+	templates, rules := 0, 0
+	if doc.Guidance != nil {
+		templates, rules = len(doc.Guidance.Templates), len(doc.Guidance.Rules)
+	}
+	fmt.Fprintf(stdout, "%s: valid against %s (%d classifiers, %d traits, %d guidance templates, %d guidance rules, calibration %s)\n",
+		file, cat.CatalogueVersion, len(doc.Classifiers), len(doc.Traits), templates, rules, doc.Calibration.Status)
 	return raw, true
 }
 

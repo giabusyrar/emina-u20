@@ -25,10 +25,9 @@ type Document struct {
 	MeasurementsShown []string         `json:"measurementsShown"`
 	Classifiers       []ClassifierSpec `json:"classifiers"`
 	Traits            []TraitSpec      `json:"traits"`
-	// Guidance belongs to Plan 3 (templates and rules). It is carried
-	// opaquely so a profile with guidance round-trips unchanged; nothing in
-	// this plan reads it and responses return guidance as null.
-	Guidance json.RawMessage `json:"guidance,omitempty"`
+	// Guidance is the optional makeup-placement section (guidance.go). A
+	// document without it answers "guidance": null.
+	Guidance *Guidance `json:"guidance,omitempty"`
 }
 
 // Calibration says where the profile's numbers came from.

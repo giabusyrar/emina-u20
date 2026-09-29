@@ -1,0 +1,20 @@
+{
+  "source": "apps/ai-worker/ai_worker/vision/facegeom/anchors.py",
+  "sha256": "f05447a5fe536bac73f7f6ad8c67accc1b17355ce5e0050fdf81dba365837fb1",
+  "catalogueVersion": "fa-measure/1",
+  "catalogueVersionSource": "apps/ai-worker/ai_worker/vision/facegeom/measures.py",
+  "frameSource": "apps/ai-worker/ai_worker/vision/facegeom/frame.py",
+  "frameSha256": "a956d9f8933d0e699825303f57272aa6017bb6b797049390d1af9ba50d51d4f3",
+  "nLandmarks": 478,
+  "eyeCorners": {"exoR": 33, "endoR": 133, "exoL": 263, "endoL": 362},
+  "regions": {
+    "forehead": [10, 338, 297, 332, 284, 54, 103, 67, 109, 151],
+    "contour_right": [162, 127, 234, 93, 132, 21],
+    "contour_left": [389, 356, 454, 323, 361, 251],
+    "jaw": [58, 172, 136, 150, 149, 176, 148, 152, 377, 400, 378, 379, 365, 397, 288],
+    "brows": [70, 63, 105, 66, 107, 46, 53, 52, 65, 55, 300, 293, 334, 296, 336, 276, 283, 282, 295, 285, 9, 8],
+    "eyes": [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246, 263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466],
+    "nose": [168, 6, 1, 2, 98, 327],
+    "lips": [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 146, 91, 181, 84, 17, 314, 405, 321, 375, 13, 14]
+  }
+}
