@@ -2,6 +2,7 @@ package profile_test
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -65,7 +66,8 @@ func TestParse_StrictAndGuidanceOpaque(t *testing.T) {
 	var raw map[string]any
 	require.NoError(t, json.Unmarshal([]byte(validDoc), &raw))
 	raw["guidance"] = map[string]any{"templates": map[string]any{"x": map[string]any{"role": "contour"}}}
-	b, _ := json.Marshal(raw)
+	b, err := json.Marshal(raw)
+	require.NoError(t, err)
 	d, err = profile.Parse(b)
 	require.NoError(t, err)
 	assert.JSONEq(t, `{"templates":{"x":{"role":"contour"}}}`, string(d.Guidance))
@@ -89,4 +91,24 @@ func TestKeys(t *testing.T) {
 	d := parseValid(t)
 	assert.Equal(t, []string{"width_length_ratio"}, d.Classifiers[0].Keys())
 	assert.Equal(t, []string{"alar_width_to_intercanthal_ratio"}, d.Traits[0].Keys())
+}
+
+func TestParse_RejectsTrailingData(t *testing.T) {
+	for name, suffix := range map[string]string{
+		"closing brace":   "}",
+		"closing bracket": "]",
+		"second object":   `{"schemaVersion": 1}`,
+	} {
+		_, err := profile.Parse([]byte(validDoc + suffix))
+		assert.Error(t, err, name)
+	}
+	_, err := profile.Parse([]byte(validDoc + " \t"))
+	assert.NoError(t, err, "trailing whitespace is fine")
+}
+
+func TestParse_RejectsMisspeltNestedKey(t *testing.T) {
+	bad := strings.Replace(validDoc, `"centre": 0.6`, `"centr": 0.6`, 1)
+	require.NotEqual(t, validDoc, bad)
+	_, err := profile.Parse([]byte(bad))
+	assert.Error(t, err)
 }

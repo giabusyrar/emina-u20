@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"sort"
 )
 
@@ -168,7 +169,7 @@ func Parse(raw []byte) (*Document, error) {
 	if err := dec.Decode(&d); err != nil {
 		return nil, fmt.Errorf("face-architecture profile document: %w", err)
 	}
-	if dec.More() {
+	if _, err := dec.Token(); err != io.EOF {
 		return nil, fmt.Errorf("face-architecture profile document: trailing data after the JSON object")
 	}
 	return &d, nil
