@@ -122,3 +122,13 @@ and a deadlock risk if both sides ever take two locks.
 The durable fix is to take migrations away from `AutoMigrate` and give them to a
 single versioned migration tool with one owner. That is a separate piece of work
 and it is not done. Until it is, this document is the whole protection.
+
+## Column drops outside AutoMigrate
+
+`AutoMigrate` never drops columns, so a drop is a deliberate, recorded step.
+
+- **`match_shade_assets.color_map_url`, `alpha_map_url`, `finish_map_url`**
+  (core-engine). Replaced by `*_map_key`. Dropped by
+  `apps/core-engine/cmd/shade-asset-keys -apply` after converting each URL
+  to its object key; see `docs/OBJECT-STORAGE.md`. No other repository
+  reads this table.

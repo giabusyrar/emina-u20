@@ -159,8 +159,8 @@ Rollout order:
 
 Between 2 and 3, old rows answer 409 rather than a broken image.
 
-**Bucket setup (operator, Cloudflare dashboard; documented in the storage
-section of `apps/ai-worker/README.md`).**
+**Bucket setup (operator, Cloudflare dashboard; documented in
+`docs/OBJECT-STORAGE.md`).**
 
 - CORS rule on the bucket allowing `GET` (and `HEAD`) from the web app's
   origins. Without it `crossOrigin="anonymous"` loads from
