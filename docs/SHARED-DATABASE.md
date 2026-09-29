@@ -110,6 +110,8 @@ this one.** A collision is not corrupting — it would only serialize two
 unrelated migrations against each other — but it is a needless startup stall,
 and a deadlock risk if both sides ever take two locks.
 
+core-engine's face-architecture upsert uses the two-key advisory lock with class key 1581646199 (`pg_advisory_xact_lock(1581646199, hashtext(brand|app))`), whose key space does not overlap single-key locks.
+
 ## If you want this to stop being a hazard
 
 The durable fix is to take migrations away from `AutoMigrate` and give them to a
