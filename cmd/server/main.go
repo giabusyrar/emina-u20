@@ -34,6 +34,7 @@ import (
 	// Match Engine
 	matchCache "github.com/experience-gateway/apps/core-engine/internal/match/adapters/cache"
 	matchControllers "github.com/experience-gateway/apps/core-engine/internal/match/adapters/controllers"
+	matchObjectStore "github.com/experience-gateway/apps/core-engine/internal/match/adapters/objectstore"
 	matchEntity "github.com/experience-gateway/apps/core-engine/internal/match/entity"
 	matchRepo "github.com/experience-gateway/apps/core-engine/internal/match/repository"
 	matchService "github.com/experience-gateway/apps/core-engine/internal/match/service"
@@ -111,7 +112,21 @@ func run() error {
 	matchC := matchCache.NewMatchCache(rdb, cfg.MatchCacheTTL)
 	mRepo := matchRepo.NewMatchRepo(db, matchC)
 	mService := matchService.NewMatchService(mRepo, cfg.TryonEngineURL)
-	matchHandler := matchControllers.NewMatchHandler(mService)
+	presigner, err := matchObjectStore.New(matchObjectStore.Config{
+		Endpoint:        cfg.S3Endpoint,
+		Bucket:          cfg.S3Bucket,
+		AccessKeyID:     cfg.S3AccessKeyID,
+		SecretAccessKey: cfg.S3SecretAccessKey,
+		Region:          cfg.S3Region,
+		TTL:             cfg.S3PresignTTL,
+	})
+	if err != nil {
+		return fmt.Errorf("object storage: %w", err)
+	}
+	if presigner == nil {
+		deps.Log.Warn("object storage not configured; shade asset links unavailable (503)")
+	}
+	matchHandler := matchControllers.NewMatchHandler(mService, presigner)
 
 	// Vision Engine Orchestrator
 	visionReferenceCatalog := visionCatalog.NewCachedCatalog(

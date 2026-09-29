@@ -2,22 +2,57 @@ package controllers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/experience-gateway/apps/core-engine/internal/match/adapters/objectstore"
 	"github.com/experience-gateway/apps/core-engine/internal/match/entity"
 	"github.com/experience-gateway/apps/core-engine/internal/match/repository"
 	"github.com/experience-gateway/apps/core-engine/internal/match/service"
 )
 
-func newTestMatchHandler() *MatchHandler {
+type fakePresigner struct{ err error }
+
+func (f fakePresigner) Presign(_ context.Context, key string) (string, error) {
+	if f.err != nil {
+		return "", f.err
+	}
+	return "https://signed.example/" + key + "?sig=1", nil
+}
+
+func newTestMatchHandlerWith(p objectstore.Presigner) *MatchHandler {
 	repo := repository.NewMatchRepo(nil)
-	svc := service.NewMatchService(repo, "")
-	return NewMatchHandler(svc)
+	return NewMatchHandler(service.NewMatchService(repo, ""), p)
+}
+
+func newTestMatchHandler() *MatchHandler { return newTestMatchHandlerWith(fakePresigner{}) }
+
+func getShadeAsset(t *testing.T, h *MatchHandler, id string) *httptest.ResponseRecorder {
+	t.Helper()
+	e := echo.New()
+	rec := httptest.NewRecorder()
+	c := e.NewContext(httptest.NewRequest(http.MethodGet, "/api/matching/shade-assets/"+id, nil), rec)
+	c.SetParamNames("id")
+	c.SetParamValues(id)
+	if err := h.GetShadeAsset(c); err != nil {
+		t.Fatalf("GetShadeAsset error: %v", err)
+	}
+	return rec
+}
+
+func saveAsset(t *testing.T, h *MatchHandler, a entity.ShadeAsset) string {
+	t.Helper()
+	saved, err := h.svc.SaveShadeAsset(context.Background(), a)
+	if err != nil {
+		t.Fatalf("SaveShadeAsset: %v", err)
+	}
+	return saved.ID
 }
 
 func TestCreateAndListShades(t *testing.T) {
@@ -82,9 +117,9 @@ func TestExtractionCallback_UpdatesStatusAndAsset(t *testing.T) {
 
 	cbBody, _ := json.Marshal(map[string]interface{}{
 		"status":       "ready",
-		"colorMapUrl":  "s3://bucket/shade/color.png",
-		"alphaMapUrl":  "s3://bucket/shade/alpha.png",
-		"finishMapUrl": "s3://bucket/shade/finish.png",
+		"colorMapKey":  "shades/s1/color.png",
+		"alphaMapKey":  "shades/s1/alpha.png",
+		"finishMapKey": "shades/s1/finish.png",
 	})
 	cbReq := httptest.NewRequest(http.MethodPost, "/api/matching/shades/"+shadeID+"/extraction-callback", bytes.NewReader(cbBody))
 	cbReq.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -118,11 +153,17 @@ func TestExtractionCallback_UpdatesStatusAndAsset(t *testing.T) {
 	}
 	var assetResp struct {
 		Success bool              `json:"success"`
-		Asset   entity.ShadeAsset `json:"asset"`
+		Asset   map[string]string `json:"asset"`
 	}
-	_ = json.Unmarshal(getRec.Body.Bytes(), &assetResp)
-	if !assetResp.Success || assetResp.Asset.ColorMapURL != "s3://bucket/shade/color.png" {
-		t.Fatalf("GetShadeAsset response = %s, want matching ColorMapURL", getRec.Body.String())
+	if err := json.Unmarshal(getRec.Body.Bytes(), &assetResp); err != nil {
+		t.Fatalf("decode: %v body=%s", err, getRec.Body.String())
+	}
+	if !assetResp.Success || assetResp.Asset["colorMapUrl"] != "https://signed.example/shades/s1/color.png?sig=1" ||
+		assetResp.Asset["finishMapUrl"] != "https://signed.example/shades/s1/finish.png?sig=1" {
+		t.Fatalf("GetShadeAsset response = %s, want signed URLs", getRec.Body.String())
+	}
+	if _, leaked := assetResp.Asset["colorMapKey"]; leaked {
+		t.Fatalf("response exposes stored keys: %s", getRec.Body.String())
 	}
 }
 
@@ -136,7 +177,7 @@ func TestCreateShade_TriggersExtractionCall(t *testing.T) {
 
 	repo := repository.NewMatchRepo(nil)
 	svc := service.NewMatchService(repo, extractionServer.URL)
-	h := NewMatchHandler(svc)
+	h := NewMatchHandler(svc, fakePresigner{})
 	e := echo.New()
 
 	body, _ := json.Marshal(map[string]string{
@@ -160,5 +201,66 @@ func TestCreateShade_TriggersExtractionCall(t *testing.T) {
 	}
 	if receivedBody["hex_color"] != "#C41E3A" {
 		t.Errorf("extraction request hex_color = %v, want #C41E3A", receivedBody["hex_color"])
+	}
+}
+
+func TestExtractionCallback_ReadyWithoutKeysIs400(t *testing.T) {
+	h := newTestMatchHandler()
+	e := echo.New()
+	body, _ := json.Marshal(map[string]string{"status": "ready", "colorMapUrl": "https://old.example/c.png"})
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetParamNames("id")
+	c.SetParamValues("any")
+	if err := h.ExtractionCallback(c); err != nil {
+		t.Fatalf("ExtractionCallback error: %v", err)
+	}
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400; body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestGetShadeAsset_UnconfiguredStorageIs503(t *testing.T) {
+	h := newTestMatchHandlerWith(nil)
+	id := saveAsset(t, h, entity.ShadeAsset{ShadeID: "s", ColorMapKey: "c", AlphaMapKey: "a"})
+	rec := getShadeAsset(t, h, id)
+	if rec.Code != http.StatusServiceUnavailable || !bytes.Contains(rec.Body.Bytes(), []byte("object storage not configured")) {
+		t.Fatalf("status=%d body=%s, want 503 object storage not configured", rec.Code, rec.Body.String())
+	}
+}
+
+func TestGetShadeAsset_NotFoundIs404(t *testing.T) {
+	rec := getShadeAsset(t, newTestMatchHandler(), "missing")
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want 404", rec.Code)
+	}
+}
+
+func TestGetShadeAsset_RowWithoutKeysIs409(t *testing.T) {
+	h := newTestMatchHandler()
+	id := saveAsset(t, h, entity.ShadeAsset{ShadeID: "s"})
+	rec := getShadeAsset(t, h, id)
+	if rec.Code != http.StatusConflict || !bytes.Contains(rec.Body.Bytes(), []byte("shade-asset-keys")) {
+		t.Fatalf("status=%d body=%s, want 409 naming the migration", rec.Code, rec.Body.String())
+	}
+}
+
+func TestGetShadeAsset_SignFailureIs500WithoutEcho(t *testing.T) {
+	h := newTestMatchHandlerWith(fakePresigner{err: errors.New("secret-internal-detail")})
+	id := saveAsset(t, h, entity.ShadeAsset{ShadeID: "s", ColorMapKey: "c", AlphaMapKey: "a"})
+	rec := getShadeAsset(t, h, id)
+	if rec.Code != http.StatusInternalServerError || bytes.Contains(rec.Body.Bytes(), []byte("secret-internal-detail")) {
+		t.Fatalf("status=%d body=%s, want 500 without the internal error", rec.Code, rec.Body.String())
+	}
+}
+
+func TestGetShadeAsset_NoFinishKeyOmitsFinishMapUrl(t *testing.T) {
+	h := newTestMatchHandler()
+	id := saveAsset(t, h, entity.ShadeAsset{ShadeID: "s", ColorMapKey: "c", AlphaMapKey: "a"})
+	rec := getShadeAsset(t, h, id)
+	if rec.Code != http.StatusOK || bytes.Contains(rec.Body.Bytes(), []byte("finishMapUrl")) {
+		t.Fatalf("status=%d body=%s, want 200 without finishMapUrl", rec.Code, rec.Body.String())
 	}
 }

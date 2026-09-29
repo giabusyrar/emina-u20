@@ -2,10 +2,13 @@ package controllers
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/experience-gateway/apps/core-engine/internal/match/adapters/objectstore"
 	"github.com/experience-gateway/apps/core-engine/internal/match/domain"
 	"github.com/experience-gateway/apps/core-engine/internal/match/entity"
 	"github.com/experience-gateway/apps/core-engine/internal/match/service"
@@ -13,11 +16,14 @@ import (
 )
 
 type MatchHandler struct {
-	svc *service.MatchService
+	svc       *service.MatchService
+	presigner objectstore.Presigner
 }
 
-func NewMatchHandler(svc *service.MatchService) *MatchHandler {
-	return &MatchHandler{svc: svc}
+// NewMatchHandler takes a nil presigner when object storage is not
+// configured; shade asset reads then answer 503.
+func NewMatchHandler(svc *service.MatchService, presigner objectstore.Presigner) *MatchHandler {
+	return &MatchHandler{svc: svc, presigner: presigner}
 }
 
 // Evaluate handles POST /api/matching/evaluate
@@ -195,15 +201,52 @@ func (h *MatchHandler) DeleteShade(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true})
 }
 
+// shadeAssetResponse is the web contract for a shade asset: URLs, freshly
+// presigned per request. The stored keys never leave the service.
+type shadeAssetResponse struct {
+	ID           string    `json:"id"`
+	ShadeID      string    `json:"shadeId"`
+	ColorMapURL  string    `json:"colorMapUrl"`
+	AlphaMapURL  string    `json:"alphaMapUrl"`
+	FinishMapURL string    `json:"finishMapUrl,omitempty"`
+	CreatedAt    time.Time `json:"createdAt"`
+}
+
 // GetShadeAsset returns one ShadeAsset by its own ID (GET /api/matching/shade-assets/:id),
-// used by the live try-on frontend to resolve a Shade's AssetID into actual texture URLs.
+// used by the live try-on frontend to resolve a Shade's AssetID into texture URLs.
+// The URLs are presigned per request from the stored object keys.
 func (h *MatchHandler) GetShadeAsset(c echo.Context) error {
-	id := c.Param("id")
-	asset, err := h.svc.GetShadeAssetByID(c.Request().Context(), id)
+	if h.presigner == nil {
+		return goplatform.JSONError(c, http.StatusServiceUnavailable, "object storage not configured")
+	}
+	ctx := c.Request().Context()
+	asset, err := h.svc.GetShadeAssetByID(ctx, c.Param("id"))
 	if err != nil {
 		return goplatform.JSONError(c, http.StatusNotFound, "shade asset not found")
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "asset": asset})
+	if asset.ColorMapKey == "" || asset.AlphaMapKey == "" {
+		return goplatform.JSONError(c, http.StatusConflict, "shade asset has no storage keys; run the shade-asset-keys migration")
+	}
+	resp := shadeAssetResponse{ID: asset.ID, ShadeID: asset.ShadeID, CreatedAt: asset.CreatedAt}
+	for _, m := range []struct {
+		key string
+		dst *string
+	}{
+		{asset.ColorMapKey, &resp.ColorMapURL},
+		{asset.AlphaMapKey, &resp.AlphaMapURL},
+		{asset.FinishMapKey, &resp.FinishMapURL},
+	} {
+		if m.key == "" {
+			continue
+		}
+		u, err := h.presigner.Presign(ctx, m.key)
+		if err != nil {
+			slog.ErrorContext(ctx, "presign shade asset failed", "asset", asset.ID, "err", err)
+			return goplatform.JSONError(c, http.StatusInternalServerError, "could not sign shade asset links")
+		}
+		*m.dst = u
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "asset": resp})
 }
 
 // ExtractionCallback is called by tryon-engine (POST /api/matching/shades/:id/extraction-callback)
@@ -213,15 +256,18 @@ func (h *MatchHandler) ExtractionCallback(c echo.Context) error {
 	var payload struct {
 		Status       string `json:"status"` // "ready" | "failed"
 		Reason       string `json:"reason,omitempty"`
-		ColorMapURL  string `json:"colorMapUrl,omitempty"`
-		AlphaMapURL  string `json:"alphaMapUrl,omitempty"`
-		FinishMapURL string `json:"finishMapUrl,omitempty"`
+		ColorMapKey  string `json:"colorMapKey,omitempty"`
+		AlphaMapKey  string `json:"alphaMapKey,omitempty"`
+		FinishMapKey string `json:"finishMapKey,omitempty"`
 	}
 	if err := c.Bind(&payload); err != nil {
 		return goplatform.JSONError(c, http.StatusBadRequest, "Invalid JSON")
 	}
 	if payload.Status != "ready" && payload.Status != "failed" {
 		return goplatform.JSONError(c, http.StatusBadRequest, "status must be 'ready' or 'failed'")
+	}
+	if payload.Status == "ready" && (payload.ColorMapKey == "" || payload.AlphaMapKey == "") {
+		return goplatform.JSONError(c, http.StatusBadRequest, "status 'ready' requires colorMapKey and alphaMapKey")
 	}
 
 	target, err := h.svc.GetShadeByID(c.Request().Context(), shadeID)
@@ -235,9 +281,9 @@ func (h *MatchHandler) ExtractionCallback(c echo.Context) error {
 	if payload.Status == "ready" {
 		asset, err := h.svc.SaveShadeAsset(c.Request().Context(), entity.ShadeAsset{
 			ShadeID:      shadeID,
-			ColorMapURL:  payload.ColorMapURL,
-			AlphaMapURL:  payload.AlphaMapURL,
-			FinishMapURL: payload.FinishMapURL,
+			ColorMapKey:  payload.ColorMapKey,
+			AlphaMapKey:  payload.AlphaMapKey,
+			FinishMapKey: payload.FinishMapKey,
 		})
 		if err != nil {
 			return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())

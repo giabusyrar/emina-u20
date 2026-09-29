@@ -19,7 +19,7 @@ func TestMatchEvaluateBadJSONKeepsEnvelope(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 
-	h := controllers.NewMatchHandler(service.NewMatchService(repository.NewMatchRepo(nil), ""))
+	h := controllers.NewMatchHandler(service.NewMatchService(repository.NewMatchRepo(nil), ""), nil)
 	if err := h.Evaluate(echo.New().NewContext(req, rec)); err != nil {
 		t.Fatal(err)
 	}
