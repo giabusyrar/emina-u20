@@ -11,13 +11,13 @@ type prefixSource struct {
 	PublicURL, Endpoint, Bucket, Region string
 }
 
-// legacyPrefixes lists the two URL forms ai-worker's removed public_url()
-// ever wrote: {S3_PUBLIC_URL}/{key}, else {endpoint}/{bucket}/{key} with the
-// endpoint defaulting to AWS's regional host.
 // r2PseudoRegion is the region value Cloudflare R2 uses; no AWS regional
 // host exists for it, so it never yields the AWS-form prefix.
 const r2PseudoRegion = "auto"
 
+// legacyPrefixes lists the two URL forms ai-worker's removed public_url()
+// ever wrote: {S3_PUBLIC_URL}/{key}, else {endpoint}/{bucket}/{key} with the
+// endpoint defaulting to AWS's regional host.
 func legacyPrefixes(s prefixSource) []string {
 	var out []string
 	if p := strings.TrimRight(s.PublicURL, "/"); p != "" {

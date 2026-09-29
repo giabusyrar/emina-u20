@@ -39,10 +39,12 @@ func countColumns(db *gorm.DB, names ...string) (int, error) {
 }
 
 // unkeyedRows counts rows that still hold a URL with no key to replace it.
+// Legacy rows without a finish map hold '' rather than NULL, so an empty
+// URL counts as absent.
 const unkeyedRows = "SELECT count(*) FROM " + table + " WHERE " +
-	"(color_map_url IS NOT NULL AND (color_map_key IS NULL OR color_map_key = '')) OR " +
-	"(alpha_map_url IS NOT NULL AND (alpha_map_key IS NULL OR alpha_map_key = '')) OR " +
-	"(finish_map_url IS NOT NULL AND (finish_map_key IS NULL OR finish_map_key = ''))"
+	"(NULLIF(color_map_url, '') IS NOT NULL AND (color_map_key IS NULL OR color_map_key = '')) OR " +
+	"(NULLIF(alpha_map_url, '') IS NOT NULL AND (alpha_map_key IS NULL OR alpha_map_key = '')) OR " +
+	"(NULLIF(finish_map_url, '') IS NOT NULL AND (finish_map_key IS NULL OR finish_map_key = ''))"
 
 func (s gormStore) LegacyRows(ctx context.Context) ([]legacyRow, error) {
 	var raw []struct {
@@ -53,7 +55,7 @@ func (s gormStore) LegacyRows(ctx context.Context) ([]legacyRow, error) {
 	}
 	err := s.db.WithContext(ctx).Table(table).
 		Select("id, color_map_url, alpha_map_url, finish_map_url").
-		Where("color_map_url IS NOT NULL OR alpha_map_url IS NOT NULL OR finish_map_url IS NOT NULL").
+		Where("NULLIF(color_map_url, '') IS NOT NULL OR NULLIF(alpha_map_url, '') IS NOT NULL OR NULLIF(finish_map_url, '') IS NOT NULL").
 		Order("id").Scan(&raw).Error
 	if err != nil {
 		return nil, err
@@ -79,6 +81,11 @@ func (s gormStore) Prepare(ctx context.Context) error {
 
 func (s gormStore) Apply(ctx context.Context, rows []keyedRow) error {
 	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Block concurrent writers (e.g. an old core-engine mid rolling deploy)
+		// so no URL row can appear between the verification and the DROP.
+		if err := tx.Exec("LOCK TABLE " + table + " IN SHARE ROW EXCLUSIVE MODE").Error; err != nil {
+			return fmt.Errorf("lock %s: %w", table, err)
+		}
 		keyCols := []string{"color_map_key", "alpha_map_key", "finish_map_key"}
 		have, err := countColumns(tx, keyCols...)
 		if err != nil {

@@ -66,3 +66,12 @@ func TestPlanRowsFinishOnly(t *testing.T) {
 		t.Fatalf("planned=%+v bad=%v", planned, bad)
 	}
 }
+
+func TestPlanRowsEmptyFinishURLIsAbsent(t *testing.T) {
+	empty := ""
+	rows := []legacyRow{{ID: "e1", ColorURL: "https://pub.example.dev/c.png", AlphaURL: "https://pub.example.dev/a.png", FinishURL: &empty}}
+	planned, bad := planRows(rows, []string{"https://pub.example.dev/"})
+	if len(bad) != 0 || len(planned) != 1 || planned[0].FinishKey != "" {
+		t.Fatalf("planned=%+v bad=%v", planned, bad)
+	}
+}
