@@ -1,7 +1,6 @@
 package profile_test
 
 import (
-	"encoding/json"
 	"strings"
 	"testing"
 
@@ -55,22 +54,14 @@ func TestNormalizeStatus(t *testing.T) {
 	assert.Equal(t, "face_architecture_profiles", profile.FaceArchitectureProfile{}.TableName())
 }
 
-func TestParse_StrictAndGuidanceOpaque(t *testing.T) {
+// Guidance parsing is covered in guidance_test.go.
+func TestParse_Strict(t *testing.T) {
 	d := parseValid(t)
 	assert.Equal(t, "faceShape", d.Classifiers[0].Key)
-	assert.Nil(t, d.Guidance)
+	assert.Nil(t, d.Guidance, "no guidance section: nil, answered as null")
 
 	_, err := profile.Parse([]byte(`{"schemaVersion": 1, "blendMarign": 0.6}`))
 	assert.Error(t, err, "unknown fields are rejected")
-
-	var raw map[string]any
-	require.NoError(t, json.Unmarshal([]byte(validDoc), &raw))
-	raw["guidance"] = map[string]any{"templates": map[string]any{"x": map[string]any{"role": "contour"}}}
-	b, err := json.Marshal(raw)
-	require.NoError(t, err)
-	d, err = profile.Parse(b)
-	require.NoError(t, err)
-	assert.JSONEq(t, `{"templates":{"x":{"role":"contour"}}}`, string(d.Guidance))
 }
 
 func TestConditionHolds(t *testing.T) {
