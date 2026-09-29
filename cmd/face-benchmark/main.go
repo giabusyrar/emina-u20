@@ -372,22 +372,33 @@ func calibrate(c common, l labelled, target string, stdout, stderr io.Writer, d 
 			fmt.Fprintf(stdout, "  %s ~ %s (distance %d)\n", dup.ImageID, dup.KeptID, dup.Distance)
 		}
 	}
+	printHeldOut(stdout, h)
+	fmt.Fprintf(stdout, "store it with: facearch-profile upsert %s --brand <id|*> --app <id|*> --code <code>\n", l.out)
+	return 0
+}
+
+// printHeldOut prints, per attribute, each profile's held-out counts and
+// metrics, then one WARNING per regression in the order calibrate lists them.
+func printHeldOut(w io.Writer, h benchmark.HeldOutMetrics) {
 	var keys []string
 	for k := range h.Fitted {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		f, b := h.Fitted[k], h.Base[k]
-		fmt.Fprintf(stdout, "  %-28s held-out labelled %3d, answered %3d, no answer %3d  exact %s (base %s)  macro-F1 %s (base %s)\n", k,
-			f.HeldOutLabelled, f.Answered, f.NoAnswer,
-			fmtPtr(f.Metrics.ExactAgreement), fmtPtr(b.Metrics.ExactAgreement), fmtPtr(f.Metrics.MacroF1), fmtPtr(b.Metrics.MacroF1))
+		fmt.Fprintf(w, "  %s\n", k)
+		for _, row := range []struct {
+			name string
+			s    benchmark.HeldOutScore
+		}{{"fitted", h.Fitted[k]}, {"base", h.Base[k]}} {
+			fmt.Fprintf(w, "    %-6s labelled %d, answered %d, no answer %d; exact %s, macro-F1 %s\n", row.name,
+				row.s.HeldOutLabelled, row.s.Answered, row.s.NoAnswer,
+				fmtPtr(row.s.Metrics.ExactAgreement), fmtPtr(row.s.Metrics.MacroF1))
+		}
 	}
 	for _, r := range h.Regressions {
-		fmt.Fprintf(stdout, "  REGRESSION %s %s: fitted %.3f below base %.3f on held-out images\n", r.Attribute, r.Metric, r.Fitted, r.Base)
+		fmt.Fprintf(w, "WARNING: fitted profile is worse than base on %s %s (fitted %.3f, base %.3f)\n", r.Attribute, r.Metric, r.Fitted, r.Base)
 	}
-	fmt.Fprintf(stdout, "store it with: facearch-profile upsert %s --brand <id|*> --app <id|*> --code <code>\n", l.out)
-	return 0
 }
 
 func fmtPtr(x *float64) string {

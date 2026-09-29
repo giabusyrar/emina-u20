@@ -343,3 +343,34 @@ func TestCalibrateRefusesToOverwriteTheBaseProfile(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, string(before), string(after))
 }
+
+func TestPrintHeldOutCountsAndWarnings(t *testing.T) {
+	f := func(x float64) *float64 { return &x }
+	h := benchmark.HeldOutMetrics{
+		Fitted: map[string]benchmark.HeldOutScore{
+			"trait:noseWidth": {HeldOutLabelled: 9, Answered: 7, NoAnswer: 2, Metrics: benchmark.Metrics{MacroF1: f(0.5)}},
+		},
+		Base: map[string]benchmark.HeldOutScore{
+			"trait:noseWidth": {HeldOutLabelled: 9, Answered: 9, NoAnswer: 0, Metrics: benchmark.Metrics{MacroF1: f(0.75)}},
+		},
+		Regressions: []benchmark.Regression{
+			{Attribute: "trait:noseWidth", Metric: "macroF1", Fitted: 0.5, Base: 0.75},
+			{Attribute: "trait:noseWidth", Metric: "kappa", Fitted: 0.1, Base: 0.2},
+		},
+	}
+	var out bytes.Buffer
+	printHeldOut(&out, h)
+	s := out.String()
+	assert.Contains(t, s, "fitted labelled 9, answered 7, no answer 2")
+	assert.Contains(t, s, "base   labelled 9, answered 9, no answer 0")
+	first := "WARNING: fitted profile is worse than base on trait:noseWidth macroF1 (fitted 0.500, base 0.750)"
+	second := "WARNING: fitted profile is worse than base on trait:noseWidth kappa (fitted 0.100, base 0.200)"
+	require.Contains(t, s, first)
+	require.Contains(t, s, second)
+	assert.Less(t, strings.Index(s, first), strings.Index(s, second), "list order")
+
+	out.Reset()
+	h.Regressions = nil
+	printHeldOut(&out, h)
+	assert.NotContains(t, out.String(), "WARNING")
+}
