@@ -28,7 +28,9 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/experience-gateway/apps/core-engine/internal/config"
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/benchmark"
@@ -49,14 +51,21 @@ func main() {
 	os.Exit(run(context.Background(), os.Args[1:], os.Stdout, os.Stderr, liveDeps()))
 }
 
-const usage = `usage:
-  face-benchmark measure   --manifest <manifest.csv> --cache <dir> --model-sha256 <sha>
+// targetChoices is the one list of calibration targets, built from the
+// benchmark constants; the usage text and the target error both render it.
+var targetChoices = []string{
+	benchmark.SourcePerfectCorp, benchmark.SourceWardah, benchmark.SourceMakeover,
+	benchmark.RaterPrefix + "<id>", benchmark.TargetRaterConsensus,
+}
+
+var usage = `usage:
+  face-benchmark measure  --manifest <manifest.csv> --cache <dir> --model-sha256 <sha>
   face-benchmark evaluate  --manifest <manifest.csv> --cache <dir> --model-sha256 <sha>
                            --results <results.csv> --label-map <label-map.json> --profile <profile.json> --out <dir>
                            [--ece-bins N] [--min-consensus-raters N]
   face-benchmark calibrate --manifest <manifest.csv> --cache <dir> --model-sha256 <sha>
                            --results <results.csv> --label-map <label-map.json> --profile <base.json>
-                           --target <perfectcorp|wardah|makeover|rater:<id>|rater-consensus> --out <calibrated.json>
+                           --target <` + strings.Join(targetChoices, "|") + `> --out <calibrated.json>
                            [--held-out-fraction F] [--dedup-max-distance N] [--min-class-count N]
                            [--ece-bins N] [--seed N] [--min-consensus-raters N]
 `
@@ -141,7 +150,11 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer, d deps) i
 			return 2
 		}
 		if !benchmark.ValidTarget(*target) {
-			fmt.Fprintf(stderr, "target must be perfectcorp, wardah, makeover, rater:<id> or %s, got %q\n%s", benchmark.TargetRaterConsensus, *target, usage)
+			fmt.Fprintf(stderr, "target must be one of %s, got %q\n%s", strings.Join(targetChoices, ", "), *target, usage)
+			return 2
+		}
+		if sameFile(l.out, l.profile) {
+			fmt.Fprintf(stderr, "--out must not be the same file as --profile (it would overwrite the base profile)\n%s", usage)
 			return 2
 		}
 		return calibrate(c, l, *target, stdout, stderr, d)
@@ -150,7 +163,16 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer, d deps) i
 	return 2
 }
 
-// redacted drops any user:password from a URL before it is printed.
+// sameFile reports whether two paths resolve to the same file by absolute,
+// cleaned path (symlinks and hard links are not followed).
+func sameFile(a, b string) bool {
+	absA, errA := filepath.Abs(a)
+	absB, errB := filepath.Abs(b)
+	return errA == nil && errB == nil && filepath.Clean(absA) == filepath.Clean(absB)
+}
+
+// redacted removes the userinfo (user:password) from a URL before it is
+// printed; nothing else in the URL is altered or hidden.
 func redacted(raw string) string {
 	u, err := url.Parse(raw)
 	if err != nil {
@@ -305,6 +327,9 @@ func calibrate(c common, l labelled, target string, stdout, stderr io.Writer, d 
 	parts := append([][]byte{}, in.raw...)
 	hashes := map[string]uint64{}
 	for _, it := range in.items {
+		// Every image's outcome is part of the id, so a changed record for
+		// an image that gives no measurement still gives a new run.
+		parts = append(parts, []byte(fmt.Sprintf("%s %s", it.Row.ImageID, it.Outcome)))
 		if it.Outcome != benchmark.OutcomeMeasured {
 			continue
 		}
@@ -354,8 +379,12 @@ func calibrate(c common, l labelled, target string, stdout, stderr io.Writer, d 
 	sort.Strings(keys)
 	for _, k := range keys {
 		f, b := h.Fitted[k], h.Base[k]
-		fmt.Fprintf(stdout, "  %-28s held-out n %3d  exact %s (base %s)  macro-F1 %s (base %s)\n", k, f.N,
-			fmtPtr(f.ExactAgreement), fmtPtr(b.ExactAgreement), fmtPtr(f.MacroF1), fmtPtr(b.MacroF1))
+		fmt.Fprintf(stdout, "  %-28s held-out labelled %3d, answered %3d, no answer %3d  exact %s (base %s)  macro-F1 %s (base %s)\n", k,
+			f.HeldOutLabelled, f.Answered, f.NoAnswer,
+			fmtPtr(f.Metrics.ExactAgreement), fmtPtr(b.Metrics.ExactAgreement), fmtPtr(f.Metrics.MacroF1), fmtPtr(b.Metrics.MacroF1))
+	}
+	for _, r := range h.Regressions {
+		fmt.Fprintf(stdout, "  REGRESSION %s %s: fitted %.3f below base %.3f on held-out images\n", r.Attribute, r.Metric, r.Fitted, r.Base)
 	}
 	fmt.Fprintf(stdout, "store it with: facearch-profile upsert %s --brand <id|*> --app <id|*> --code <code>\n", l.out)
 	return 0

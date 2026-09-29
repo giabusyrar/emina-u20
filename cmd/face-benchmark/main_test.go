@@ -33,14 +33,18 @@ func body(wlr, alar float64) []byte {
 
 // worker answers by image bytes.
 type worker struct {
-	bodies map[string][]byte
-	calls  int
+	bodies  map[string][]byte
+	rejects map[string][]byte // 422 bodies by image bytes
+	calls   int
 }
 
 func (w *worker) Catalogue(context.Context) ([]byte, error) { return facearchtest.CatalogueJSON(), nil }
 
 func (w *worker) Measure(_ context.Context, image []byte, _ string) (int, []byte, error) {
 	w.calls++
+	if rb, ok := w.rejects[string(image)]; ok {
+		return 422, rb, nil
+	}
 	b, ok := w.bodies[string(image)]
 	if !ok {
 		return 0, nil, errors.New("connection refused")
@@ -155,7 +159,6 @@ func TestMeasureEvaluateCalibrate(t *testing.T) {
 
 	labelled := append(common, "--results", f.results, "--label-map", f.labelMap)
 	reportDir := filepath.Join(f.dir, "report")
-	require.NoError(t, os.MkdirAll(reportDir, 0o700))
 	code, out, errOut = runCLI(f.deps(), append(append([]string{"evaluate"}, labelled...), "--profile", f.profile, "--out", reportDir)...)
 	require.Equal(t, 0, code, errOut)
 	assert.Contains(t, out, "wrote report.json and report.md")
@@ -297,4 +300,46 @@ func TestUsage(t *testing.T) {
 		assert.True(t, strings.Contains(errOut, "usage:") || strings.Contains(errOut, "target must be"), "%v: %s", args, errOut)
 	}
 	assert.Equal(t, 0, f.w.calls, "usage errors do no work")
+}
+
+// rejectWith makes the worker answer 422 with the given detail code for one
+// image's bytes.
+func (w *worker) rejectWith(content, code string) {
+	w.rejects[content] = []byte(fmt.Sprintf(`{"detail":{"code":%q}}`, code))
+	delete(w.bodies, content)
+}
+
+func calibrateRunID(t *testing.T, code string) string {
+	t.Helper()
+	f := setup(t)
+	f.w.rejects = map[string][]byte{}
+	f.w.rejectWith("bytes of img-03", code)
+	common := []string{"--manifest", f.manifest, "--cache", f.cache, "--model-sha256", model}
+	exit, _, errOut := runCLI(f.deps(), append([]string{"measure"}, common...)...)
+	require.Equal(t, 0, exit, errOut)
+	exit, out, errOut := runCLI(f.deps(), append(append([]string{"calibrate"}, common...), "--results", f.results, "--label-map", f.labelMap,
+		"--profile", f.profile, "--target", "perfectcorp", "--out", filepath.Join(f.dir, "c.json"), "--min-class-count", "2")...)
+	require.Equal(t, 0, exit, errOut)
+	i := strings.Index(out, "run fb-")
+	require.GreaterOrEqual(t, i, 0, out)
+	return out[i : i+len("run fb-")+16]
+}
+
+func TestRunIDChangesWhenAnUnmeasuredImageOutcomeChanges(t *testing.T) {
+	assert.Equal(t, calibrateRunID(t, "face_count"), calibrateRunID(t, "face_count"))
+	assert.NotEqual(t, calibrateRunID(t, "face_count"), calibrateRunID(t, "quality_gates_failed"))
+}
+
+func TestCalibrateRefusesToOverwriteTheBaseProfile(t *testing.T) {
+	f := setup(t)
+	before, err := os.ReadFile(f.profile)
+	require.NoError(t, err)
+	code, _, errOut := runCLI(f.deps(), "calibrate", "--manifest", f.manifest, "--cache", f.cache, "--model-sha256", model,
+		"--results", f.results, "--label-map", f.labelMap, "--profile", f.profile, "--target", "perfectcorp",
+		"--out", filepath.Join(f.dir, "sub", "..", "profile.json"))
+	assert.Equal(t, 2, code)
+	assert.Contains(t, errOut, "same file as --profile")
+	after, err := os.ReadFile(f.profile)
+	require.NoError(t, err)
+	assert.Equal(t, string(before), string(after))
 }
