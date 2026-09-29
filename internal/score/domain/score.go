@@ -1,11 +1,12 @@
 package domain
 
-// AnswerEntry is one resolved answer passed from Form Engine
+// AnswerEntry is one resolved answer passed from Form Engine. Question
+// carries the schema's own question name (e.g. "Q1_DO") so a caller can
+// correlate an answer without depending on answer_list's order alone.
 type AnswerEntry struct {
+	Question string `json:"question,omitempty"`
 	Answer   string `json:"answer"`
 	Score    int    `json:"score"`
-	MinScore int    `json:"min_score"`
-	MaxScore int    `json:"max_score"`
 }
 
 // DimensionRef specifies dimension rollup configurations

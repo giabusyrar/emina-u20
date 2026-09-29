@@ -20,6 +20,7 @@ type EvaluateRequest struct {
 // self-contained, carrying its own score and the scale it was scored
 // against.
 type AnswerEntry struct {
+	Question string `json:"question"`
 	Answer   string `json:"answer"`
 	Score    int    `json:"score"`
 	MinScore int    `json:"min_score"`
@@ -70,9 +71,12 @@ type EvaluationOutput struct {
 	// at all (question or choice) — e.g. Q6's main concern, or a lifestyle
 	// checklist not yet wired into a scored axis — keyed by question name,
 	// so a caller can show them as plain metadata instead of digging them
-	// out of answer_list (which mixes in real scored answers too).
-	Labels      map[string][]string `json:"labels,omitempty"`
-	EvaluatedAt string              `json:"evaluated_at,omitempty"`
+	// out of answer_list (which mixes in real scored answers too). Each
+	// value is a plain string for a question that can only ever have one
+	// answer, or a []string for one that can carry several (checkbox,
+	// tagbox, ranking, matrix).
+	Labels      map[string]interface{} `json:"labels,omitempty"`
+	EvaluatedAt string                 `json:"evaluated_at,omitempty"`
 }
 
 // ScoreModuleRequest is what the Form Module forwards to the Score

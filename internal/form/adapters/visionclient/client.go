@@ -53,9 +53,10 @@ type Submission struct {
 }
 
 // Result is the vendor's response, reduced to what the rest of the
-// orchestration needs: every score_*-style leaf value the vendor returned,
-// flattened by its own leaf key name (matching how field_mapping's vision
-// codes are recorded — e.g. "score_wrinkle"), plus a trace id for support.
+// orchestration needs: every numeric leaf value the vendor returned,
+// flattened by its full dot-path from the response root (matching how
+// field_mapping's vision codes are recorded — e.g.
+// "inference_result.results.skin_scoring.Pores"), plus a trace id for support.
 type Result struct {
 	Flattened     map[string]float64
 	TransactionID string
@@ -189,24 +190,33 @@ func firstStringField(m map[string]interface{}, keys ...string) string {
 }
 
 // flattenNumeric walks the whole vendor response and collects every leaf
-// numeric field by its own key name (e.g. "score_wrinkle", "Pores") — the
-// vendor nests these under inference_result.baumann.dimensions.<area>.* and
-// inference_result.results.skin_scoring.*, but field_mapping only ever
-// records the leaf name, not the full path, so matching by leaf name is what
-// the mapping step needs. A later, larger vendor response with new nesting
-// still works without this having to change.
+// numeric field keyed by its FULL dot-path from the response root (e.g.
+// "inference_result.baumann.dimensions.wrinkle.score_wrinkle",
+// "inference_result.results.skin_scoring.Pores").
+//
+// A leaf-name-only key was tried first and found unsafe: the vendor's own
+// response repeats the same short name in more than one place with
+// different meanings/scales — confirmed via a real staging response where
+// "Pores" appears both under results.skin_level (a 1-5 severity grade) and
+// results.skin_scoring (a 0-100 health score). Since Go map iteration order
+// is randomized, matching by leaf name alone could silently pick either one
+// on any given call. field_mapping.vision values must be the full path.
 func flattenNumeric(v interface{}) map[string]float64 {
 	out := make(map[string]float64)
-	var walk func(node interface{}, key string)
-	walk = func(node interface{}, key string) {
+	var walk func(node interface{}, path string)
+	walk = func(node interface{}, path string) {
 		switch n := node.(type) {
 		case map[string]interface{}:
 			for k, v := range n {
-				walk(v, k)
+				next := k
+				if path != "" {
+					next = path + "." + k
+				}
+				walk(v, next)
 			}
 		case float64:
-			if key != "" {
-				out[key] = n
+			if path != "" {
+				out[path] = n
 			}
 		}
 	}

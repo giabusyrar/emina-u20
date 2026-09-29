@@ -26,11 +26,19 @@ type SkinProfileItem struct {
 	UpdatedAt     *time.Time        `json:"updatedAt,omitempty"`
 }
 
-// RulesetSimulationRequest is the payload for testing rulesets in Admin Studio
+// RulesetSimulationRequest is the payload for testing rulesets in Admin
+// Studio. FormScores/VisionScores are HEALTH-space (100 = sehat, matching
+// what the slider itself is labelled) — Simulate converts each to concern
+// space before handing off to the same stage2Score fusion Evaluate uses, so
+// the two can never quietly drift apart. AgeYears feeds the ruleset's
+// age_over_30-mapped dimension via the exact same AgeOverThirty the real
+// evaluate path uses (not a re-derived <=30 comparison), overriding any
+// FormScores entry for that same dimension.
 type RulesetSimulationRequest struct {
 	Schema            string                 `json:"schema"`
-	DimensionScores   map[string]float64     `json:"dimension_scores"`
-	VisionSignals     map[string]float64     `json:"vision_signals,omitempty"`
+	FormScores        map[string]float64     `json:"form_scores,omitempty"`
+	VisionScores      map[string]float64     `json:"vision_scores,omitempty"`
+	AgeYears          *int                   `json:"age_years,omitempty"`
 	CustomerCondition map[string]bool        `json:"customer_condition,omitempty"`
 	TargetPayload     map[string]interface{} `json:"target_payload,omitempty"`
 }
