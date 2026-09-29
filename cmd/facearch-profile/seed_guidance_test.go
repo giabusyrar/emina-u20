@@ -83,7 +83,7 @@ func TestSeedNoGuidanceForUncoveredShapes(t *testing.T) {
 			Classifications: map[string]classify.Result{"faceShape": {Status: classify.StatusSingle, Primary: shape}},
 			Traits:          map[string]traits.Result{},
 		}
-		res := guidance.Resolve(d.Guidance, ev, m.Landmarks, m.Regions)
+		res := guidance.Resolve(d.Guidance, ev, m.Landmarks, m.Regions, m.CatalogueVersion)
 		got := map[string]bool{}
 		for _, r := range res.Regions {
 			got[r.Role] = true
@@ -145,9 +145,9 @@ func TestSeedGuidanceOnSyntheticBlend(t *testing.T) {
 		"oval-highlight:highlight_forehead_centre", "oval-highlight:highlight_nose_bridge",
 	}, placed, "Round adds only its jaw contour, and that is dropped")
 	assert.Equal(t, []guidance.Dropped{
-		{Template: "highlight_chin", RuleID: "oval-highlight", Reason: "region jaw is occluded (anchor landmark 152)"},
-		{Template: "contour_jaw_r", RuleID: "round-contour", Reason: "region jaw is occluded (anchor landmark 58)"},
-		{Template: "contour_jaw_l", RuleID: "round-contour", Reason: "region jaw is occluded (anchor landmark 288)"},
+		{Template: "highlight_chin", RuleID: "oval-highlight", Match: guidance.MatchedPrimary, Reason: "region jaw is occluded (anchor landmark 152)"},
+		{Template: "contour_jaw_r", RuleID: "round-contour", Match: guidance.MatchedSecondary, Reason: "region jaw is occluded (anchor landmark 58)"},
+		{Template: "contour_jaw_l", RuleID: "round-contour", Match: guidance.MatchedSecondary, Reason: "region jaw is occluded (anchor landmark 288)"},
 	}, out.Guidance.DroppedTemplates)
 }
 
@@ -174,7 +174,7 @@ func allTemplates(t *testing.T) (*profile.Guidance, guidance.Evidence) {
 func TestSeedJawAnchoredTemplatesDropOnFixture(t *testing.T) {
 	g, ev := allTemplates(t)
 	m := facearchtest.FixtureFace()
-	res := guidance.Resolve(g, ev, m.Landmarks, m.Regions)
+	res := guidance.Resolve(g, ev, m.Landmarks, m.Regions, m.CatalogueVersion)
 	var dropped []string
 	for _, x := range res.DroppedTemplates {
 		dropped = append(dropped, x.Template)

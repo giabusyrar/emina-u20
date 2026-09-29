@@ -111,7 +111,7 @@ func Interpret(p *profile.FaceArchitectureProfile, doc *profile.Document, m *mea
 	if doc.Guidance != nil {
 		out.Guidance = guidance.Resolve(doc.Guidance,
 			guidance.Evidence{Classifications: out.Classifications, Traits: out.Traits},
-			m.Landmarks, m.Regions)
+			m.Landmarks, m.Regions, m.CatalogueVersion)
 	}
 	return out
 }

@@ -41,6 +41,11 @@ func NewFrame(landmarks [][]float64) (Frame, error) {
 	if !(iod > 0) {
 		return Frame{}, errors.New("eye centres coincide")
 	}
+	if math.IsInf(iod, 0) {
+		// Finite but extreme landmarks can overflow; every offset would then
+		// map to infinity or NaN in pixels.
+		return Frame{}, errors.New("eye-centre distance is not finite")
+	}
 	return Frame{
 		mid: [2]float64{(right[0] + left[0]) / 2, (right[1] + left[1]) / 2},
 		cos: dx / iod,

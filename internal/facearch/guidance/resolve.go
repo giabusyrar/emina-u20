@@ -15,21 +15,33 @@ type Region struct {
 	Polygon  [][2]float64 `json:"polygon"`
 	// Intensity is the rule's strength for this template, in (0, 1]; a
 	// rendering parameter, not a measurement.
-	Intensity float64  `json:"intensity"`
-	RuleID    string   `json:"ruleId"`
-	TextKeys  []string `json:"textKeys"`
+	Intensity float64 `json:"intensity"`
+	RuleID    string  `json:"ruleId"`
+	// Match is the grade the rule matched at: MatchedPrimary, or
+	// MatchedSecondary when the rule matched only through a blend's
+	// secondary class or a boundary-uncertain trait label, i.e. on weaker
+	// evidence.
+	Match    string   `json:"match"`
+	TextKeys []string `json:"textKeys"`
 	// Placeholder repeats the rule's flag: the choice of this placement has
 	// no source. Omitted when false.
 	Placeholder bool `json:"placeholder,omitempty"`
 	// AnchorVisibility is "observed" only when every region containing any
-	// anchor landmark of the template is observed; otherwise "unknown": the
+	// anchor landmark of the template, and the eyes region when any point has
+	// an offset (the frame it is taken in), is observed; otherwise "unknown": the
 	// worker could not confirm the anchors are unobstructed (the default
 	// deployment reports every region as unknown).
 	AnchorVisibility string `json:"anchorVisibility"`
-	// UnverifiedRegions lists, sorted, the anchor regions not observed. Never
+	// UnverifiedRegions lists, sorted, those regions not observed. Never
 	// null.
 	UnverifiedRegions []string `json:"unverifiedRegions"`
 }
+
+// Values of Region.Match and Dropped.Match.
+const (
+	MatchedPrimary   = "primary"
+	MatchedSecondary = "secondary"
+)
 
 // Values of Region.AnchorVisibility.
 const (
@@ -41,6 +53,7 @@ const (
 type Dropped struct {
 	Template string `json:"template"`
 	RuleID   string `json:"ruleId"`
+	Match    string `json:"match"` // as Region.Match
 	Reason   string `json:"reason"`
 }
 
@@ -65,12 +78,15 @@ const FrameReason = "canonical frame requires region " + measureclient.RegionEye
 // that applies it; a later rule applying it again is skipped, including a
 // template already dropped.
 //
-// A template is dropped when the eyes region is occluded (no canonical
-// frame), when the landmarks are missing or malformed, or when any anchor
+// A template is dropped when workerCatalogue (the measure response's
+// catalogueVersion) is not measureclient.RegionsCatalogueVersion (the region
+// table may not describe that worker), when the eyes region is occluded (no
+// canonical frame), when the landmarks are missing or malformed, when a
+// vertex is not finite in pixels, or when any anchor
 // landmark (an index, or either end of a lerp) is in a region the worker
 // reports occluded, which includes regions out of frame, or does not report
 // at all. Polygons are not clipped to the image.
-func Resolve(g *profile.Guidance, ev Evidence, landmarks [][]float64, regions map[string]string) *Result {
+func Resolve(g *profile.Guidance, ev Evidence, landmarks [][]float64, regions map[string]string, workerCatalogue string) *Result {
 	out := &Result{Regions: []Region{}, DroppedTemplates: []Dropped{}}
 	var primary, secondary []profile.GuidanceRule
 	for _, r := range g.Rules {
@@ -85,24 +101,35 @@ func Resolve(g *profile.Guidance, ev Evidence, landmarks [][]float64, regions ma
 		return out
 	}
 
-	frame, frameReason := frameFor(landmarks, regions)
+	// unplaceable, when set, drops every matched template.
+	var frame Frame
+	unplaceable := ""
+	if workerCatalogue != measureclient.RegionsCatalogueVersion {
+		unplaceable = fmt.Sprintf("region table recorded for %s, worker measured with %s", measureclient.RegionsCatalogueVersion, workerCatalogue)
+	} else {
+		frame, unplaceable = frameFor(landmarks, regions)
+	}
 	done := map[string]bool{}
-	for _, r := range append(primary, secondary...) {
+	for i, r := range append(primary, secondary...) {
+		match := MatchedPrimary
+		if i >= len(primary) {
+			match = MatchedSecondary
+		}
 		for _, a := range r.Apply {
 			if done[a.Template] {
 				continue
 			}
 			done[a.Template] = true
 			drop := func(reason string) {
-				out.DroppedTemplates = append(out.DroppedTemplates, Dropped{Template: a.Template, RuleID: r.ID, Reason: reason})
+				out.DroppedTemplates = append(out.DroppedTemplates, Dropped{Template: a.Template, RuleID: r.ID, Match: match, Reason: reason})
 			}
 			t, ok := g.Templates[a.Template]
 			switch {
 			case !ok:
 				drop("template is not defined")
 				continue
-			case frameReason != "":
-				drop(frameReason)
+			case unplaceable != "":
+				drop(unplaceable)
 				continue
 			}
 			if reason := hidden(t, regions); reason != "" {
@@ -122,7 +149,7 @@ func Resolve(g *profile.Guidance, ev Evidence, landmarks [][]float64, regions ma
 			out.Regions = append(out.Regions, Region{
 				AnchorVisibility: vis, UnverifiedRegions: unverified,
 				Role: t.Role, Template: a.Template, Polygon: poly, Intensity: a.Intensity,
-				RuleID: r.ID, TextKeys: append([]string{}, r.TextKeys...), Placeholder: r.Placeholder,
+				RuleID: r.ID, Match: match, TextKeys: append([]string{}, r.TextKeys...), Placeholder: r.Placeholder,
 			})
 		}
 	}
@@ -166,18 +193,27 @@ func hidden(t profile.Template, regions map[string]string) string {
 }
 
 // unverifiedRegions lists, sorted and de-duplicated, the anchor regions whose
-// state is not observed. Call only after hidden returned "".
+// state is not observed. A template with any offset also depends on the eyes
+// region, because the offset is taken in the canonical frame built from the
+// eye corners (index and lerp points are frame-independent). Call only after
+// hidden returned "".
 func unverifiedRegions(t profile.Template, regions map[string]string) []string {
 	seen := map[string]bool{}
 	out := []string{}
+	add := func(name string) {
+		if regions[name] != measureclient.VisibilityObserved && !seen[name] {
+			seen[name] = true
+			out = append(out, name)
+		}
+	}
 	for _, p := range t.Points {
 		for _, i := range p.Anchors() {
 			for _, name := range measureclient.RegionsOf(i) {
-				if regions[name] != measureclient.VisibilityObserved && !seen[name] {
-					seen[name] = true
-					out = append(out, name)
-				}
+				add(name)
 			}
+		}
+		if p.OffsetIod != nil {
+			add(measureclient.RegionEyes)
 		}
 	}
 	sort.Strings(out)
@@ -231,7 +267,11 @@ func Place(t profile.Template, f Frame, landmarks [][]float64) ([][2]float64, er
 			q[0] += p.OffsetIod[0]
 			q[1] += p.OffsetIod[1]
 		}
-		poly = append(poly, f.ToImage(q))
+		px := f.ToImage(q)
+		if !finite(px[0]) || !finite(px[1]) {
+			return nil, fmt.Errorf("point %d is not finite in pixels", j)
+		}
+		poly = append(poly, px)
 	}
 	return poly, nil
 }

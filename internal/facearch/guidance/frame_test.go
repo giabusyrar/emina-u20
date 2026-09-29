@@ -96,4 +96,11 @@ func TestFrame_Errors(t *testing.T) {
 	}
 	_, err = guidance.NewFrame(l)
 	assert.ErrorContains(t, err, "eye centres coincide")
+
+	// Finite landmarks whose eye-centre distance overflows to infinity.
+	l = syntheticFace(0)
+	l[measureclient.ExoR], l[measureclient.EndoR] = []float64{-1e308, 300}, []float64{-1e308, 300}
+	l[measureclient.ExoL], l[measureclient.EndoL] = []float64{1e308, 300}, []float64{1e308, 300}
+	_, err = guidance.NewFrame(l)
+	assert.ErrorContains(t, err, "eye-centre distance is not finite")
 }

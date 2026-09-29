@@ -11,6 +11,7 @@ import (
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/classify"
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/facearchtest"
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/guidance"
+	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
 )
 
@@ -53,7 +54,7 @@ func templates(res *guidance.Result) (placed []string, dropped []string) {
 // template is dropped with the reason and the rest is placed in pixels.
 func TestResolve_FixtureSingle(t *testing.T) {
 	l, regions := fixture()
-	res := guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l, regions)
+	res := guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l, regions, measureclient.RegionsCatalogueVersion)
 	placed, dropped := templates(res)
 	assert.Equal(t, []string{"a:tip"}, placed)
 	assert.Equal(t, []string{"a:jaw: region jaw is occluded (anchor landmark 172)"}, dropped)
@@ -86,22 +87,36 @@ func TestResolve_FixtureSingle(t *testing.T) {
 // is placed once, by the first rule that applies it.
 func TestResolve_BlendOrderAndDedup(t *testing.T) {
 	l, regions := fixture()
-	res := guidance.Resolve(testSpec(t), shape(classify.StatusBlend, "Oval", "Round"), l, regions)
+	res := guidance.Resolve(testSpec(t), shape(classify.StatusBlend, "Oval", "Round"), l, regions, measureclient.RegionsCatalogueVersion)
 	placed, dropped := templates(res)
 	assert.Equal(t, []string{"a:tip", "b:brow"}, placed)
 	assert.Equal(t, []string{"a:jaw: region jaw is occluded (anchor landmark 172)"}, dropped)
 
-	res = guidance.Resolve(testSpec(t), shape(classify.StatusBlend, "Round", "Oval"), l, regions)
+	res = guidance.Resolve(testSpec(t), shape(classify.StatusBlend, "Round", "Oval"), l, regions, measureclient.RegionsCatalogueVersion)
 	placed, dropped = templates(res)
 	assert.Equal(t, []string{"b:brow", "b:tip"}, placed)
 	assert.Equal(t, []string{"a:jaw: region jaw is occluded (anchor landmark 172)"}, dropped)
 	assert.Equal(t, 0.9, res.Regions[1].Intensity)
 	assert.True(t, res.Regions[1].Placeholder, "a placeholder rule's regions say so")
+	// Each region and drop says at which grade its rule matched: rule a
+	// matched only through the blend's secondary class here.
+	assert.Equal(t, "primary", res.Regions[0].Match)
+	assert.Equal(t, "primary", res.Regions[1].Match)
+	assert.Equal(t, "secondary", res.DroppedTemplates[0].Match)
+	b, err := json.Marshal(res)
+	require.NoError(t, err)
+	assert.Contains(t, string(b), `"ruleId":"b","match":"primary"`)
+	assert.Contains(t, string(b), `"ruleId":"a","match":"secondary","reason":`)
+
+	res = guidance.Resolve(testSpec(t), shape(classify.StatusBlend, "Oval", "Round"), l, regions, measureclient.RegionsCatalogueVersion)
+	assert.Equal(t, "primary", res.Regions[0].Match)
+	assert.Equal(t, "secondary", res.Regions[1].Match)
+	assert.Equal(t, "primary", res.DroppedTemplates[0].Match)
 }
 
 func TestResolve_NothingMatches(t *testing.T) {
 	l, regions := fixture()
-	res := guidance.Resolve(testSpec(t), shape(classify.StatusInsufficientEvidence, "", ""), l, regions)
+	res := guidance.Resolve(testSpec(t), shape(classify.StatusInsufficientEvidence, "", ""), l, regions, measureclient.RegionsCatalogueVersion)
 	b, err := json.Marshal(res)
 	require.NoError(t, err)
 	assert.JSONEq(t, `{"regions": [], "droppedTemplates": []}`, string(b))
@@ -110,7 +125,7 @@ func TestResolve_NothingMatches(t *testing.T) {
 func TestResolve_EyesOccludedDropsEverything(t *testing.T) {
 	l, regions := fixture()
 	regions["eyes"] = "occluded"
-	res := guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l, regions)
+	res := guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l, regions, measureclient.RegionsCatalogueVersion)
 	placed, dropped := templates(res)
 	assert.Empty(t, placed)
 	assert.Equal(t, []string{
@@ -121,18 +136,18 @@ func TestResolve_EyesOccludedDropsEverything(t *testing.T) {
 
 func TestResolve_BadLandmarksAndRegions(t *testing.T) {
 	_, regions := fixture()
-	res := guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), nil, regions)
+	res := guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), nil, regions, measureclient.RegionsCatalogueVersion)
 	_, dropped := templates(res)
 	assert.Equal(t, []string{"a:tip: the ai-worker returned no landmarks", "a:jaw: the ai-worker returned no landmarks"}, dropped)
 
 	l, _ := fixture()
-	res = guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l[:100], regions)
+	res = guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l[:100], regions, measureclient.RegionsCatalogueVersion)
 	_, dropped = templates(res)
 	assert.Equal(t, "a:tip: landmarks unusable: want 478 landmarks, got 100", dropped[0])
 
 	l, regions = fixture()
 	delete(regions, "nose")
-	res = guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l, regions)
+	res = guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l, regions, measureclient.RegionsCatalogueVersion)
 	_, dropped = templates(res)
 	assert.Equal(t, "a:tip: region nose not reported by the ai-worker (anchor landmark 1)", dropped[0])
 }
@@ -141,7 +156,7 @@ func TestResolve_UndefinedTemplateIsDroppedNotFatal(t *testing.T) {
 	l, regions := fixture()
 	g := testSpec(t)
 	g.Rules[0].Apply = append(g.Rules[0].Apply, profile.Application{Template: "gone", Intensity: 0.5})
-	res := guidance.Resolve(g, shape(classify.StatusSingle, "Oval", ""), l, regions)
+	res := guidance.Resolve(g, shape(classify.StatusSingle, "Oval", ""), l, regions, measureclient.RegionsCatalogueVersion)
 	_, dropped := templates(res)
 	assert.Contains(t, dropped, "a:gone: template is not defined")
 }
@@ -157,7 +172,7 @@ func TestPlace_RejectsMissingLandmark(t *testing.T) {
 
 func TestResolve_AnchorVisibilityUnknownOnFixture(t *testing.T) {
 	l, regions := fixture()
-	res := guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l, regions)
+	res := guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l, regions, measureclient.RegionsCatalogueVersion)
 	require.Len(t, res.Regions, 1)
 	r := res.Regions[0]
 	assert.Equal(t, "unknown", r.AnchorVisibility)
@@ -173,7 +188,7 @@ func TestResolve_AnchorVisibilityObserved(t *testing.T) {
 	for k := range regions {
 		regions[k] = "observed"
 	}
-	res := guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l, regions)
+	res := guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l, regions, measureclient.RegionsCatalogueVersion)
 	require.Len(t, res.Regions, 2)
 	for _, r := range res.Regions {
 		assert.Equal(t, "observed", r.AnchorVisibility)
@@ -209,7 +224,7 @@ func TestResolve_SecondLerpEndOccluded(t *testing.T) {
 	g.Templates["mix"] = profile.Template{Role: "contour", Points: []profile.Point{
 		{Lerp: &profile.Lerp{A: 1, B: 150, T: 0.5}}}}
 	g.Rules[0].Apply = []profile.Application{{Template: "mix", Intensity: 0.5}}
-	res := guidance.Resolve(g, shape(classify.StatusSingle, "Oval", ""), l, regions)
+	res := guidance.Resolve(g, shape(classify.StatusSingle, "Oval", ""), l, regions, measureclient.RegionsCatalogueVersion)
 	placed, dropped := templates(res)
 	assert.Empty(t, placed)
 	require.Len(t, dropped, 1)
@@ -218,11 +233,74 @@ func TestResolve_SecondLerpEndOccluded(t *testing.T) {
 
 func TestResolve_PlacedVerticesInsideImage(t *testing.T) {
 	l, regions := fixture()
-	res := guidance.Resolve(testSpec(t), shape(classify.StatusBlend, "Oval", "Round"), l, regions)
+	res := guidance.Resolve(testSpec(t), shape(classify.StatusBlend, "Oval", "Round"), l, regions, measureclient.RegionsCatalogueVersion)
 	require.NotEmpty(t, res.Regions)
 	for _, r := range res.Regions {
 		for _, v := range r.Polygon {
 			assert.True(t, v[0] >= 0 && v[0] <= 960 && v[1] >= 0 && v[1] <= 640, "%s vertex %v outside 960x640", r.Template, v)
 		}
 	}
+}
+
+// skinOnly is anchored only on skin regions (forehead), optionally with an
+// offset on one point. Test input, not a proposed template.
+func skinOnly(offset bool) *profile.Guidance {
+	a, b, c := 10, 338, 297
+	tpl := profile.Template{Role: "highlight", Points: []profile.Point{{Index: &a}, {Index: &b}, {Index: &c}}}
+	if offset {
+		off := profile.Offset{0, -0.1}
+		tpl.Points[1].OffsetIod = &off
+	}
+	return &profile.Guidance{
+		Templates: map[string]profile.Template{"t": tpl},
+		Rules: []profile.GuidanceRule{{ID: "a", When: map[string][]string{"faceShape": {"Oval"}},
+			Apply: []profile.Application{{Template: "t", Intensity: 0.5}}, TextKeys: []string{"k"}}},
+	}
+}
+
+// An offset is taken in the canonical frame, which is built from the eye
+// corners, so a template with any offset also depends on the eyes region.
+func TestResolve_OffsetDependsOnEyes(t *testing.T) {
+	l, regions := fixture()
+	for k := range regions {
+		regions[k] = "observed"
+	}
+	regions["eyes"] = "unknown"
+
+	res := guidance.Resolve(skinOnly(true), shape(classify.StatusSingle, "Oval", ""), l, regions, measureclient.RegionsCatalogueVersion)
+	require.Len(t, res.Regions, 1)
+	assert.Equal(t, "unknown", res.Regions[0].AnchorVisibility)
+	assert.Equal(t, []string{"eyes"}, res.Regions[0].UnverifiedRegions)
+
+	res = guidance.Resolve(skinOnly(false), shape(classify.StatusSingle, "Oval", ""), l, regions, measureclient.RegionsCatalogueVersion)
+	require.Len(t, res.Regions, 1)
+	assert.Equal(t, "observed", res.Regions[0].AnchorVisibility)
+	assert.Equal(t, []string{}, res.Regions[0].UnverifiedRegions)
+}
+
+// A finite but extreme offset overflows to infinity in pixels: the template
+// is dropped with a reason and the response still encodes as JSON.
+func TestResolve_ExtremeOffsetIsDroppedNotEncoded(t *testing.T) {
+	l, regions := fixture()
+	g := skinOnly(true)
+	off := profile.Offset{1e308, 0}
+	g.Templates["t"].Points[1].OffsetIod = &off
+	res := guidance.Resolve(g, shape(classify.StatusSingle, "Oval", ""), l, regions, measureclient.RegionsCatalogueVersion)
+	placed, dropped := templates(res)
+	assert.Empty(t, placed)
+	assert.Equal(t, []string{"a:t: point 1 is not finite in pixels"}, dropped)
+	_, err := json.Marshal(res)
+	assert.NoError(t, err)
+}
+
+// The region table is recorded for one catalogue version; a worker that
+// measured with another may define its regions differently, so nothing is
+// placed.
+func TestResolve_CatalogueMismatchDropsEverything(t *testing.T) {
+	l, regions := fixture()
+	res := guidance.Resolve(testSpec(t), shape(classify.StatusSingle, "Oval", ""), l, regions, "fa-measure/2")
+	placed, dropped := templates(res)
+	assert.Empty(t, placed)
+	want := "region table recorded for " + measureclient.RegionsCatalogueVersion + ", worker measured with fa-measure/2"
+	assert.Equal(t, []string{"a:tip: " + want, "a:jaw: " + want}, dropped)
 }
