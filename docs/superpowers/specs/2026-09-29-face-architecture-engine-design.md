@@ -159,12 +159,12 @@ because it already owns per-brand configuration in the database.
   image mode, one face, iris refinement, transformation matrix). Loaded once
   at profile startup; missing model means the endpoint answers 503. There is
   no synthetic fallback.
-- `vision/models/face_landmarker.manifest.json` shape (stored next to the
-  `.task` file, not in the repo's code): model name and version, file SHA-256,
-  licence, `landmarkErrorIod` (single-image range from the model card),
-  `maxRollDeg` (8, model card out-of-scope limit), source URL. These are
-  properties of the model version, so they travel with the model file rather
-  than living in brand config or code.
+- `vision/facegeom/manifests/*.json` — one manifest per supported model file,
+  matched by the file's SHA-256: name, variant, licence, source URL,
+  `landmarkErrorIod` (single-image range from the model card), `maxRollDeg`
+  (8, model card out-of-scope limit). These are properties of one exact model
+  file, so a model with no matching manifest is refused (503) rather than
+  measured with another model's error figures.
 - `vision/facegeom/` — pure numpy, no I/O:
   - `anchors.py` — the named mapping from mesh index to the point it stands
     in for (table below), one module, versioned, sources cited.
@@ -202,11 +202,18 @@ docstring. Defaults are flagged under Open literals.
    lengths in eye-centre-distance units (IOD). Nothing is reported in mm.
 4. **Region visibility.** Regions: `forehead`, `contour_left`, `contour_right`,
    `jaw`, `brows`, `eyes`, `nose`, `lips`. Each is `observed`, `occluded` or
-   `unknown`. v1 detector: compare the CIELAB colour statistics inside each
+   `unknown`. Colour consistency can only judge skin regions (`forehead`,
+   `contour_*`, `jaw`); feature regions (eyes, brows, nose, lips) are always
+   `unknown` in v1, their values computed and marked so. v1 detector: compare the CIELAB colour statistics inside each
    region's mesh polygon with a cheek reference patch; beyond
    `FACE_MEASURE_OCCLUSION_DELTA_E` the region is `occluded`. The detector sits
    behind an interface so the existing hijab detector can replace it if the
    licence audit clears it.
+   **Out of frame.** A region with any landmark outside the image is
+   `occluded` with reason `(out of frame)`, and the response carries
+   `face_partly_out_of_frame`. MediaPipe extrapolates points it cannot see
+   (the CC0 fixture photo's chin sits below the frame and still gets a
+   menton), so a cropped chin is treated like a covered one.
 5. **Measure.** Every catalogue entry declares the regions it needs. If any is
    `occluded`, the entry is returned with `visibility: "occluded"` and no
    value. `unknown` computes the value and marks it `unknown`.
@@ -226,7 +233,7 @@ what each point is a proxy for.
 | Anchor | Index | Proxy for |
 |---|---|---|
 | `mesh_top` | 10 | top of mesh (not trichion) |
-| `glabella` | 168 | glabella / upper nasal bridge |
+| `glabella` | midpoint of 9 and 8 | glabella (mid brow band; 168 sits at eye level, nearer nasion, on the fixture face) |
 | `nose_tip` | 1 | pronasale |
 | `subnasale` | 2 | subnasale |
 | `alar_r`, `alar_l` | 98, 327 | alare |
@@ -253,26 +260,35 @@ what each point is a proxy for.
 | | `upper_width_proxy` | forehead_r ↔ forehead_l | forehead, contour |
 | | `jaw_width_proxy` | jaw_r ↔ jaw_l | jaw |
 | | `width_length_ratio` | face_width_oval / face_length_mesh | forehead, contour |
-| | `upper_mid_jaw_ratio` | upper_width_proxy : face_width_oval : jaw_width_proxy | forehead, contour, jaw |
+| | `upper_to_mid_width_ratio`, `jaw_to_mid_width_ratio` | upper_width_proxy / face_width_oval, jaw_width_proxy / face_width_oval | forehead, contour / jaw, contour |
 | | `jaw_contour_angles[]` | angle from vertical of menton → each lower face_oval point (Tio 2019) | jaw |
 | | `chin_taper`, `oval_fit_residual` | ellipse fits to outline, chin and cheek points (Zafar & Popa 2016) | contour, jaw |
 | Proportions | `thirds_upper_proxy` | mesh_top → glabella, always `proxy: true` | forehead |
 | | `thirds_mid`, `thirds_lower` | glabella → subnasale → menton | — |
 | | `lower_face_split` | subnasale → stomion vs stomion → menton | lips |
 | | `fifths[5]` | oval_r → exo_r → endo_r → endo_l → exo_l → oval_l | contour, eyes |
-| Eyes | `eye_width` | exo → endo, per side | eyes |
+| Eyes | `eye_width` | exo → endo, mean of both sides (side differences go to symmetry) | eyes |
 | | `eye_aperture_ratio` | lid distance / eye width, per side | eyes |
 | | `canthal_tilt_deg` | endo → exo angle vs the eye line, per side | eyes |
 | | `intercanthal_ratio` | endo_r ↔ endo_l / mean eye width | eyes |
 | Brows | `brow_length`, `brow_arch_ratio`, `brow_peak_position`, `brow_tail_tilt_deg`, `interbrow_ratio` | from brow contours | brows |
 | | `brow_band_height` | mean upper-lower contour gap; a shape proxy, not density | brows |
 | Nose | `alar_width_ratio` | alar width / intercanthal width, and / mouth width | nose (and lips) |
-| | `nose_length_ratio` | glabella → subnasale / face_length_mesh | nose, forehead |
+| | `nose_length_ratio` | glabella → subnasale / glabella → menton (avoids the forehead so it survives a hijab) | nose, brows, jaw |
 | Lips | `mouth_width` | cheilion_r ↔ cheilion_l | lips |
 | | `upper_lower_lip_ratio`, `lip_fullness_ratio`, `cupid_bow_depth`, `mouth_corner_tilt_deg` | from lip contours | lips |
 | Cheeks | `cheek_widest_height` | vertical position of the widest outline point, relative to eye line and subnasale | contour |
 | Symmetry | `asymmetry_total`, `asymmetry_by_region{}` | mirrored Procrustes residual in IOD (Ekrami 2018) | per region |
 | Not supported | `eyelid_type`, `brow_density`, `cheekbone_prominence` | always `visibility: "not_supported"` with a reason | — |
+
+Also in `fa-measure/1` (added while writing the plan, each a plain derived
+scalar so profiles need no list handling): `jaw_taper_angle_deg`,
+`thirds_lower_to_mid_ratio`, `eye_to_face_width_ratio`,
+`brow_length_to_eye_ratio`, `brow_eye_gap`, and per-region symmetry as
+separate keys `asymmetry_eyes|brows|nose|lips|contour|jaw`. The nose ratio
+is split into `alar_width_to_intercanthal_ratio` and
+`alar_width_to_mouth_ratio`. The plan's `measures.py` is the authoritative
+list.
 
 Brand configuration decides which measurements are shown and how they are
 banded. It never changes a definition. A definition change bumps
