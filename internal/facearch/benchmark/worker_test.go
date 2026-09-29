@@ -99,3 +99,37 @@ func TestHTTPWorkerErrorsCarryNoURLSecrets(t *testing.T) {
 		assert.Contains(t, err.Error(), strings.TrimPrefix(srv.URL, "http://"), "the host is still named")
 	}
 }
+
+// An apostrophe is legal in userinfo and in a query, and net/http keeps it
+// in the URL it quotes; the secret after it must not survive.
+func TestHTTPWorkerErrorsCarryNoSecretsAfterAnApostrophe(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		conn, _, err := w.(http.Hijacker).Hijack()
+		if err == nil {
+			_ = conn.Close()
+		}
+	}))
+	defer srv.Close()
+	raw := strings.Replace(srv.URL, "http://", "http://o'brien:hun'ter2@", 1) + "?token=ab'cdsecret"
+	w := benchmark.NewHTTPWorker(raw, 5*time.Second)
+
+	_, _, err := w.Measure(context.Background(), []byte("x"), "image.jpg")
+	require.Error(t, err)
+	for _, leak := range []string{"brien", "ter2", "token", "cdsecret"} {
+		assert.NotContains(t, err.Error(), leak)
+	}
+}
+
+// A worker URL without scheme://host is refused before anything is sent:
+// Go would read "user" as the scheme, the password would never be seen as
+// userinfo, and every error would print it.
+func TestCheckWorkerURL(t *testing.T) {
+	for _, bad := range []string{"", "not a url", "user:hunter2@ai-worker.test:8088", "ai-worker.test:8088", "ftp://ai-worker.test"} {
+		err := benchmark.CheckWorkerURL(bad)
+		require.Error(t, err, bad)
+		assert.NotContains(t, err.Error(), "hunter2", "the refusal does not echo the URL")
+	}
+	for _, good := range []string{"http://ai-worker.test:8088", "https://someuser:pw@ai-worker.test/base"} {
+		assert.NoError(t, benchmark.CheckWorkerURL(good), good)
+	}
+}

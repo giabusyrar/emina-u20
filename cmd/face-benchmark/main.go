@@ -419,6 +419,9 @@ func liveDeps() deps {
 			if workerURL == "" {
 				workerURL = config.DefaultVisionAIWorkerURL
 			}
+			if err := benchmark.CheckWorkerURL(workerURL); err != nil {
+				return nil, "", fmt.Errorf("VISION_AI_WORKER_URL: %w", err)
+			}
 			timeout, err := goplatform.Duration("FACE_MEASURE_TIMEOUT", config.DefaultFaceMeasureTimeout)
 			if err != nil {
 				return nil, "", err

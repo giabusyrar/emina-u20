@@ -23,8 +23,22 @@ func SafeURL(raw string) string {
 }
 
 // urlInText matches an absolute URL inside an error message, up to the
-// next space or quote (net/http quotes the URL in a *url.Error).
-var urlInText = regexp.MustCompile(`[A-Za-z][A-Za-z0-9+.\-]*://[^\s"']+`)
+// next space or double quote (net/http quotes the URL in a *url.Error with
+// %q). An apostrophe does not end it: it is legal in userinfo and in a
+// query, so stopping there would print whatever follows it.
+var urlInText = regexp.MustCompile(`[A-Za-z][A-Za-z0-9+.\-]*://[^\s"]+`)
+
+// CheckWorkerURL refuses a worker URL that is not http(s)://host. Without a
+// scheme, Go reads "user:pass@host" as scheme "user", the password is never
+// seen as userinfo, and every error would print it; the refusal therefore
+// never echoes the URL.
+func CheckWorkerURL(raw string) error {
+	u, err := url.Parse(raw)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return errors.New("the ai-worker URL must be an absolute http:// or https:// URL with a host")
+	}
+	return nil
+}
 
 // safeError is err with every URL in its message passed through SafeURL.
 // It unwraps to the sentinels callers test for and to a copy of any
