@@ -59,7 +59,7 @@ func runCLI(d deps, args ...string) (int, string, string) {
 func TestValidate(t *testing.T) {
 	code, out, errOut := runCLI(testDeps(nil), "validate", writeDoc(t, cliDoc))
 	require.Equal(t, 0, code, errOut)
-	assert.Contains(t, out, "valid against fa-measure/1 (1 classifiers, 0 traits, calibration uncalibrated)")
+	assert.Contains(t, out, "valid against fa-measure/1 (1 classifiers, 0 traits, 0 guidance templates, 0 guidance rules, calibration uncalibrated)")
 }
 
 func TestValidateRejectsBadDocument(t *testing.T) {
