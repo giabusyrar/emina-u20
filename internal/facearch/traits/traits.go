@@ -48,6 +48,10 @@ func Unavailable(reason string) Result {
 // error), so boundaryUncertain is expected often. A measurement without a
 // band (null: bands disabled or too few finite samples) carries no
 // uncertainty information, so its conditions never straddle.
+//
+// Conditions are flipped one at a time; a label that would change only if
+// two conditions of one rule flipped together is not detected, so
+// boundaryUncertain: false does not guarantee the label is robust.
 func Evaluate(spec profile.TraitSpec, obs measureclient.Index) Result {
 	keys := spec.Keys()
 	values := make(map[string]measureclient.Observation, len(keys))

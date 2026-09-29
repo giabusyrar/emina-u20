@@ -102,7 +102,7 @@ func TestSeedOnFixtureFace(t *testing.T) {
 	assert.Equal(t, []string{"width_length_ratio", "jaw_to_mid_width_ratio", "thirds_lower", "nose_length_ratio", "asymmetry_total"}, withheld)
 }
 
-// A synthetic in-frame face: the fixture's face with the four jaw-dependent
+// A synthetic in-frame face: the fixture's face with the three jaw-dependent
 // measurements set to the values the landmarker extrapolated for the
 // cropped chin. Synthetic input, not a measurement of anyone.
 func TestSeedClassifiesAnInFrameFace(t *testing.T) {

@@ -28,7 +28,8 @@ const (
 )
 
 // Result is one classifier's answer. Scores always holds every assessable
-// class's normalised score (they sum to 1), whatever the status.
+// class's normalised score (they sum to 1), whatever the status (empty when
+// scores are not finite).
 type Result struct {
 	Status              string             `json:"status"`
 	Primary             string             `json:"primary,omitempty"`
