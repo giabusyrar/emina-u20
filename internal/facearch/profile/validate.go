@@ -78,10 +78,11 @@ func finite(x float64) bool { return !math.IsNaN(x) && !math.IsInf(x, 0) }
 //
 // Rules (spec "Validation"): keys exist and are supported; prototype and
 // rule keys are scalar; spreads and weights are positive; blendMargin is in
-// (0.5, 1]; minObservedWeight is in [0, 1]. An uncalibrated document must
-// cite a source for each classifier's blendMargin, minObservedWeight and
-// every class, and for every trait: a source covers path P when its "for"
-// is P or a path under P.
+// (0.5, 1]; minObservedWeight is in [0, 1]; guidance as in
+// (*checker).guidance. An uncalibrated document must cite a source for each
+// classifier's blendMargin, minObservedWeight and every class, for every
+// trait, and for every guidance template and rule: a source covers path P
+// when its "for" is P or a path under P.
 func Validate(d *Document, cat *measureclient.Catalogue) error {
 	c := &checker{cat: cat}
 	if d.SchemaVersion != SchemaVersion {
@@ -112,6 +113,9 @@ func Validate(d *Document, cat *measureclient.Catalogue) error {
 	keys = map[string]bool{}
 	for i, t := range d.Traits {
 		c.trait(fmt.Sprintf("traits[%d]", i), t, keys)
+	}
+	if d.Guidance != nil {
+		c.guidance(d)
 	}
 
 	if d.Calibration.Status == CalibrationUncalibrated {
@@ -248,6 +252,9 @@ func (c *checker) coverage(d *Document) {
 	}
 	for _, t := range d.Traits {
 		required = append(required, "traits."+t.Key)
+	}
+	if d.Guidance != nil {
+		required = append(required, guidanceCoverage(d.Guidance)...)
 	}
 	for _, p := range required {
 		if !covered(d.Calibration.Sources, p) {
