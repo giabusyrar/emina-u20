@@ -82,7 +82,7 @@ func TestDHashFileIgnoresResizeAndRecompressionButNotContent(t *testing.T) {
 	require.NoError(t, f.Close())
 
 	hash := func(p string) uint64 {
-		h, err := benchmark.DHashFile(p)
+		h, err := benchmark.DHashFile(p, "img-"+filepath.Base(p))
 		require.NoError(t, err)
 		return h
 	}
@@ -90,8 +90,28 @@ func TestDHashFileIgnoresResizeAndRecompressionButNotContent(t *testing.T) {
 	assert.LessOrEqual(t, benchmark.Hamming(hash(orig), hash(jpegPath)), 2, "JPEG re-encode")
 	assert.Equal(t, 32, benchmark.Hamming(hash(orig), hash(other)))
 
-	_, err = benchmark.DHashFile(writeFile(t, dir, "not-an-image.jpg", "text"))
-	assert.ErrorContains(t, err, "JPEG and PNG are supported")
+	_, err = benchmark.DHashFile(writeFile(t, dir, "not-an-image.jpg", "text"), "img-7")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "image img-7: ")
+	assert.Contains(t, err.Error(), "JPEG and PNG are supported")
+	assert.NotContains(t, err.Error(), dir)
+	assert.NotContains(t, err.Error(), "not-an-image")
+}
+
+func TestDHashFileErrorsNameTheIDNotThePath(t *testing.T) {
+	dir := t.TempDir()
+	_, err := benchmark.DHashFile(filepath.Join(dir, "secret-subject-name.jpg"), "img-9")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "image img-9: ")
+	assert.NotContains(t, err.Error(), dir)
+	assert.NotContains(t, err.Error(), "secret-subject-name")
+
+	small := writePNG(t, dir, "tiny-secret.png", gradient(4, 4, false, 0, 255))
+	_, err = benchmark.DHashFile(small, "img-10")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "image img-10: ")
+	assert.Contains(t, err.Error(), "dHash needs at least 9x8")
+	assert.NotContains(t, err.Error(), "tiny-secret")
 }
 
 func TestDedupKeepsTheFirstOfEachNearDuplicateGroup(t *testing.T) {
@@ -106,4 +126,22 @@ func TestDedupKeepsTheFirstOfEachNearDuplicateGroup(t *testing.T) {
 		{ImageID: "b", KeptID: "a", Distance: 3},
 		{ImageID: "d", KeptID: "c", Distance: 2, CrossSubject: true},
 	}, res.Removed)
+}
+
+func TestDedupIsGreedyAndNotTransitive(t *testing.T) {
+	// a~b (3 bits), b~c (3 bits), a!~c (6 bits): c is compared only with
+	// kept images, so it survives even though it neighbours the removed b.
+	res := benchmark.Dedup([]benchmark.HashedImage{
+		{ImageID: "a", SubjectID: "s", Hash: 0},
+		{ImageID: "b", SubjectID: "s", Hash: 0b111},
+		{ImageID: "c", SubjectID: "s", Hash: 0b111111},
+	}, 3)
+	assert.Equal(t, []string{"a", "c"}, res.Kept)
+	assert.Equal(t, []benchmark.Duplicate{{ImageID: "b", KeptID: "a", Distance: 3}}, res.Removed)
+}
+
+func TestDedupEmptyInput(t *testing.T) {
+	res := benchmark.Dedup(nil, 3)
+	assert.Empty(t, res.Kept)
+	assert.Empty(t, res.Removed)
 }

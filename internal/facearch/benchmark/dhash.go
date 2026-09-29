@@ -1,10 +1,12 @@
 package benchmark
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	_ "image/jpeg" // register JPEG decoding (standard library)
 	_ "image/png"  // register PNG decoding (standard library)
+	"io/fs"
 	"math/bits"
 	"os"
 )
@@ -63,21 +65,35 @@ func DHash(img image.Image) (uint64, error) {
 }
 
 // DHashFile decodes an image file (JPEG or PNG: standard-library decoders
-// only) and returns its dHash. EXIF orientation is not applied, so the
-// same photo stored rotated hashes differently.
-func DHashFile(path string) (uint64, error) {
+// only) and returns its dHash.
+//
+// EXIF orientation is NOT applied: a rotated copy of the same photo (pixels
+// stored rotated, or the same pixels with a different orientation tag) hashes
+// differently and may NOT be caught by Dedup.
+//
+// Every error is reported as "image <imageID>: <reason>" and never carries the
+// file path (os.PathError is unwrapped to its inner error), so a log or report
+// names the image id, not where the file lives.
+func DHashFile(path, imageID string) (uint64, error) {
+	fail := func(err error) (uint64, error) {
+		var pe *fs.PathError
+		if errors.As(err, &pe) {
+			err = pe.Err
+		}
+		return 0, fmt.Errorf("image %s: %w", imageID, err)
+	}
 	f, err := os.Open(path)
 	if err != nil {
-		return 0, err
+		return fail(err)
 	}
 	defer f.Close()
-	img, format, err := image.Decode(f)
+	img, _, err := image.Decode(f)
 	if err != nil {
-		return 0, fmt.Errorf("decode (JPEG and PNG are supported): %w", err)
+		return fail(fmt.Errorf("decode (JPEG and PNG are supported): %w", err))
 	}
 	h, err := DHash(img)
 	if err != nil {
-		return 0, fmt.Errorf("%s image: %w", format, err)
+		return fail(err)
 	}
 	return h, nil
 }
