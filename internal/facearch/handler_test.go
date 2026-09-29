@@ -139,6 +139,8 @@ func TestAnalyze_ProfileFailures(t *testing.T) {
 	rec = serve(t, facearch.NewHandler(m, s), true)
 	assert.Equal(t, http.StatusInternalServerError, rec.Code)
 	assert.Equal(t, facearch.CodeProfileDocumentInvalid, code(t, rec))
+	assert.Contains(t, rec.Body.String(), "stored profile document failed validation")
+	assert.NotContains(t, rec.Body.String(), "schemaVersion", "the raw load error is logged, not returned")
 	assert.Zero(t, m.calls)
 }
 
@@ -156,6 +158,9 @@ func TestAnalyze_NonDetailWorkerBodiesBecomeUnreachable(t *testing.T) {
 		"empty":         "",
 		"array":         `[1]`,
 		"no detail key": `{"error":"x"}`,
+		"null detail":   `{"detail":null}`,
+		"string detail": `{"detail":"x"}`,
+		"number detail": `{"detail":7}`,
 	} {
 		m := &fakeMeasurer{err: &measureclient.UpstreamError{Status: http.StatusServiceUnavailable, Body: []byte(body)}}
 		rec := serve(t, facearch.NewHandler(m, storeWithTestDoc(t)), true)
@@ -190,5 +195,5 @@ func TestAnalyze_NilProfileIs500(t *testing.T) {
 func TestAnalyze_NilMeasurementIs500(t *testing.T) {
 	rec := serve(t, facearch.NewHandler(&fakeMeasurer{}, storeWithTestDoc(t)), true)
 	assert.Equal(t, http.StatusInternalServerError, rec.Code)
-	assert.Equal(t, facearch.CodeFaceMeasureUnreachable, code(t, rec))
+	assert.Equal(t, facearch.CodeFaceMeasureInvalidResponse, code(t, rec))
 }

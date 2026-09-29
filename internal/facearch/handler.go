@@ -1,6 +1,7 @@
 package facearch
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -28,11 +29,18 @@ type ProfileFinder interface {
 // {"detail": {"code": ..., ...}}, the same shape as the ai-worker errors
 // passed through unchanged, so a client reads detail.code for all of them.
 const (
-	CodeMissingImage           = "missing_image"
-	CodeNoActiveProfile        = "no_active_face_architecture_profile"
-	CodeProfileLookupFailed    = "profile_lookup_failed"
-	CodeProfileDocumentInvalid = "profile_document_invalid"
-	CodeFaceMeasureUnreachable = "face_measure_unreachable"
+	CodeMissingImage               = "missing_image"
+	CodeNoActiveProfile            = "no_active_face_architecture_profile"
+	CodeProfileLookupFailed        = "profile_lookup_failed"
+	CodeProfileDocumentInvalid     = "profile_document_invalid"
+	CodeFaceMeasureUnreachable     = "face_measure_unreachable"
+	CodeFaceMeasureInvalidResponse = "face_measure_invalid_response"
+)
+
+// Fixed reasons: the underlying error text is logged, never returned.
+const (
+	reasonImageUnreadable = "could not read uploaded image"
+	reasonProfileInvalid  = "stored profile document failed validation"
 )
 
 // Handler serves POST /api/v1/vision/face-architecture/:brandId/:applicationId.
@@ -62,7 +70,8 @@ func detail(code string, extra map[string]any) map[string]any {
 //	409 no active profile for brand+app, brand+*, or *+*
 //	422 the ai-worker's body (face count or quality gates), unchanged
 //	503 the ai-worker's body (model unavailable), or face_measure_unreachable
-//	500 profile lookup failed or the stored document no longer loads
+//	500 profile lookup failed, the stored document no longer loads, or the
+//	    measure client returned neither a measurement nor an error
 func (h *Handler) Analyze(c echo.Context) error {
 	brandID, appID := c.Param("brandId"), c.Param("applicationId")
 
@@ -70,17 +79,19 @@ func (h *Handler) Analyze(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, detail(CodeMissingImage, map[string]any{"reason": "multipart field \"image\" is required"}))
 	}
+	ctx := c.Request().Context()
 	src, err := fh.Open()
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, detail(CodeMissingImage, map[string]any{"reason": err.Error()}))
+		slog.ErrorContext(ctx, "face-architecture uploaded image could not be opened", "err", err)
+		return c.JSON(http.StatusBadRequest, detail(CodeMissingImage, map[string]any{"reason": reasonImageUnreadable}))
 	}
 	data, err := io.ReadAll(src)
 	_ = src.Close()
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, detail(CodeMissingImage, map[string]any{"reason": err.Error()}))
+		slog.ErrorContext(ctx, "face-architecture uploaded image could not be read", "err", err)
+		return c.JSON(http.StatusBadRequest, detail(CodeMissingImage, map[string]any{"reason": reasonImageUnreadable}))
 	}
 
-	ctx := c.Request().Context()
 	p, err := h.profiles.Active(ctx, brandID, appID)
 	if errors.Is(err, profile.ErrNoActiveProfile) {
 		return c.JSON(http.StatusConflict, detail(CodeNoActiveProfile, map[string]any{"brandId": brandID, "applicationId": appID}))
@@ -95,7 +106,7 @@ func (h *Handler) Analyze(c echo.Context) error {
 	doc, err := profile.Load(p)
 	if err != nil {
 		slog.ErrorContext(ctx, "face-architecture profile does not load", "profileId", p.ID, "err", err)
-		return c.JSON(http.StatusInternalServerError, detail(CodeProfileDocumentInvalid, map[string]any{"profileId": p.ID, "reason": err.Error()}))
+		return c.JSON(http.StatusInternalServerError, detail(CodeProfileDocumentInvalid, map[string]any{"profileId": p.ID, "reason": reasonProfileInvalid}))
 	}
 
 	m, err := h.measurer.Measure(ctx, data, fh.Filename)
@@ -112,19 +123,24 @@ func (h *Handler) Analyze(c echo.Context) error {
 		return c.JSON(http.StatusServiceUnavailable, detail(CodeFaceMeasureUnreachable, nil))
 	case m == nil:
 		slog.ErrorContext(ctx, "face-measure returned no measurement and no error")
-		return c.JSON(http.StatusInternalServerError, detail(CodeFaceMeasureUnreachable, nil))
+		return c.JSON(http.StatusInternalServerError, detail(CodeFaceMeasureInvalidResponse, nil))
 	}
 	return c.JSON(http.StatusOK, Interpret(p, doc, m))
 }
 
-// hasDetail reports whether body is a JSON object with a "detail" key (an
-// object, or a list as FastAPI's validation errors are). Anything else (an
-// HTML gateway page, an empty body) is not an ai-worker error to pass on.
+// hasDetail reports whether body is a JSON object whose "detail" key is an
+// object, or a list as FastAPI's validation errors are. Anything else (an
+// HTML gateway page, an empty body, a null, string or number detail) is not
+// an ai-worker error to pass on.
 func hasDetail(body []byte) bool {
 	var top map[string]json.RawMessage
 	if json.Unmarshal(body, &top) != nil {
 		return false
 	}
-	_, ok := top["detail"]
-	return ok
+	d, ok := top["detail"]
+	if !ok {
+		return false
+	}
+	d = bytes.TrimSpace(d)
+	return len(d) > 0 && (d[0] == '{' || d[0] == '[')
 }
