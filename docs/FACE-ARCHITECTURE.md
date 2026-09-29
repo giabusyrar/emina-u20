@@ -92,11 +92,15 @@ Each entry has a `status` of `assessed`, `not_assessable` or `unavailable`.
 
 ### Noise bands and `boundaryUncertain`
 
-Each worker measurement may carry a noise band. core-engine re-centres it on the
-value (`value + P5 - P50`, `value + P95 - P50`), so it always contains the value.
+Each worker measurement may carry a noise band. The ai-worker centres each band on
+the measured value (`value + P5 − P50`, `value + P95 − P50`), so a band always
+contains its value; core-engine uses the band as sent.
 A condition whose threshold lies inside that band could have gone the other way.
 Conditions are tried in rule order; the first whose flip would change the winning
 label sets `boundaryUncertain: true` and `alternative` to that label.
+Conditions are flipped one at a time; a label that would change only if two
+conditions of one rule flipped together is not detected, so
+`boundaryUncertain: false` does not guarantee the label is robust.
 
 The bands are **conservative** by construction (independent noise at the model
 card's worst regional error), so **`boundaryUncertain` is common**. A `null` band
@@ -112,7 +116,7 @@ when:
   are occluded the worker withholds every measurement, reason
   `canonical frame requires region eyes`);
 - `visibility` is `not_supported`;
-- the value is `null` while visible (reason `degenerate geometry`);
+- the value is `null` with visibility `unknown` (reason `degenerate geometry`);
 - the key is missing from the response, or the value is a list (catalogue drift).
 
 Visibility `unknown` is usable (the value is computed; only its region could not be
@@ -132,17 +136,18 @@ shape as the ai-worker's errors, so clients read `detail.code` for both.
 
 | Status | Body | When |
 |---|---|---|
-| 400 | `missing_image` (with `reason`) | No multipart field `image`, or it cannot be read. |
+| 400 | `missing_image` (with a fixed `reason`) | No multipart field `image`, or the upload cannot be opened or read (the cause is logged, not returned). |
 | 400 | the worker's body, unchanged | The worker could not read the image. |
 | 409 | `no_active_face_architecture_profile` (`brandId`, `applicationId`) | No active profile for brand+app, brand+`*`, or `*`+`*`. There are no built-in defaults. |
 | 422 | the worker's body, unchanged | Face-count or quality gates failed. |
 | 503 | the worker's body, unchanged | Model unavailable on the worker. |
 | 503 | `face_measure_unreachable` | The worker was unreachable, timed out, returned an unexpected status or an undecodable body, or returned a 400/422/503 that is **not** a JSON object with a `detail` key (for example an HTML gateway page). |
 | 500 | `profile_lookup_failed` | The database lookup failed. |
-| 500 | `profile_document_invalid` (`profileId`, `reason`) | The stored document no longer parses or validates. |
+| 500 | `profile_document_invalid` (`profileId`, fixed `reason`) | The stored document no longer parses or validates (the cause is logged, not returned). |
+| 500 | `face_measure_invalid_response` | The measure client returned neither a measurement nor an error (an internal fault, not unreachability). |
 
 Worker 400 / 422 / 503 responses are passed through **only** when the body is JSON
-with a `detail` key; otherwise the answer is `503 face_measure_unreachable`.
+with a `detail` key whose value is an object or a list (not null, a string or a number); otherwise the answer is `503 face_measure_unreachable`.
 `face_measure_unreachable` carries **no internal detail** (no URL, no upstream
 text); the cause is in the server log.
 
@@ -181,6 +186,9 @@ Both fetch the ai-worker catalogue and validate the document against it.
 `validate` never touches the database and prints
 `<file>: valid against <catalogue> (N classifiers, N traits, calibration <status>)`.
 `upsert` then stores it, migrating only `face_architecture_profiles`.
+
+Exit codes: `0` success; `1` read, parse, validation, catalogue, database or upsert
+failure; `2` usage error.
 
 | Env | Meaning |
 |---|---|
