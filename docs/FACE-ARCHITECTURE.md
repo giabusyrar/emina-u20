@@ -41,7 +41,8 @@ Content-Type: multipart/form-data
 
 Also mounted under `/core/vision-engine/` and `/api/vision/`. The profile is
 looked up **before** the ai-worker is called, so a scope with no profile costs
-no inference. core-engine always asks the worker for landmarks; it uses them to place guidance polygons and does not return them.
+no inference. core-engine always asks the worker for landmarks; it uses them to place
+guidance polygons and returns them as `landmarks` for drawing.
 
 ## Response (200)
 
@@ -54,6 +55,7 @@ no inference. core-engine always asks the worker for landmarks; it uses them to 
 | `classifications` | One entry per profile classifier (see below). |
 | `traits` | One entry per profile trait (see below). |
 | `guidance` | `null` when the profile has no `guidance` section; otherwise `regions` and `droppedTemplates` (see Guidance). |
+| `landmarks` | The worker's 478 landmarks as `[x, y]` in **image pixels**, the same space as `guidance.regions[].polygon`, at the worker's landmark index (MediaPipe 0-477; `measurements[].landmarks` index into it). Passed through unchanged: no resampling, rounding or reordering; a component beyond `x, y` (a `z`) would be dropped. `null` unless the worker returned all 478, each with finite `x` and `y`: never an empty or partial array. **For display only**: measurements are computed in the canonical IOD frame, not from these pixels. |
 | `provenance` | `model`, `catalogueVersion` (the worker's), `profile` (`id`, `code`, `version`, and the `catalogueVersion` the profile targets), `calibration` (`status`, and `benchmarkRunId` / `target` when set). |
 
 ### Classifications
@@ -69,7 +71,14 @@ Each entry has a `status`:
 
 Other fields: `scores` (class to normalised score, summing to 1 over the
 **assessable** classes), `notAssessable` (classes that could not be scored),
-`missingMeasurements`, `observedWeightShare`.
+`measurements`, `missingMeasurements`, `observedWeightShare`.
+
+`measurements` (on classifications and traits alike) lists, sorted, every
+measurement key the entry's spec in the active profile reads (a classifier's
+`requires` and prototype keys; a trait's condition keys), observed or not.
+`missingMeasurements` is the subset that was not usable. It is read from the
+profile document the result was computed from, so it is listed even for
+`unavailable`; an entry with no spec behind it answers `[]`.
 
 Scoring is a distance to each class's prototype:
 `score_c = exp(-1/2 * sum_m w_m * ((x_m - centre_m) / spread_m)^2)` over that class's
@@ -90,7 +99,8 @@ confidence, it is the absence of competitors. Read `status` and `reason` first.
 
 ### Traits
 
-Each entry has a `status` of `assessed`, `not_assessable` or `unavailable`.
+Each entry has a `status` of `assessed`, `not_assessable` or `unavailable`, and
+`measurements` (see Classifications).
 
 - Rules are ordered; the first whose conditions all hold wins, otherwise the trait's
   `default`.

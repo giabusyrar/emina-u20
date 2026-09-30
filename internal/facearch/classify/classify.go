@@ -31,14 +31,18 @@ const (
 // class's normalised score (they sum to 1), whatever the status (empty when
 // scores are not finite).
 type Result struct {
-	Status              string             `json:"status"`
-	Primary             string             `json:"primary,omitempty"`
-	Secondary           string             `json:"secondary,omitempty"`
-	Scores              map[string]float64 `json:"scores"`
-	NotAssessable       []string           `json:"notAssessable"`
-	MissingMeasurements []string           `json:"missingMeasurements,omitempty"`
-	ObservedWeightShare *float64           `json:"observedWeightShare,omitempty"`
-	Reason              string             `json:"reason,omitempty"`
+	Status        string             `json:"status"`
+	Primary       string             `json:"primary,omitempty"`
+	Secondary     string             `json:"secondary,omitempty"`
+	Scores        map[string]float64 `json:"scores"`
+	NotAssessable []string           `json:"notAssessable"`
+	// Measurements lists every measurement key the classifier's spec reads
+	// (profile.ClassifierSpec.Keys), observed or not; MissingMeasurements is
+	// the subset that was missing. Set by the caller that holds the spec.
+	Measurements        []string `json:"measurements"`
+	MissingMeasurements []string `json:"missingMeasurements,omitempty"`
+	ObservedWeightShare *float64 `json:"observedWeightShare,omitempty"`
+	Reason              string   `json:"reason,omitempty"`
 }
 
 // Classifier scores one face. PrototypeClassifier is the v1 implementation;
@@ -49,7 +53,7 @@ type Classifier interface {
 
 // Unavailable is the result for a classifier the caller cannot run.
 func Unavailable(reason string) Result {
-	return Result{Status: StatusUnavailable, Scores: map[string]float64{}, NotAssessable: []string{}, Reason: reason}
+	return Result{Status: StatusUnavailable, Scores: map[string]float64{}, NotAssessable: []string{}, Measurements: []string{}, Reason: reason}
 }
 
 // PrototypeClassifier scores each class by distance to its prototype:
