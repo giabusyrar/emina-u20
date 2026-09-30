@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	neturl "net/url"
 	"testing"
 	"time"
 
@@ -55,6 +56,10 @@ func TestMeasureRaw_TransportFailureIsUnavailable(t *testing.T) {
 	srv.Close()
 	_, _, err := mc.New(url, time.Second).MeasureRaw(context.Background(), []byte("x"), "f.jpg")
 	assert.True(t, errors.Is(err, mc.ErrUnavailable))
+	// The transport error stays reachable, so a caller can sanitise its
+	// URL as a *url.Error instead of rewriting the message text.
+	var ue *neturl.Error
+	assert.True(t, errors.As(err, &ue), "the *url.Error is wrapped, not flattened")
 }
 
 func TestCatalogueRaw(t *testing.T) {

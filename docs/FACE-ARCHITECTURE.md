@@ -277,7 +277,7 @@ shape as the ai-worker's errors, so clients read `detail.code` for both.
 | 409 | `no_active_face_architecture_profile` (`brandId`, `applicationId`) | No active profile for brand+app, brand+`*`, or `*`+`*`. There are no built-in defaults. |
 | 422 | the worker's body, unchanged | Face-count or quality gates failed. |
 | 503 | the worker's body, unchanged | Model unavailable on the worker. |
-| 503 | `face_measure_unreachable` | The worker was unreachable, timed out, returned an unexpected status or an undecodable body, or returned a 400/422/503 that is **not** a JSON object with a `detail` key (for example an HTML gateway page). |
+| 503 | `face_measure_unreachable` | The worker was unreachable, timed out, answered with a redirect (redirects are never followed, so the image is sent to the configured worker only), returned an unexpected status or an undecodable body, or returned a 400/422/503 that is **not** a JSON object with a `detail` key (for example an HTML gateway page). |
 | 500 | `profile_lookup_failed` | The database lookup failed. |
 | 500 | `profile_document_invalid` (`profileId`, fixed `reason`) | The stored document no longer parses or validates (the cause is logged, not returned). |
 | 500 | `face_measure_invalid_response` | The measure client returned neither a measurement nor an error (an internal fault, not unreachability). |

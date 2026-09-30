@@ -55,9 +55,9 @@ func (e *safeError) Unwrap() []error { return e.wrap }
 // sanitizeError rewrites err so neither its message nor anything it
 // unwraps to carries a URL's userinfo, query or fragment. A *url.Error
 // found with errors.As is copied with its URL through SafeURL. The message
-// is rewritten as text as well, because a wrapper (measureclient formats
-// the transport error with %v) has already rendered the URL into its own
-// message, where rewriting the *url.Error cannot reach it.
+// is rewritten as text as well, because every wrapper above the *url.Error
+// (measureclient's "face-measure unavailable: …") has already rendered the
+// URL into its own message, where rewriting the *url.Error cannot reach it.
 func sanitizeError(err error, sentinels ...error) error {
 	if err == nil {
 		return nil

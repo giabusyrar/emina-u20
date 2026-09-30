@@ -142,7 +142,9 @@ func (c *Client) CatalogueRaw(ctx context.Context) ([]byte, error) {
 func (c *Client) doRaw(req *http.Request) (int, []byte, error) {
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return 0, nil, fmt.Errorf("%w: %v", ErrUnavailable, err)
+		// %w for both: the message is unchanged, and the *url.Error stays
+		// reachable for a caller that must sanitise the URL it carries.
+		return 0, nil, fmt.Errorf("%w: %w", ErrUnavailable, err)
 	}
 	defer resp.Body.Close()
 	raw, err := io.ReadAll(resp.Body)
