@@ -3,6 +3,7 @@ package config_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,7 +17,7 @@ var tunables = []string{"FORM_CACHE_TTL", "SCORE_CACHE_TTL", "MATCH_CACHE_TTL", 
 	"REDIS_URL", "LOG_LEVEL", "CORS_ALLOW_ORIGINS", "SHUTDOWN_TIMEOUT",
 	"DB_SLOW_QUERY_THRESHOLD", "DEPENDENCY_PING_TIMEOUT",
 	// core-engine's own port and downstream service URLs.
-	"CORE_ENGINE_PORT", "PORT", "REFERENCE_SERVICE_URL", "VISION_AI_WORKER_URL",
+	"CORE_ENGINE_PORT", "PORT", "REFERENCE_SERVICE_URL", "VISION_AI_WORKER_URL", "SKIN_WORKER_URL", "FACE_WORKER_URL",
 	"PARADEV_GATEWAY_URL", "PARADEV_GATEWAY_API_KEY",
 	// Colour engine.
 	"COLOUR_WORKER_URL", "WCPA_CONFIG_PATH", "COLOUR_WORKER_TIMEOUT", "COLOUR_MAX_IMAGE_BYTES",
@@ -181,5 +182,38 @@ func TestFromEnv_S3PresignTTLInvalidIsAnError(t *testing.T) {
 	t.Setenv("S3_PRESIGN_TTL", "soon")
 	if _, err := config.FromEnv(); err == nil {
 		t.Fatal("want an error for S3_PRESIGN_TTL=soon")
+	}
+}
+
+func TestFromEnv_WorkerURLDefaults(t *testing.T) {
+	setBaseEnv(t)
+	cfg, err := config.FromEnv()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.SkinWorkerURL != "http://127.0.0.1:8088" || cfg.FaceWorkerURL != "http://127.0.0.1:8094" {
+		t.Fatalf("SkinWorkerURL=%q FaceWorkerURL=%q", cfg.SkinWorkerURL, cfg.FaceWorkerURL)
+	}
+}
+
+func TestFromEnv_WorkerURLOverrides(t *testing.T) {
+	setBaseEnv(t)
+	t.Setenv("SKIN_WORKER_URL", "http://worker-skin:8088")
+	t.Setenv("FACE_WORKER_URL", "http://worker-face:8094")
+	cfg, err := config.FromEnv()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.SkinWorkerURL != "http://worker-skin:8088" || cfg.FaceWorkerURL != "http://worker-face:8094" {
+		t.Fatalf("SkinWorkerURL=%q FaceWorkerURL=%q", cfg.SkinWorkerURL, cfg.FaceWorkerURL)
+	}
+}
+
+func TestFromEnv_RemovedVisionWorkerURLIsAnError(t *testing.T) {
+	setBaseEnv(t)
+	t.Setenv("VISION_AI_WORKER_URL", "http://ai-worker-vision:8088")
+	_, err := config.FromEnv()
+	if err == nil || !strings.Contains(err.Error(), "SKIN_WORKER_URL") || !strings.Contains(err.Error(), "FACE_WORKER_URL") {
+		t.Fatalf("err = %v, want one naming SKIN_WORKER_URL and FACE_WORKER_URL", err)
 	}
 }

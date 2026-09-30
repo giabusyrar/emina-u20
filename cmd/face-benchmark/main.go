@@ -7,7 +7,7 @@
 //	face-benchmark calibrate --manifest m.csv --cache DIR --model-sha256 SHA --results r.csv --label-map l.json --profile base.json --target T --out calibrated.json
 //
 // measure is the only subcommand that uses the network: it posts image
-// bytes to VISION_AI_WORKER_URL (timeout FACE_MEASURE_TIMEOUT) and nowhere
+// bytes to FACE_WORKER_URL (timeout FACE_MEASURE_TIMEOUT) and nowhere
 // else, and prints that URL before the first upload. evaluate and calibrate
 // read the cache and never call the worker. Nothing reads or writes the
 // database: a calibrated profile is stored afterwards with facearch-profile
@@ -415,12 +415,12 @@ func liveDeps() deps {
 	return deps{
 		worker: func() (benchmark.Worker, string, error) {
 			goplatform.LoadDotEnv()
-			workerURL := goplatform.First("VISION_AI_WORKER_URL")
+			workerURL := goplatform.First("FACE_WORKER_URL")
 			if workerURL == "" {
-				workerURL = config.DefaultVisionAIWorkerURL
+				workerURL = config.DefaultFaceWorkerURL
 			}
 			if err := benchmark.CheckWorkerURL(workerURL); err != nil {
-				return nil, "", fmt.Errorf("VISION_AI_WORKER_URL: %w", err)
+				return nil, "", fmt.Errorf("FACE_WORKER_URL: %w", err)
 			}
 			timeout, err := goplatform.Duration("FACE_MEASURE_TIMEOUT", config.DefaultFaceMeasureTimeout)
 			if err != nil {
