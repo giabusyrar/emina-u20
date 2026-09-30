@@ -10,9 +10,10 @@ services from two repos still collide on the same machine.
 | 8081 | gateway-engine | Seagull-gateway |
 | 8082 | core-engine | Seagull-core |
 | 8086 | reference-service | Seagull-core |
-| 8088 | ai-worker (vision profile) | Seagull-core |
-| 8090 | ai-worker (tryon profile) | Seagull-core |
-| 8092 | ai-worker (colour profile) | Seagull-core |
+| 8088 | worker-skin | Seagull-core |
+| 8090 | worker-tryon | Seagull-core |
+| 8092 | worker-colour | Seagull-core |
+| 8094 | worker-face | Seagull-core |
 | 9080 | APISIX (data plane) | Seagull-gateway |
 | 9180 | APISIX (Admin API) | Seagull-gateway |
 | 2379 | etcd | Seagull-gateway |

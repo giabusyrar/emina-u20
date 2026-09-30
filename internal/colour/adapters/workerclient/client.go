@@ -1,5 +1,5 @@
-// Package workerclient calls the WCPA endpoints of the ai-worker colour
-// profile (/pca/analyze, /vto/render, /colour/munsell). Internal network only;
+// Package workerclient calls the WCPA endpoints of the colour
+// worker (/pca/analyze, /vto/render, /colour/munsell). Internal network only;
 // no gateway key.
 package workerclient
 

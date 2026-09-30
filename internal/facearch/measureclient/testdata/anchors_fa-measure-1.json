@@ -1,10 +1,10 @@
 {
-  "source": "apps/ai-worker/ai_worker/vision/facegeom/anchors.py",
-  "sha256": "f05447a5fe536bac73f7f6ad8c67accc1b17355ce5e0050fdf81dba365837fb1",
+  "source": "apps/workers/face/worker_face/facegeom/anchors.py",
+  "sha256": "1a348475e1423493ba8c6b5b15c068108aa52e56b86f940972f1385f6685549f",
   "catalogueVersion": "fa-measure/1",
-  "catalogueVersionSource": "apps/ai-worker/ai_worker/vision/facegeom/measures.py",
-  "frameSource": "apps/ai-worker/ai_worker/vision/facegeom/frame.py",
-  "frameSha256": "a956d9f8933d0e699825303f57272aa6017bb6b797049390d1af9ba50d51d4f3",
+  "catalogueVersionSource": "apps/workers/face/worker_face/facegeom/measures.py",
+  "frameSource": "apps/workers/face/worker_face/facegeom/frame.py",
+  "frameSha256": "32c6d48874916e109937dbe70e9a44bba65c6163cf20c19adb0b488714174569",
   "nLandmarks": 478,
   "eyeCorners": {"exoR": 33, "endoR": 133, "exoL": 263, "endoL": 362},
   "regions": {

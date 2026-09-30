@@ -76,7 +76,7 @@ func TestRecordingMatchesAiWorkerAnchorsSource(t *testing.T) {
 // guidance rebuilds that frame in Go (guidance.NewFrame).
 func TestRecordingMatchesAiWorkerFrameSource(t *testing.T) {
 	r := loadRecordedAnchors(t)
-	require.Equal(t, "apps/ai-worker/ai_worker/vision/facegeom/frame.py", r.FrameSource)
+	require.Equal(t, "apps/workers/face/worker_face/facegeom/frame.py", r.FrameSource)
 	assertSourceHash(t, r.FrameSource, r.FrameSha256)
 }
 
@@ -85,7 +85,7 @@ func TestRecordingMatchesAiWorkerFrameSource(t *testing.T) {
 // numpy and cv2).
 func TestRecordingMatchesAiWorkerCatalogueVersion(t *testing.T) {
 	r := loadRecordedAnchors(t)
-	require.Equal(t, "apps/ai-worker/ai_worker/vision/facegeom/measures.py", r.CatalogueVersionSource)
+	require.Equal(t, "apps/workers/face/worker_face/facegeom/measures.py", r.CatalogueVersionSource)
 	m := regexp.MustCompile(`(?m)^CATALOGUE_VERSION = "([^"]+)"$`).FindAllSubmatch(readSource(t, r.CatalogueVersionSource), -1)
 	require.Len(t, m, 1, "want exactly one CATALOGUE_VERSION assignment in %s", r.CatalogueVersionSource)
 	assert.Equal(t, r.CatalogueVersion, string(m[0][1]),
@@ -97,7 +97,7 @@ func TestRecordingMatchesAiWorkerCatalogueVersion(t *testing.T) {
 func readSource(t *testing.T, path string) []byte {
 	t.Helper()
 	src, err := os.ReadFile("../../../../../" + path)
-	require.NoError(t, err, "the ai-worker source %s must be in this checkout (same repository)", path)
+	require.NoError(t, err, "the face worker source %s must be in this checkout (same repository)", path)
 	return bytes.ReplaceAll(src, []byte("\r\n"), []byte("\n"))
 }
 

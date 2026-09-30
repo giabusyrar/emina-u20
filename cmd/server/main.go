@@ -153,17 +153,17 @@ func run() error {
 		cfg.VisionCatalogTTL,
 	)
 	visionOrch := visionOrchestrator.NewVisionOrchestrator(
-		visionWorkers.NewSegmenterWorkerWithURL(cfg.VisionAIWorkerURL, cfg.SegmenterTimeout),
+		visionWorkers.NewSegmenterWorkerWithURL(cfg.SkinWorkerURL, cfg.SegmenterTimeout),
 		visionWorkers.NewOcclusionWorker(),
 		visionCatalog.NewResolver(visionReferenceCatalog),
-		visionInference.NewHTTPCapabilityClient(cfg.VisionAIWorkerURL, cfg.VisionDispatchTimeout),
+		visionInference.NewHTTPCapabilityClient(cfg.SkinWorkerURL, cfg.VisionDispatchTimeout),
 		cfg.VisionDAGTimeout,
 	)
 	visionHandler := visionControllers.NewVisionController(visionOrch, visionReferenceCatalog)
 
-	// Face Architecture (measurements from the ai-worker, per-brand profile)
+	// Face Architecture (measurements from the face worker, per-brand profile)
 	faceArchHandler := facearch.NewHandler(
-		faceMeasure.New(cfg.VisionAIWorkerURL, cfg.FaceMeasureTimeout),
+		faceMeasure.New(cfg.FaceWorkerURL, cfg.FaceMeasureTimeout),
 		faceProfile.NewGormStore(db),
 	)
 

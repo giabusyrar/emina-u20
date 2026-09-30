@@ -52,11 +52,11 @@ func TestFrame_KnownGeometry(t *testing.T) {
 	}
 }
 
-// The Go frame reproduces the ai-worker's frame.canonicalise on the same
+// The Go frame reproduces the face worker's frame.canonicalise on the same
 // recorded landmarks. Expected values were printed by the worker on
 // 2026-09-29 (repository root):
 //
-//	PYTHONPATH=apps/ai-worker python -c "import json, numpy as np; from ai_worker.vision.facegeom.frame import canonicalise; d = json.load(open('apps/core-engine/internal/facearch/facearchtest/testdata/measure_fixture_face.json')); f = canonicalise(np.array(d['landmarks'], float)); print(repr(f.iod_px), [f.points[i].tolist() for i in (1, 152, 234, 454, 10)])"
+//	PYTHONPATH=apps/workers/face python -c "import json, numpy as np; from worker_face.facegeom.frame import canonicalise; d = json.load(open('apps/core-engine/internal/facearch/facearchtest/testdata/measure_fixture_face.json')); f = canonicalise(np.array(d['landmarks'], float)); print(repr(f.iod_px), [f.points[i].tolist() for i in (1, 152, 234, 454, 10)])"
 func TestFrame_AgreesWithWorkerOnFixture(t *testing.T) {
 	l := facearchtest.FixtureFace().Landmarks
 	f, err := guidance.NewFrame(l)

@@ -1,4 +1,4 @@
-"""Writes core-engine's recorded copy of the ai-worker's region table.
+"""Writes core-engine's recorded copy of the face worker's region table.
 
 Run from the repository root (any OS; no PYTHONPATH needed):
     python apps/core-engine/internal/facearch/measureclient/testdata/record_anchors.py \
@@ -15,13 +15,13 @@ import re
 import sys
 
 sys.dont_write_bytecode = True
-sys.path.insert(0, "apps/ai-worker")
+sys.path.insert(0, "apps/workers/face")
 
-from ai_worker.vision.facegeom import anchors as A
+from worker_face.facegeom import anchors as A
 
-SOURCE = "apps/ai-worker/ai_worker/vision/facegeom/anchors.py"
-MEASURES = "apps/ai-worker/ai_worker/vision/facegeom/measures.py"
-FRAME = "apps/ai-worker/ai_worker/vision/facegeom/frame.py"
+SOURCE = "apps/workers/face/worker_face/facegeom/anchors.py"
+MEASURES = "apps/workers/face/worker_face/facegeom/measures.py"
+FRAME = "apps/workers/face/worker_face/facegeom/frame.py"
 
 
 def lf(path):

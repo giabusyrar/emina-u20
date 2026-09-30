@@ -4,7 +4,7 @@
 // (branch feat/face-measure, head 47bdf8f; FastAPI TestClient on
 // create_app(["vision"])) with the real MediaPipe model (manifest SHA-256
 // 64184e22...) on the CC0 photo
-// apps/ai-worker/tests/tryon/fixtures/sample_face.jpg, with landmarks=true
+// apps/workers/face/tests/fixtures/sample_face.jpg (the face worker's copy), with landmarks=true
 // and FACE_MEASURE_OCCLUSION_DELTA_E unset. Measurement and quality values
 // are rounded to 4 decimals, landmark pixels to 2.
 //

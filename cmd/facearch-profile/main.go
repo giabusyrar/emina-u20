@@ -3,7 +3,7 @@
 //	facearch-profile validate <file.json>
 //	facearch-profile upsert <file.json> --brand <id|*> --app <id|*> --code <code> [--title <title>]
 //
-// Both fetch the ai-worker catalogue (VISION_AI_WORKER_URL, timeout
+// Both fetch the ai-worker catalogue (FACE_WORKER_URL, timeout
 // FACE_MEASURE_TIMEOUT) and validate the document against it; validate
 // never touches the database. upsert then stores the document as the next
 // version of (brand, app, code), makes it active, and deactivates every
@@ -128,9 +128,9 @@ func liveDeps() deps {
 	return deps{
 		catalogue: func(ctx context.Context) (*measureclient.Catalogue, error) {
 			goplatform.LoadDotEnv()
-			url := goplatform.First("VISION_AI_WORKER_URL")
+			url := goplatform.First("FACE_WORKER_URL")
 			if url == "" {
-				url = config.DefaultVisionAIWorkerURL
+				url = config.DefaultFaceWorkerURL
 			}
 			timeout, err := goplatform.Duration("FACE_MEASURE_TIMEOUT", config.DefaultFaceMeasureTimeout)
 			if err != nil {

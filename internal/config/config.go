@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -30,8 +31,10 @@ const (
 	// recorded in docs/PORTS.md.
 	DefaultPort                = "8082"
 	DefaultReferenceServiceURL = "http://127.0.0.1:8086"
-	DefaultVisionAIWorkerURL   = "http://127.0.0.1:8088"
-	DefaultParadevGatewayURL   = "http://127.0.0.1:9080/paradev/scoring"
+	DefaultSkinWorkerURL       = "http://127.0.0.1:8088"
+	// DefaultFaceWorkerURL is the face worker's port in docs/PORTS.md.
+	DefaultFaceWorkerURL     = "http://127.0.0.1:8094"
+	DefaultParadevGatewayURL = "http://127.0.0.1:9080/paradev/scoring"
 )
 
 // DefaultFaceMeasureTimeout bounds one synchronous ai-worker face-measure
@@ -79,7 +82,10 @@ type Config struct {
 
 	Port                string
 	ReferenceServiceURL string
-	VisionAIWorkerURL   string
+	// SkinWorkerURL is apps/workers/skin (segment-and-pose, model dispatch);
+	// FaceWorkerURL is apps/workers/face (face-measure, face architecture).
+	SkinWorkerURL string
+	FaceWorkerURL string
 	// ParadevGatewayURL/APIKey reach the Paradev Skin Analyzer vendor call
 	// through our own gateway (its route already injects the vendor's own
 	// secret). core-engine only needs its own gateway collection key, never
@@ -129,6 +135,9 @@ func Load() (*Config, error) {
 
 // FromEnv reads the process environment only.
 func FromEnv() (*Config, error) {
+	if goplatform.First("VISION_AI_WORKER_URL") != "" {
+		return nil, errors.New("VISION_AI_WORKER_URL was removed: set SKIN_WORKER_URL (segment-and-pose, model dispatch) and FACE_WORKER_URL (face-measure) instead")
+	}
 	common, err := goplatform.LoadCommon(goplatform.CommonDefaults{CORSAllowHeaders: defaultCORSAllowHeaders})
 	if err != nil {
 		return nil, err
@@ -138,7 +147,8 @@ func FromEnv() (*Config, error) {
 		CommonConfig:         common,
 		Port:                 goplatform.Port("CORE_ENGINE_PORT", "PORT", DefaultPort),
 		ReferenceServiceURL:  firstOr("REFERENCE_SERVICE_URL", DefaultReferenceServiceURL),
-		VisionAIWorkerURL:    firstOr("VISION_AI_WORKER_URL", DefaultVisionAIWorkerURL),
+		SkinWorkerURL:        firstOr("SKIN_WORKER_URL", DefaultSkinWorkerURL),
+		FaceWorkerURL:        firstOr("FACE_WORKER_URL", DefaultFaceWorkerURL),
 		ParadevGatewayURL:    firstOr("PARADEV_GATEWAY_URL", DefaultParadevGatewayURL),
 		ParadevGatewayAPIKey: goplatform.First("PARADEV_GATEWAY_API_KEY"),
 		TryonEngineURL:       goplatform.First("TRYON_ENGINE_URL"),

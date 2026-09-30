@@ -1,7 +1,7 @@
 # Face architecture (core-engine)
 
-The interpretation layer over the ai-worker's face measurements: core-engine
-asks the ai-worker (`docs/FACE-MEASURE.md`) for measurements of one photo and
+The interpretation layer over the face worker's face measurements: core-engine
+asks the face worker (`docs/FACE-MEASURE.md`) for measurements of one photo and
 applies a brand's stored **profile** to them, producing a face-shape
 classification, per-feature traits and makeup-placement polygons (guidance).
 
@@ -40,7 +40,7 @@ Content-Type: multipart/form-data
 ```
 
 Also mounted under `/core/vision-engine/` and `/api/vision/`. The profile is
-looked up **before** the ai-worker is called, so a scope with no profile costs
+looked up **before** the face worker is called, so a scope with no profile costs
 no inference. core-engine always asks the worker for landmarks; it uses them to place
 guidance polygons and returns them as `landmarks` for drawing.
 
@@ -111,7 +111,7 @@ Each entry has a `status` of `assessed`, `not_assessable` or `unavailable`, and
 
 ### Noise bands and `boundaryUncertain`
 
-Each worker measurement may carry a noise band. The ai-worker centres each band on
+Each worker measurement may carry a noise band. The face worker centres each band on
 the measured value (`value + P5 − P50`, `value + P95 − P50`), so a band always
 contains its value; core-engine uses the band as sent.
 A condition whose threshold lies inside that band could have gone the other way.
@@ -181,7 +181,7 @@ is `null` only when the profile has no guidance section.
 - `anchorVisibility` and `unverifiedRegions`: see Occlusion below.
 
 **Templates.** Each point is a landmark `{"index": i}` or `{"lerp": [a, b, t]}`
-(a + t(b - a)). A point may be shifted by `offsetIod: [dx, dy]` in the ai-worker's
+(a + t(b - a)). A point may be shifted by `offsetIod: [dx, dy]` in the face worker's
 canonical frame:
 
 - origin at the midpoint of the eye centres (an eye centre is the midpoint of that
@@ -248,7 +248,7 @@ visible can still extend over covered skin.
 (`anchors.REGIONS`, with the eye corners and the landmark count) in
 `internal/facearch/measureclient/anchors.go`, recorded for catalogue
 `RegionsCatalogueVersion` (`fa-measure/1`). A test pins it to a recording of
-`apps/ai-worker/ai_worker/vision/facegeom/anchors.py` and to that file's SHA-256; the
+`apps/workers/face/worker_face/facegeom/anchors.py` and to that file's SHA-256; the
 recording also holds `measures.CATALOGUE_VERSION` (parsed from `measures.py`'s text,
 which cannot be imported without numpy) and the SHA-256 of `facegeom/frame.py`, the
 frame definition guidance rebuilds. Any change to `anchors.py` or `frame.py`, or to the
@@ -278,7 +278,7 @@ contour and highlight. All seed geometry is translated by us from its placement 
 ## Errors
 
 All core-engine errors have the shape `{"detail": {"code": "...", ...}}`, the same
-shape as the ai-worker's errors, so clients read `detail.code` for both.
+shape as the face worker's errors, so clients read `detail.code` for both.
 
 | Status | Body | When |
 |---|---|---|
@@ -311,7 +311,7 @@ version in the first scope that has one wins; otherwise 409.
 of (brand, app, code), makes it `ACTIVE`, and marks every other active profile in
 the same brand+app scope `INACTIVE`. The upsert is serialised per scope by a
 two-key advisory lock, `pg_advisory_xact_lock(1581646199, hashtext(brand|app))`,
-whose key space does not overlap the ai-worker's single-key schema lock
+whose key space does not overlap the skin worker's single-key schema lock
 (`1581646198`). Brand `*` with a specific application is refused: no lookup ever
 reads that scope.
 
@@ -328,7 +328,7 @@ go run ./apps/core-engine/cmd/facearch-profile validate <file.json>
 go run ./apps/core-engine/cmd/facearch-profile upsert <file.json> --brand <id|*> --app <id|*> --code <code> [--title <title>]
 ```
 
-Both fetch the ai-worker catalogue and validate the document against it.
+Both fetch the face worker's catalogue and validate the document against it.
 `validate` never touches the database and prints
 `<file>: valid against <catalogue> (N classifiers, N traits, N guidance templates, N guidance rules, calibration <status>)`.
 `upsert` then stores it, migrating only `face_architecture_profiles`.
@@ -338,7 +338,7 @@ failure; `2` usage error.
 
 | Env | Meaning |
 |---|---|
-| `VISION_AI_WORKER_URL` | ai-worker base URL (default `config.DefaultVisionAIWorkerURL`). |
+| `FACE_WORKER_URL` | Face worker base URL (default `config.DefaultFaceWorkerURL`, `http://127.0.0.1:8094`). |
 | `FACE_MEASURE_TIMEOUT` | Timeout for the catalogue fetch (and for the endpoint's measure call). |
 | `DATABASE_URL` | Postgres, read as core-engine reads it (`upsert` only). |
 
@@ -412,9 +412,9 @@ catalogue); drift against the live catalogue is judged per request.
 
 ## Configuration
 
-`FACE_MEASURE_TIMEOUT`: bounds one synchronous ai-worker face-measure call. Default
+`FACE_MEASURE_TIMEOUT`: bounds one synchronous face-worker face-measure call. Default
 **20 s** (`config.DefaultFaceMeasureTimeout`). It is not a measured value: it copies
-`DefaultVisionDispatchTimeout`, the other synchronous ai-worker model call, because
+`DefaultVisionDispatchTimeout`, the other synchronous worker model call, because
 no latency has been measured yet (the call runs the landmarker plus
 `FACE_MEASURE_NOISE_SAMPLES` re-measurements). Benchmark timings replace it.
 
@@ -422,4 +422,4 @@ no latency has been measured yet (the call runs the landmarker plus
 
 Unit tests run without a database or a worker. Not exercised in development: the
 GORM store against Postgres (opt-in `FACEARCH_TEST_DATABASE_URL`) and a run against
-a live ai-worker (the catalogue check is opt-in, `FACEARCH_TEST_AI_WORKER_URL`).
+a live face worker (the catalogue check is opt-in, `FACEARCH_TEST_AI_WORKER_URL`).

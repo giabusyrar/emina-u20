@@ -8,22 +8,25 @@ before this change still hold public URLs.
 ## What lives in the bucket
 
 - `shades/<shadeId>/{color,alpha,finish}.png` -- tryon shade textures,
-  written by ai-worker (tryon profile) after extraction.
-- `models/` -- vision model files, downloaded by ai-worker (vision profile)
+  written by the tryon worker (`apps/workers/tryon`) after extraction.
+- `models/` -- vision model files, downloaded by the skin worker (`apps/workers/skin`)
   through presigned links.
 
 ## Configuration
 
 | Variable | Read by | Default | Notes |
 |---|---|---|---|
-| `S3_ENDPOINT` | ai-worker, core-engine | none | S3 API host, `https://<account>.r2.cloudflarestorage.com` |
-| `S3_BUCKET` | ai-worker, core-engine | none | `<bucket>` |
-| `S3_ACCESS_KEY_ID` | ai-worker, core-engine | none | Credential; keep in `.env`, never in the repo |
-| `S3_SECRET_ACCESS_KEY` | ai-worker, core-engine | none | Credential; keep in `.env`, never in the repo |
-| `S3_REGION` | ai-worker, core-engine | `auto` | R2 requires `auto` |
+| `S3_ENDPOINT` | workers, core-engine | none | S3 API host, `https://<account>.r2.cloudflarestorage.com` |
+| `S3_BUCKET` | workers, core-engine | none | `<bucket>` |
+| `S3_ACCESS_KEY_ID` | workers, core-engine | none | Credential; keep in `.env`, never in the repo |
+| `S3_SECRET_ACCESS_KEY` | workers, core-engine | none | Credential; keep in `.env`, never in the repo |
+| `S3_REGION` | workers, core-engine | `auto` | R2 requires `auto` |
 | `S3_PRESIGN_TTL` | core-engine | `15m` | Lifetime of a presigned texture link. Policy, so configurable. An unparseable value is a startup error. |
 
-One `.env` serves both services. Storage is "configured" when bucket, access
+One `.env` serves all services. The workers share one S3 client,
+`apps/workers/common/worker_common/storage.py` (S3 only; the settings are
+`worker_common/settings.py`). The skin worker alone has a local-file fallback
+for model uploads when S3 is not configured (`apps/workers/skin/worker_skin/storage.py`). Storage is "configured" when bucket, access
 key and secret are all set. core-engine boots without storage; only
 shade-asset reads are affected (see below).
 
@@ -40,7 +43,7 @@ recognise legacy rows. Neither service uses it at runtime.
    `S3_PRESIGN_TTL`. The web app loads the images immediately and does not
    keep the links.
 
-Signing is local HMAC work in core-engine; it does not depend on ai-worker
+Signing is local HMAC work in core-engine; it does not depend on the tryon worker
 being up.
 
 Failure modes:
@@ -71,14 +74,14 @@ and the S3 variables from `.env`.
 1. `go run ./apps/core-engine/cmd/shade-asset-keys -prepare` drops the NOT
    NULL constraints on the old URL columns, so inserts from the new code do
    not fail against the old schema.
-2. Deploy core-engine first, then ai-worker (or drain in-flight extractions
+2. Deploy core-engine first, then the tryon worker (or drain in-flight extractions
    before deploying). `AutoMigrate` adds the nullable key columns and new
    extractions store keys. Until step 4, old rows answer 409 rather than a
    broken image. The order matters because of the two mismatches:
-   - New ai-worker with old core-engine: the shade is marked ready with an
+   - New tryon worker with old core-engine: the shade is marked ready with an
      asset that has neither URLs nor keys. After the migration it answers
      409 and must be re-extracted.
-   - Old ai-worker with new core-engine: the callback gets a 400 and the
+   - Old tryon worker with new core-engine: the callback gets a 400 and the
      shade stays not-ready, so it can be retried.
 3. `go run ./apps/core-engine/cmd/shade-asset-keys` is a dry run: it prints
    each URL and the key it maps to and writes nothing. Check the output. A

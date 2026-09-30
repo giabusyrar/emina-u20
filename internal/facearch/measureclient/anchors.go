@@ -2,8 +2,8 @@ package measureclient
 
 import "sort"
 
-// Landmark facts the ai-worker defines in
-// apps/ai-worker/ai_worker/vision/facegeom/anchors.py (catalogue
+// Landmark facts the face worker defines in
+// apps/workers/face/worker_face/facegeom/anchors.py (catalogue
 // fa-measure/1). They describe the MediaPipe mesh and the worker's region
 // definitions, not policy, so they are code. They are recorded here once,
 // for guidance resolution and validation, and pinned by anchors_test.go

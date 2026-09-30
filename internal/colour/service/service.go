@@ -1,4 +1,4 @@
-// Package service is the WCPA flow: measure (ai-worker colour profile) →
+// Package service is the WCPA flow: measure (colour worker) →
 // classify (config rules) → recommend (catalog) → present; and photo try-on by
 // shade id.
 package service

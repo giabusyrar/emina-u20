@@ -44,7 +44,7 @@ type Client struct {
 	httpClient *http.Client
 }
 
-// New returns a Client for the ai-worker at baseURL (VISION_AI_WORKER_URL).
+// New returns a Client for the ai-worker at baseURL (FACE_WORKER_URL).
 func New(baseURL string, timeout time.Duration) *Client {
 	return &Client{
 		baseURL: strings.TrimRight(baseURL, "/"),
