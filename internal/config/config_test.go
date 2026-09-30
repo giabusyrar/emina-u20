@@ -111,7 +111,7 @@ func TestFromEnv_ColourDefaults(t *testing.T) {
 
 func TestFromEnv_ColourOverrides(t *testing.T) {
 	setBaseEnv(t)
-	t.Setenv("COLOUR_WORKER_URL", "http://ai-worker-colour:8092")
+	t.Setenv("COLOUR_WORKER_URL", "http://worker-colour:8092")
 	t.Setenv("COLOUR_WORKER_TIMEOUT", "90s")
 	t.Setenv("COLOUR_MAX_IMAGE_BYTES", "1048576")
 	t.Setenv("COLOUR_DEBUG_ENABLED", "true")
@@ -119,7 +119,7 @@ func TestFromEnv_ColourOverrides(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.ColourWorkerURL != "http://ai-worker-colour:8092" || cfg.ColourWorkerTimeout != 90*time.Second ||
+	if cfg.ColourWorkerURL != "http://worker-colour:8092" || cfg.ColourWorkerTimeout != 90*time.Second ||
 		cfg.ColourMaxImageBytes != 1<<20 || !cfg.ColourDebugEnabled {
 		t.Fatalf("got %+v", cfg)
 	}
@@ -211,7 +211,7 @@ func TestFromEnv_WorkerURLOverrides(t *testing.T) {
 
 func TestFromEnv_RemovedVisionWorkerURLIsAnError(t *testing.T) {
 	setBaseEnv(t)
-	t.Setenv("VISION_AI_WORKER_URL", "http://ai-worker-vision:8088")
+	t.Setenv("VISION_AI_WORKER_URL", "http://worker-vision:8088")
 	_, err := config.FromEnv()
 	if err == nil || !strings.Contains(err.Error(), "SKIN_WORKER_URL") || !strings.Contains(err.Error(), "FACE_WORKER_URL") {
 		t.Fatalf("err = %v, want one naming SKIN_WORKER_URL and FACE_WORKER_URL", err)

@@ -2,7 +2,7 @@
 // (vto_products.csv, or the demo catalog seed/vto_products_demo.csv) into
 // match_product_catalog + match_shades + match_shade_colorimetry.
 //
-// Colours are converted by the ai-worker colour profile (POST /colour/munsell
+// Colours are converted by the colour worker (POST /colour/munsell
 // at COLOUR_WORKER_URL; npm run dev:colour) — the same hex→Lab and Lab→Munsell
 // code the person measurement uses — so it must be running. Rows are upserted
 // by deterministic ids, so re-running updates instead of duplicating.
@@ -242,7 +242,7 @@ func main() {
 	defer cancel()
 	colours, err := worker.MunsellFromHex(ctx, hexes)
 	if err != nil {
-		log.Fatalf("converting colours via the ai-worker colour profile at %s (COLOUR_WORKER_URL): %v", cfg.ColourWorkerURL, err)
+		log.Fatalf("converting colours via the colour worker at %s (COLOUR_WORKER_URL): %v", cfg.ColourWorkerURL, err)
 	}
 
 	db, err := goplatform.OpenPostgres(context.Background(), cfg.DatabaseURL, goplatform.DBOptions{

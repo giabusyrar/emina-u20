@@ -24,7 +24,7 @@ type Presigner interface {
 	Presign(ctx context.Context, key string) (string, error)
 }
 
-// Config mirrors the S3_* environment shared with ai-worker.
+// Config mirrors the S3_* environment shared with the workers (worker_common).
 type Config struct {
 	Endpoint        string
 	Bucket          string
@@ -34,7 +34,7 @@ type Config struct {
 	TTL             time.Duration
 }
 
-// Configured uses the same test as ai-worker's settings.s3_configured.
+// Configured uses the same test as worker_common's settings.s3_configured.
 func (c Config) Configured() bool {
 	return c.Bucket != "" && c.AccessKeyID != "" && c.SecretAccessKey != ""
 }

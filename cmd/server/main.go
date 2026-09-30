@@ -161,7 +161,7 @@ func run() error {
 	)
 	visionHandler := visionControllers.NewVisionController(visionOrch, visionReferenceCatalog)
 
-	// Face Architecture (measurements from the ai-worker, per-brand profile)
+	// Face Architecture (measurements from the face worker, per-brand profile)
 	faceArchHandler := facearch.NewHandler(
 		faceMeasure.New(cfg.FaceWorkerURL, cfg.FaceMeasureTimeout),
 		faceProfile.NewGormStore(db),

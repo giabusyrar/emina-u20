@@ -39,6 +39,8 @@ script was repointed to match.
 Since 2026-09-26 `apps/vision-ai-worker/` and `apps/tryon-engine/` are one
 package, `apps/ai-worker/` (profiles `vision` and `tryon`); see
 `docs/superpowers/specs/2026-09-26-ai-worker-merge-design.md`.
+Since 2026-09-30 `apps/ai-worker/` is gone: its code lives in `apps/workers/{common,skin,face,colour,tryon}`; see
+`docs/superpowers/specs/2026-09-30-workers-monorepo-design.md`.
 
 ## What changed beyond moving files
 

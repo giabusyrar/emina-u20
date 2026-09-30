@@ -24,7 +24,7 @@
 > rollback as roll-forward. Same note, from the schema side, in
 > `docs/SHARED-DATABASE.md`.
 
-Lives in `apps/ai-worker` (vision profile). Design background:
+Lives in `apps/workers/skin`. Design background:
 `docs/superpowers/specs/2026-09-26-plug-and-play-model-registry-design.md`
 (read that for the *why*; this document is the *what's actually running*, and
 corrects the design doc's own claims where implementation proved them wrong —
@@ -368,44 +368,43 @@ off the response. The bare `Model registry database pool is not initialized`
 now means only "no pool and no recorded schema failure" — i.e. the database
 was never configured or connected at all.
 
-## Running the worker's tests
+## Running the skin worker's tests
 
-The AI worker's test dependencies — `pytest`, `pytest-asyncio`,
+The skin worker's test dependencies — `pytest`, `pytest-asyncio`,
 `pytest-benchmark`, `onnx`, `torch`, `torchvision` — are declared **only** in
-the `[test]` extra of `apps/ai-worker/pyproject.toml` — not in
-`[project].dependencies`, and not in the `cpu`/`gpu` images built from
-`apps/ai-worker/Dockerfile`: the worker infers with `onnxruntime` and never
+the `[test]` extra of `apps/workers/skin/pyproject.toml` — not in
+`[project].dependencies`, and not in the image built from
+`apps/workers/skin/Dockerfile`: the worker infers with `onnxruntime` and never
 imports any of them, and `torch` alone is several hundred megabytes. Install
-them explicitly:
+them explicitly (workers do not declare `worker-common`, so name both):
 
 ```bash
-pip install -e "apps/ai-worker[test]"
-pytest apps/ai-worker      # or: npm run test:vision
+pip install -e apps/workers/common -e "apps/workers/skin[test]"
+pytest apps/workers/skin      # or: npm run test:skin
 ```
 
-A bare `pytest apps/ai-worker` from the repository root collects all tests
-(vision, tryon, colour, and core) and runs with the default markers. The dispatch
-benchmarks are wall-clock measurements (they export a real resnet18, and take
-minutes) and say nothing about correctness, so they are deselected from every
-ordinary run by the `addopts` in `apps/ai-worker/pyproject.toml`:
+The dispatch benchmarks are wall-clock measurements (they export a real
+resnet18, and take minutes) and say nothing about correctness, so they are
+deselected from every ordinary run by the `addopts` in
+`apps/workers/skin/pyproject.toml`:
 
 ```
-addopts = '-m "not benchmark and not tryon and not colour"'
+addopts = '-m "not benchmark and not jev"'
 ```
 
-This marker filter removes benchmarks, tryon and colour tests by default. Run
-the suites as needed:
+Each worker's suite runs in its own pytest process (`pytest
+apps/workers/<name>`); the packages share the test package name `tests`.
 
-- `pytest apps/ai-worker` — collects vision, tryon, colour, and core together
-  (runs with default markers: vision + core, deselects tryon and colour)
-- `npm run test:vision` — vision and core tests only (same selection as above)
+- `npm run test:skin` — the skin suite (benchmarks and JEV deselected)
+- `npm run test:common`, `npm run test:face` — the shared library and the face worker
 - `npm run test:tryon` — tryon tests (requires torch; about 8 minutes, downloads
   models)
-- `npm run test:colour` — colour tests (the `colour` extra; most need
-  `face_landmarker.task`, see `docs/COLOUR-LOCAL-RUN.md`)
-- `npm run bench:vision` — dispatch benchmarks only
+- `npm run test:colour` — colour tests (most need `face_landmarker.task`, see
+  `docs/COLOUR-LOCAL-RUN.md`)
+- `npm run bench:skin` — dispatch benchmarks only
+- `npm run test:jev` — the JEV benchmark smoke test (skipped without `JEV_MODEL_ID`)
 
-The `tests/vision/test_db_schema.py` suite needs a real Postgres and skips
+The `apps/workers/skin/tests/test_db_schema.py` suite needs a real Postgres and skips
 without one. Point `TEST_DATABASE_URL` at a **scratch** cluster — never a
 shared or hosted database; it truncates the registry tables between tests.
 

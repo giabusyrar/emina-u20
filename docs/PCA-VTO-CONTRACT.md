@@ -2,7 +2,7 @@
 
 Status: **implemented (photo mode), first iteration.** Measurement matches the
 WCPA notebook exactly on the golden photo
-(`apps/ai-worker/tests/colour/test_wcpa_golden.py`).
+(`apps/workers/colour/tests/test_wcpa_golden.py`).
 
 Scope: photo mode only — upload photo → personal colour analysis (WCPA) →
 quadrant → shade recommendations → photo try-on. Live camera try-on
@@ -13,30 +13,27 @@ the shared render parameters in §4.
 
 | Concern | Service | Why |
 |---|---|---|
-| Face detection, skin colour measurement, CIELAB → Munsell (V, C, hue), makeup rendering | `ai-worker`, profile `colour` (Python, :8092; `apps/ai-worker/ai_worker/colour/`) | Pixel work stays in Python. Munsell conversion needs `colour-science` (ASTM D1535 renotation), which has no Go equivalent; porting it would diverge from the notebook. PCA and VTO share one profile by decision. |
+| Face detection, skin colour measurement, CIELAB → Munsell (V, C, hue), makeup rendering | the colour worker (Python, :8092; `apps/workers/colour/worker_colour/`) | Pixel work stays in Python. Munsell conversion needs `colour-science` (ASTM D1535 renotation), which has no Go equivalent; porting it would diverge from the notebook. PCA and VTO share one profile by decision. |
 | WCPA classification (quadrant snap, temperature, complementary rule, foundation band), presentation labels, shade lookup, recommendations | `core-engine` (Go, :8082), domain `internal/colour` | Rules, thresholds and product data stay in Go, driven by config. |
-| Upload, results, shade picker, before/after | `seagull-web` | Frontend never calls the ai-worker directly. |
+| Upload, results, shade picker, before/after | `seagull-web` | Frontend never calls the colour worker directly. |
 
-Lanes in `docs/LANES.md`: `core-colour` (`apps/core-engine/internal/colour/`)
-and `ai-worker-colour` (`apps/ai-worker/ai_worker/colour/`,
-`apps/ai-worker/tests/colour/`).
+Code: `apps/core-engine/internal/colour/` (Go) and the colour worker
+(`apps/workers/colour/worker_colour/`, tests in `apps/workers/colour/tests/`).
 
-Why a profile of its own: the WCPA code needs only the CPU (MediaPipe and
-numpy), while the `tryon` profile is the torch/GPU one (Dockerfile target
-`gpu`, compose profile `gpu`). A separate `colour` profile with its own extra
-keeps torch out of colour analysis, and profiles still share a process when
-wanted (`AI_WORKER_PROFILES=vision,colour`).
+Why a worker of its own: the WCPA code needs only the CPU (MediaPipe and
+numpy), while the tryon worker is the torch/GPU one (its own Dockerfile,
+compose profile `gpu`). A separate colour worker keeps torch out of colour
+analysis; each worker is its own process and image.
 
 Config: core-engine reaches the worker through `COLOUR_WORKER_URL` (default
 `http://127.0.0.1:8092`, `docs/PORTS.md`), loaded in
 `internal/config/config.go` with the other tunables. `TRYON_ENGINE_URL` (shade
-extraction, tryon profile) and `VISION_AI_WORKER_URL` are left untouched —
-they point at other profiles.
+extraction, tryon worker), `SKIN_WORKER_URL` and `FACE_WORKER_URL` are left
+untouched — they point at other workers.
 
-## 2. ai-worker, colour profile (Python, internal only)
+## 2. Colour worker (Python, internal only)
 
-The engine loads once at startup (`AI_WORKER_PROFILES=colour`,
-`npm run dev:colour`). No endpoint here is exposed through the gateway.
+The engine loads once at startup (`npm run dev:colour`). No endpoint here is exposed through the gateway.
 `GET /health` reports `checks.wcpa` `up` or `down` (required: `down` answers
 503) and, when up, `checks.wcpa_chroma`, the Munsell chroma method.
 
@@ -96,12 +93,12 @@ Request: `multipart/form-data`
 | Category | Engine |
 |---|---|
 | lip | WCPA §9 `render_vto` (product colour × exposure × shading, texture kept) |
-| eyeshadow | **new** (`ai_worker/colour/wcpa/eyeshadow.py`): lid wash in the eye's own frame, from the lash line up toward the brow, darkest at the lash line, extended past the outer corner as a soft wing; styles `natural` (default), `soft_glam` (+ outer V, outer lower line), `smoky` (to the crease and beyond, deep outer V, full lower line) by `mode`. Colour as a pressed-powder pigment: scattered powder plus skin filtered by the shade, with transmittance √R (light crosses the powder twice), so navy, black and deep brown darken the lid instead of tinting it; lid texture kept. `specular` adds a sheen on the lid centre and glitter specks fixed in the eye's own frame (a hash of a cell grid, so they follow the eye in video) |
-| blush | **new** (`ai_worker/colour/wcpa/blush.py`): soft teardrop from the apple of the cheek toward the cheekbone at the hairline, clear of the under-eye, the nose side of the pupil line and the lips; styles `lifted` (default), `apple`, `draping` by `mode`. Colour as a translucent pigment: mostly the skin filtered by the shade (deeper rose on dark skin, never chalky), a little scattered product colour, skin texture kept, `specular` adds glow on the cheekbone highlight |
-| brow | **new** (`ai_worker/colour/wcpa/brow.py`): "defined brow" — soft-angled MUA template (head on the nostril line, arch at two-thirds, tail on the nostril–outer-corner line and never below the head); own hair tinted; the shape filled as an ombre (soft light head, crisp dark body and tail) with a procedural hair texture; fill stronger for sparse / bald brows; stray hair on full brows inpainted unless the brow is simply bigger than the template; multiply blend. Rendered even when the WCPA hair matte is empty (bald). Catalog `mode` no longer changes the brow look. Report per brow: `full` / `sparse` / `tail_missing` / `bald` + coverage + erased px |
-| eyeliner | **new** (`ai_worker/colour/wcpa/liner.py`): styles `thin`, `classic` (default), `cat_eye`, `smoky`, chosen by the layer's `mode`. Line thin at the inner corner, thickening outward; the wing is a filled triangle whose upper edge joins the line a third to a half of the way in from the outer corner, so it grows out of the liner (reference winged-liner photos) |
-| mascara | `mask_vto_2` §6 lash strip geometry, pulled along a spline lash line and sampled without aliasing (`ai_worker/colour/wcpa/lashes.py`). Templates drawn in memory by default (`LASH_TEMPLATE_SOURCE=procedural`): long lashes (capped at 1.1× the eye opening, so narrow eyes stay natural) combed into spikes with some short and stray strands, fanning around the eye, plus coated lower lashes; `files` loads PNGs instead (EyelashNet via `ai_worker/colour/tools/build_lash_templates.py`). Styles `natural` (default), `volumizing`, `lengthening` by `mode` |
-| complexion | **new** (`ai_worker/colour/wcpa/complexion.py`), phase 1b: evens the tone (spots, redness and dark patches covered via a median tone layer; pores softened, not erased; under-eye dip lifted). Shade: toward the swatch as the photo would show it (× exposure) — hue/chroma 0.55, lightness 0.3 at catalog alpha 0.35 (neutral gain in linear light, so shading keeps its ratios), calibrated by eye against Perfect Corp's foundation try-on; lightness at 0.85 read as a painted mask. Lifts the phase-1a lock (α ≤ 0.35, L\* unchanged) at the product owner's request, 2026-09-29; `SHADE_L = 0` restores it. Finish from `specular`: 0 matte (shine down) … 0.05 natural … 0.25 dewy (glow on the high points). Skin only: hair, beard, hijab and nostrils inside the face oval are left alone; the oval is raised to the hairline |
+| eyeshadow | **new** (`worker_colour/wcpa/eyeshadow.py`): lid wash in the eye's own frame, from the lash line up toward the brow, darkest at the lash line, extended past the outer corner as a soft wing; styles `natural` (default), `soft_glam` (+ outer V, outer lower line), `smoky` (to the crease and beyond, deep outer V, full lower line) by `mode`. Colour as a pressed-powder pigment: scattered powder plus skin filtered by the shade, with transmittance √R (light crosses the powder twice), so navy, black and deep brown darken the lid instead of tinting it; lid texture kept. `specular` adds a sheen on the lid centre and glitter specks fixed in the eye's own frame (a hash of a cell grid, so they follow the eye in video) |
+| blush | **new** (`worker_colour/wcpa/blush.py`): soft teardrop from the apple of the cheek toward the cheekbone at the hairline, clear of the under-eye, the nose side of the pupil line and the lips; styles `lifted` (default), `apple`, `draping` by `mode`. Colour as a translucent pigment: mostly the skin filtered by the shade (deeper rose on dark skin, never chalky), a little scattered product colour, skin texture kept, `specular` adds glow on the cheekbone highlight |
+| brow | **new** (`worker_colour/wcpa/brow.py`): "defined brow" — soft-angled MUA template (head on the nostril line, arch at two-thirds, tail on the nostril–outer-corner line and never below the head); own hair tinted; the shape filled as an ombre (soft light head, crisp dark body and tail) with a procedural hair texture; fill stronger for sparse / bald brows; stray hair on full brows inpainted unless the brow is simply bigger than the template; multiply blend. Rendered even when the WCPA hair matte is empty (bald). Catalog `mode` no longer changes the brow look. Report per brow: `full` / `sparse` / `tail_missing` / `bald` + coverage + erased px |
+| eyeliner | **new** (`worker_colour/wcpa/liner.py`): styles `thin`, `classic` (default), `cat_eye`, `smoky`, chosen by the layer's `mode`. Line thin at the inner corner, thickening outward; the wing is a filled triangle whose upper edge joins the line a third to a half of the way in from the outer corner, so it grows out of the liner (reference winged-liner photos) |
+| mascara | `mask_vto_2` §6 lash strip geometry, pulled along a spline lash line and sampled without aliasing (`worker_colour/wcpa/lashes.py`). Templates drawn in memory by default (`LASH_TEMPLATE_SOURCE=procedural`): long lashes (capped at 1.1× the eye opening, so narrow eyes stay natural) combed into spikes with some short and stray strands, fanning around the eye, plus coated lower lashes; `files` loads PNGs instead (EyelashNet via `worker_colour/tools/build_lash_templates.py`). Styles `natural` (default), `volumizing`, `lengthening` by `mode` |
+| complexion | **new** (`worker_colour/wcpa/complexion.py`), phase 1b: evens the tone (spots, redness and dark patches covered via a median tone layer; pores softened, not erased; under-eye dip lifted). Shade: toward the swatch as the photo would show it (× exposure) — hue/chroma 0.55, lightness 0.3 at catalog alpha 0.35 (neutral gain in linear light, so shading keeps its ratios), calibrated by eye against Perfect Corp's foundation try-on; lightness at 0.85 read as a painted mask. Lifts the phase-1a lock (α ≤ 0.35, L\* unchanged) at the product owner's request, 2026-09-29; `SHADE_L = 0` restores it. Finish from `specular`: 0 matte (shine down) … 0.05 natural … 0.25 dewy (glow on the high points). Skin only: hair, beard, hijab and nostrils inside the face oval are left alone; the oval is raised to the hairline |
 
 Response `200`: `image/png`, at the notebook's working size (`load_img`: longest
 side ≤ 1400 px). Headers `X-Pipeline-Version`, `X-Render-Log`.
@@ -215,7 +212,7 @@ Quadrant codes, labels and `provisional` flag, for the UI legend.
 
 ## 4. Shared render parameters (`render_params.json`)
 
-Lives in `apps/ai-worker/ai_worker/colour/render_params.json`
+Lives in `apps/workers/colour/worker_colour/render_params.json`
 (`RENDER_PARAMS_PATH` to use another file). Single source for the render's named constants (the ones each
 module declares at its top), so the Python photo renderer and the future
 WebGL live renderer read the same file. Language-neutral JSON with a `version`
@@ -301,7 +298,7 @@ they were made, and the sources are in `seed/vto_products_demo.md`.
 
 Step 1 — **verbatim**: the measurement cells (`pca_pipeline_v3` base cells +
 `# PIPELINE 03`–`08`) and the WCPA §1/§9/§9b functions are copied unchanged
-into `apps/ai-worker/ai_worker/colour/wcpa/` and driven the same way the WCPA notebook's
+into `apps/workers/colour/worker_colour/wcpa/` and driven the same way the WCPA notebook's
 `ukur()` drives them. Golden test: notebook output JSON == service output for
 the same photos.
 
