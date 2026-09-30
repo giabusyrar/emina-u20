@@ -1,7 +1,9 @@
 // Package visionclient calls the Paradev Skin Analyzer vendor through our
-// own gateway (its route already injects Paradev's own x-api-key server
-// side, per Seagull's gateway-engine config) — this package only ever needs
-// our gateway's own collection key, never the vendor's.
+// own gateway; this package only ever sends our gateway key (X-API-Key),
+// never a vendor key. Whatever reaches the vendor is set by the gateway
+// route's config (Seagull gateway-engine), not here. As verified 2026-09-30,
+// that config does NOT inject a Paradev-issued key: it forwards one of our
+// own gateway keys to the vendor (reported to Seagull-gateway to fix).
 package visionclient
 
 import (

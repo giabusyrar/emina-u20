@@ -90,7 +90,14 @@ func TestSeedOnFixtureFace(t *testing.T) {
 		"noseWidth":        {Status: "assessed", Label: "Broad", BoundaryUncertain: true, Alternative: "Average"},
 		"noseLength":       {Status: "not_assessable", MissingMeasurements: []string{"nose_length_ratio"}, Reason: "requires nose_length_ratio"},
 	}
+	// Every result names the keys its spec in the seed reads.
+	for _, spec := range d.Traits {
+		w := want[spec.Key]
+		w.Measurements = spec.Keys()
+		want[spec.Key] = w
+	}
 	assert.Equal(t, want, out.Traits)
+	assert.Equal(t, []string{"chin_taper", "jaw_to_mid_width_ratio", "upper_to_mid_width_ratio", "width_length_ratio"}, fs.Measurements)
 	assert.Equal(t, "uncalibrated", out.Provenance.Calibration.Status)
 	require.Len(t, out.Measurements, 15, "occluded measurements are shown with value null")
 	var withheld []string

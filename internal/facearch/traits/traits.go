@@ -20,17 +20,21 @@ const (
 
 // Result is one trait's answer.
 type Result struct {
-	Status              string   `json:"status"`
-	Label               string   `json:"label,omitempty"`
-	BoundaryUncertain   bool     `json:"boundaryUncertain"`
-	Alternative         string   `json:"alternative,omitempty"`
+	Status            string `json:"status"`
+	Label             string `json:"label,omitempty"`
+	BoundaryUncertain bool   `json:"boundaryUncertain"`
+	Alternative       string `json:"alternative,omitempty"`
+	// Measurements lists every measurement key the trait's spec reads
+	// (profile.TraitSpec.Keys), observed or not; MissingMeasurements is the
+	// subset that was missing. Set by the caller that holds the spec.
+	Measurements        []string `json:"measurements"`
 	MissingMeasurements []string `json:"missingMeasurements,omitempty"`
 	Reason              string   `json:"reason,omitempty"`
 }
 
 // Unavailable is the result for a trait the caller cannot run.
 func Unavailable(reason string) Result {
-	return Result{Status: StatusUnavailable, Reason: reason}
+	return Result{Status: StatusUnavailable, Measurements: []string{}, Reason: reason}
 }
 
 // Evaluate runs the rules in order; the first whose conditions all hold

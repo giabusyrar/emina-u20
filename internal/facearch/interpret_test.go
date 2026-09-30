@@ -2,6 +2,7 @@ package facearch_test
 
 import (
 	"encoding/json"
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -125,6 +126,72 @@ func TestInterpret_KeyDriftIsPerClassifierOrTrait(t *testing.T) {
 	assert.Contains(t, out.Traits["lid"].Reason, "eyelid_type is not supported")
 	assert.Contains(t, out.Traits["gone"].Reason, "removed_key is not in fa-measure/1")
 	assert.Contains(t, out.Traits["list"].Reason, "fifths is list-valued")
+}
+
+func TestInterpret_LandmarksPassThrough(t *testing.T) {
+	p, d := testProfile(t)
+	m := facearchtest.FixtureFace()
+	require.Len(t, m.Landmarks, measureclient.NLandmarks)
+	out := facearch.Interpret(p, d, m)
+	require.Len(t, out.Landmarks, measureclient.NLandmarks)
+	for i, pt := range m.Landmarks {
+		assert.Equal(t, [2]float64{pt[0], pt[1]}, out.Landmarks[i], "landmark %d unchanged, same index", i)
+	}
+}
+
+func TestInterpret_LandmarksTrimmedToXY(t *testing.T) {
+	p, d := testProfile(t)
+	m := facearchtest.FixtureFace()
+	m.Landmarks[7] = append([]float64{m.Landmarks[7][0], m.Landmarks[7][1]}, -0.25) // a z the worker may add
+	out := facearch.Interpret(p, d, m)
+	assert.Equal(t, [2]float64{m.Landmarks[7][0], m.Landmarks[7][1]}, out.Landmarks[7])
+}
+
+func TestInterpret_LandmarksNullWhenAbsentOrUnusable(t *testing.T) {
+	p, d := testProfile(t)
+	nan := math.NaN()
+	for name, mutate := range map[string]func(m *measureclient.Response){
+		"none":        func(m *measureclient.Response) { m.Landmarks = nil },
+		"empty":       func(m *measureclient.Response) { m.Landmarks = [][]float64{} },
+		"wrong count": func(m *measureclient.Response) { m.Landmarks = m.Landmarks[:10] },
+		"short point": func(m *measureclient.Response) { m.Landmarks[3] = []float64{1} },
+		"not finite":  func(m *measureclient.Response) { m.Landmarks[3] = []float64{nan, 2} },
+	} {
+		m := facearchtest.FixtureFace()
+		mutate(m)
+		out := facearch.Interpret(p, d, m)
+		assert.Nil(t, out.Landmarks, name)
+		b, err := json.Marshal(out)
+		require.NoError(t, err, name)
+		var body map[string]json.RawMessage
+		require.NoError(t, json.Unmarshal(b, &body))
+		assert.Equal(t, "null", string(body["landmarks"]), "%s: null, never an empty or partial array", name)
+	}
+}
+
+func TestInterpret_ResultsListTheirSpecMeasurements(t *testing.T) {
+	p, d := testProfile(t)
+	out := facearch.Interpret(p, d, facearchtest.FixtureFace())
+	fs := out.Classifications["faceShape"]
+	assert.Equal(t, d.Classifiers[0].Keys(), fs.Measurements)
+	assert.Equal(t, []string{"width_length_ratio"}, fs.Measurements)
+	assert.Subset(t, fs.Measurements, fs.MissingMeasurements, "missing is a subset")
+	assert.Equal(t, []string{"alar_width_to_intercanthal_ratio"}, out.Traits["noseWidth"].Measurements)
+
+	// Unavailable through drift still names what the spec reads.
+	m := facearchtest.FixtureFace()
+	m.CatalogueVersion = "fa-measure/2"
+	drifted := facearch.Interpret(p, d, m)
+	assert.Equal(t, []string{"width_length_ratio"}, drifted.Classifications["faceShape"].Measurements)
+	assert.Equal(t, []string{"alar_width_to_intercanthal_ratio"}, drifted.Traits["noseWidth"].Measurements)
+}
+
+func TestUnavailableWithoutSpecListsNoMeasurements(t *testing.T) {
+	for name, v := range map[string]any{"classify": classify.Unavailable("x"), "traits": traits.Unavailable("x")} {
+		b, err := json.Marshal(v)
+		require.NoError(t, err)
+		assert.Equal(t, "[]", string(mustField(t, b, "measurements")), name)
+	}
 }
 
 // With the eyes occluded the worker withholds every supported measurement

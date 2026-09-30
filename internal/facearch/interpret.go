@@ -5,6 +5,7 @@ package facearch
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/classify"
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/guidance"
@@ -50,8 +51,31 @@ type Response struct {
 	Traits              map[string]traits.Result   `json:"traits"`
 	// Guidance is the profile's makeup placement for this face (package
 	// guidance); JSON null when the profile has no guidance section.
-	Guidance   *guidance.Result `json:"guidance"`
-	Provenance Provenance       `json:"provenance"`
+	Guidance *guidance.Result `json:"guidance"`
+	// Landmarks are the worker's landmarks in image pixels, the space of
+	// guidance polygons, indexed as the worker indexes them, for drawing
+	// only: measurements stay in the canonical IOD frame. Each point is
+	// [x, y] exactly as returned; any further component is dropped. JSON null
+	// unless the worker returned all of them, each with finite x and y.
+	Landmarks  [][2]float64 `json:"landmarks"`
+	Provenance Provenance   `json:"provenance"`
+}
+
+// displayLandmarks returns m's landmarks as [x, y] pixels, or nil when they
+// are absent or unusable. Never a partial list: a drawing indexed by
+// landmark number must not silently shift.
+func displayLandmarks(pts [][]float64) [][2]float64 {
+	if len(pts) != measureclient.NLandmarks {
+		return nil
+	}
+	out := make([][2]float64, len(pts))
+	for i, p := range pts {
+		if len(p) < 2 || math.IsNaN(p[0]) || math.IsInf(p[0], 0) || math.IsNaN(p[1]) || math.IsInf(p[1], 0) {
+			return nil
+		}
+		out[i] = [2]float64{p[0], p[1]}
+	}
+	return out
 }
 
 // Interpret applies a loaded profile document to one measure response.
@@ -65,6 +89,7 @@ func Interpret(p *profile.FaceArchitectureProfile, doc *profile.Document, m *mea
 		Measurements:    []measureclient.Measurement{},
 		Classifications: map[string]classify.Result{},
 		Traits:          map[string]traits.Result{},
+		Landmarks:       displayLandmarks(m.Landmarks),
 		Provenance: Provenance{
 			Model:            m.Model,
 			CatalogueVersion: m.CatalogueVersion,
@@ -95,18 +120,26 @@ func Interpret(p *profile.FaceArchitectureProfile, doc *profile.Document, m *mea
 	}
 
 	for _, spec := range doc.Classifiers {
-		if reason := drift(doc, m, idx, spec.Keys()); reason != "" {
-			out.Classifications[spec.Key] = classify.Unavailable(reason)
-			continue
+		keys := spec.Keys()
+		var res classify.Result
+		if reason := drift(doc, m, idx, keys); reason != "" {
+			res = classify.Unavailable(reason)
+		} else {
+			res = classify.NewPrototype(spec).Classify(idx)
 		}
-		out.Classifications[spec.Key] = classify.NewPrototype(spec).Classify(idx)
+		res.Measurements = keys
+		out.Classifications[spec.Key] = res
 	}
 	for _, spec := range doc.Traits {
-		if reason := drift(doc, m, idx, spec.Keys()); reason != "" {
-			out.Traits[spec.Key] = traits.Unavailable(reason)
-			continue
+		keys := spec.Keys()
+		var res traits.Result
+		if reason := drift(doc, m, idx, keys); reason != "" {
+			res = traits.Unavailable(reason)
+		} else {
+			res = traits.Evaluate(spec, idx)
 		}
-		out.Traits[spec.Key] = traits.Evaluate(spec, idx)
+		res.Measurements = keys
+		out.Traits[spec.Key] = res
 	}
 	if doc.Guidance != nil {
 		out.Guidance = guidance.Resolve(doc.Guidance,
