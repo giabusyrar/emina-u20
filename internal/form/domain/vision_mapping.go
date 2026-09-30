@@ -46,10 +46,13 @@ type fieldMapping struct {
 
 // RulesetVisionSignals reads field_mapping out of a ruleset's raw JDM schema
 // and, for every dimension whose vision side names a vendor field also
-// present in vendorFields (already flattened by leaf key, health-space, high
-// = healthy), returns the concern-space (0 = healthy) value to send as that
-// dimension's vision_signals entry — inverted, because /evaluate's fusion
-// happens in concern space before the one health-space flip at the end.
+// present in vendorFields (already flattened by its full dot-path, e.g.
+// "inference_result.results.skin_scoring.Pores" — a bare leaf name is not
+// safe, the vendor repeats the same short name at more than one path with
+// different scales — health-space, high = healthy), returns the concern-space
+// (0 = healthy) value to send as that dimension's vision_signals entry —
+// inverted, because /evaluate's fusion happens in concern space before the
+// one health-space flip at the end.
 func RulesetVisionSignals(schema string, vendorFields map[string]float64) map[string]float64 {
 	var parsed struct {
 		FieldMapping map[string]fieldMapping `json:"field_mapping"`

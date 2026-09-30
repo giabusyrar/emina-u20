@@ -13,6 +13,8 @@ import (
 	"github.com/experience-gateway/apps/core-engine/internal/score/entity"
 	"github.com/experience-gateway/apps/core-engine/internal/score/jdm"
 	"github.com/experience-gateway/apps/core-engine/internal/score/repository"
+
+	formdomain "github.com/experience-gateway/apps/core-engine/internal/form/domain"
 )
 
 // The 0-100 score is HEALTH-oriented: 100 = optimal, 0 = critical. Per-dimension
@@ -121,6 +123,15 @@ func axisValuesFromScores(scores map[string]float64, bands []band, axisCodes map
 			}
 			continue
 		}
+		if len(axisCodes) > 0 {
+			// This ruleset explicitly registered which keys are real Baumann
+			// axes — a key it left out (e.g. pore_severity: a
+			// sub_classification input, not an axis) gets no letter at all
+			// here, rather than a meaningless one derived from generic Score
+			// Range bands that happens to change across evaluations with no
+			// real significance.
+			continue
+		}
 		label := bandLabel(v, bands)
 		letter := ""
 		if label != "" {
@@ -138,14 +149,34 @@ func isLegacyPerDimensionSchema(schema string) bool {
 	return strings.Contains(schema, "tiers.")
 }
 
+// surveyProvider is the one method EvaluateV2 needs from Form Engine's
+// SurveyService — a narrow interface so Score Engine depends on a contract,
+// not the concrete Form Engine service type.
+type surveyProvider interface {
+	GetSurvey(ctx context.Context, brandID, applicationID, code string) (*formdomain.SurveyModel, error)
+}
+
 type ScoreService struct {
-	repo repository.RulesetRepository
+	repo           repository.RulesetRepository
+	surveySvc      surveyProvider
+	visionRegistry *domain.VisionProviderRegistry
 }
 
 func NewScoreService(repo repository.RulesetRepository) *ScoreService {
 	return &ScoreService{
 		repo: repo,
 	}
+}
+
+// WithEvaluateV2Deps wires the unified evaluate endpoint's extra
+// dependencies (Form Engine's survey lookup, the vision provider registry)
+// onto an already-constructed ScoreService — kept separate from
+// NewScoreService so every existing caller of that constructor (tests, the
+// legacy Evaluate/Simulate paths) is unaffected.
+func (s *ScoreService) WithEvaluateV2Deps(surveySvc surveyProvider, visionRegistry *domain.VisionProviderRegistry) *ScoreService {
+	s.surveySvc = surveySvc
+	s.visionRegistry = visionRegistry
+	return s
 }
 
 // Evaluate processes questionnaire answers, fuses multi-modal signals, and runs JDM Decision Tables
@@ -619,7 +650,12 @@ func (s *ScoreService) DeleteRuleset(ctx context.Context, id string) error {
 	return s.repo.DeleteRuleset(ctx, id)
 }
 
-// Simulate runs a live evaluation simulation against an uncommitted JDM schema
+// Simulate runs a live evaluation against an uncommitted JDM schema — it
+// feeds its slider inputs straight into stage2Score (the exact same fusion,
+// health-flip, axis-letter and JDM logic the real evaluate endpoint uses),
+// converting only the input shape (health-space sliders -> concern space)
+// beforehand. This guarantees the Simulator can never drift from what a real
+// evaluate call would compute for the same numbers.
 func (s *ScoreService) Simulate(ctx context.Context, req entity.RulesetSimulationRequest) (*entity.RulesetSimulationResponse, error) {
 	if req.Schema == "" {
 		return &entity.RulesetSimulationResponse{
@@ -629,93 +665,50 @@ func (s *ScoreService) Simulate(ctx context.Context, req entity.RulesetSimulatio
 	}
 
 	start := time.Now()
-	runner, err := jdm.NewRunner(req.Schema)
-	if err != nil {
+	if _, err := jdm.NewRunner(req.Schema); err != nil {
 		return &entity.RulesetSimulationResponse{
 			Success: false,
 			Error:   fmt.Sprintf("Compilation error: %v", err),
 		}, nil
 	}
 
-	// Mirror Evaluate's grading derivation so the Simulator shows the same
-	// Score Range / Severity Level / Skin Concern the real pipeline would.
-	var meta struct {
-		DimensionWeights map[string]float64  `json:"dimension_weights"`
-		ScoreRangeBands  []band              `json:"score_range_bands"`
-		SeverityBands    []band              `json:"severity_bands"`
-		ConcernLabels    map[string]string   `json:"concern_labels"`
-		AxisCodes        map[string]axisCode `json:"axis_codes"`
+	meta := parseRulesetMeta(req.Schema)
+	ruleset := &entity.ScoreRuleset{Schema: req.Schema, Code: "simulation", Version: 0}
+
+	formConcern := make(map[string]float64, len(req.FormScores))
+	for k, healthVal := range req.FormScores {
+		formConcern[strings.ToLower(k)] = clamp100(100.0 - healthVal)
 	}
-	_ = json.Unmarshal([]byte(req.Schema), &meta)
-	scoreRangeBands := meta.ScoreRangeBands
-	if len(scoreRangeBands) == 0 {
-		scoreRangeBands = defaultScoreRangeBands
-	}
-	severityBands := meta.SeverityBands
-	if len(severityBands) == 0 {
-		severityBands = defaultSeverityBands
+	visionConcern := make(map[string]float64, len(req.VisionScores))
+	for k, healthVal := range req.VisionScores {
+		visionConcern[strings.ToLower(k)] = clamp100(100.0 - healthVal)
 	}
 
-	var totalScore float64
-	if len(req.DimensionScores) > 0 {
-		var ws, wt float64
-		for k, v := range req.DimensionScores {
-			w := 1.0
-			if mw, ok := meta.DimensionWeights[strings.ToLower(k)]; ok && mw > 0 {
-				w = mw
+	// Age slider: reuse the real AgeOverThirty via a synthetic DOB (born
+	// exactly req.AgeYears years ago today) rather than re-deriving the <=30
+	// comparison a second time.
+	if req.AgeYears != nil {
+		dob := syntheticDOBFromAge(*req.AgeYears, time.Now())
+		if overThirty, err := formdomain.AgeOverThirty(dob, time.Now()); err == nil {
+			ageConcern := 0.0
+			if overThirty {
+				ageConcern = 100.0
 			}
-			ws += v * w
-			wt += w
-		}
-		if wt > 0 {
-			totalScore = math.Round((ws/wt)*10.0) / 10.0
-		}
-	}
-
-	scoreRange := bandLabel(totalScore, scoreRangeBands)
-	severityLevel := bandLabel(totalScore, severityBands)
-	optimalFloor := optimalFloorOf(scoreRangeBands)
-	primaryConcern := map[string]interface{}{}
-	var concernOut map[string]interface{}
-	if len(req.DimensionScores) > 0 {
-		worstDim, worstScore := "", 101.0
-		for k, v := range req.DimensionScores {
-			if v < worstScore {
-				worstScore, worstDim = v, k
-			}
-		}
-		if worstDim != "" && worstScore < optimalFloor {
-			concernOut = map[string]interface{}{
-				"dimension": worstDim,
-				"label":     concernLabel(worstDim, meta.ConcernLabels),
-				"score":     worstScore,
-			}
-			primaryConcern = map[string]interface{}{
-				"dimension": worstDim,
-				"label":     concernLabel(worstDim, meta.ConcernLabels),
-				"score":     worstScore,
-				"severity":  bandLabel(worstScore, severityBands),
+			for dimKey, fm := range meta.FieldMapping {
+				if fm.Form == "age_over_30" {
+					formConcern[strings.ToLower(dimKey)] = ageConcern
+				}
 			}
 		}
 	}
 
-	evalContext := map[string]interface{}{
-		"dimension_scores":   req.DimensionScores,
-		"vision_signals":     req.VisionSignals,
-		"customer_condition": req.CustomerCondition,
-		"total_score":        totalScore,
-		"score_range":        scoreRange,
-		"severity_level":     severityLevel,
-		"primary_concern":    primaryConcern,
-		"axis_values":        axisValuesFromScores(req.DimensionScores, scoreRangeBands, meta.AxisCodes),
-	}
-	if isLegacyPerDimensionSchema(req.Schema) {
-		delete(evalContext, "axis_values")
-	}
-
-	evalResult, err := runner.Evaluate(evalContext)
+	out, err := s.stage2Score(ctx, stage2Input{
+		Ruleset:           ruleset,
+		FormConcern:       formConcern,
+		VisionConcern:     visionConcern,
+		CustomerCondition: req.CustomerCondition,
+	})
 	duration := time.Since(start)
-
 	if err != nil {
 		return &entity.RulesetSimulationResponse{
 			Success: false,
@@ -723,19 +716,21 @@ func (s *ScoreService) Simulate(ctx context.Context, req entity.RulesetSimulatio
 		}, nil
 	}
 
-	if evalResult == nil {
-		evalResult = map[string]interface{}{}
+	result := map[string]interface{}{
+		"total_score":  out.TotalScore,
+		"dimensions":   out.Dimensions,
+		"skin_profile": out.SkinProfile,
 	}
-	evalResult["total_score"] = totalScore
-	evalResult["score_range"] = scoreRange
-	evalResult["severity_level"] = severityLevel
-	if concernOut != nil {
-		evalResult["skin_concern"] = concernOut
+	if len(out.SubClassification) > 0 {
+		result["sub_classification"] = out.SubClassification
+	}
+	if len(out.Warnings) > 0 {
+		result["warnings"] = out.Warnings
 	}
 
 	return &entity.RulesetSimulationResponse{
 		Success:     true,
 		Performance: fmt.Sprintf("%v", duration),
-		Result:      evalResult,
+		Result:      result,
 	}, nil
 }

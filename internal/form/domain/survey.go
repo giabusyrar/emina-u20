@@ -29,6 +29,7 @@ type SurveyQuestion struct {
 	InputType  string            `json:"inputType,omitempty"` // for type "text": number, email, date
 	Name       string            `json:"name"`                // unique field key
 	Title      string            `json:"title"`
+	IsRequired bool              `json:"isRequired,omitempty"`
 	VisibleIf  string            `json:"visibleIf,omitempty"`
 	Dimension  *string           `json:"dimension,omitempty"`
 	Scale      *SurveyScale      `json:"scale,omitempty"`

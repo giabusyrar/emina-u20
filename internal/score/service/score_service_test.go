@@ -309,7 +309,7 @@ func TestScoreService_Simulate(t *testing.T) {
 
 	simReq := entity.RulesetSimulationRequest{
 		Schema: testBaumannJDM,
-		DimensionScores: map[string]float64{
+		FormScores: map[string]float64{
 			"sebum":        80.0,
 			"sensitivity":  70.0,
 			"pigmentation": 60.0,

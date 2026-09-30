@@ -27,6 +27,8 @@ import (
 	// Score Engine
 	scoreCache "github.com/experience-gateway/apps/core-engine/internal/score/adapters/cache"
 	scoreControllers "github.com/experience-gateway/apps/core-engine/internal/score/adapters/controllers"
+	scoreVisionProvider "github.com/experience-gateway/apps/core-engine/internal/score/adapters/visionprovider"
+	scoreDomain "github.com/experience-gateway/apps/core-engine/internal/score/domain"
 	scoreEntity "github.com/experience-gateway/apps/core-engine/internal/score/entity"
 	scoreRepo "github.com/experience-gateway/apps/core-engine/internal/score/repository"
 	scoreService "github.com/experience-gateway/apps/core-engine/internal/score/service"
@@ -117,6 +119,14 @@ func run() error {
 	fService := formService.NewSurveyService(fRepo, formC, scoreEngine, paradevClient)
 	formHandler := formControllers.NewSurveyHandler(fService)
 
+	// Unified evaluate (Fase 3+4): Score Engine now owns the whole evaluate
+	// pipeline, reaching into Form Engine's survey lookup and a vision
+	// provider registry — currently just Paradev, wrapped around the same
+	// visionclient.Client the pre-Fase-5 form-engine orchestration still uses.
+	visionProviderRegistry := scoreDomain.NewVisionProviderRegistry(scoreVisionProvider.NewParadev(paradevClient))
+	sService.WithEvaluateV2Deps(fService, visionProviderRegistry)
+	evaluateV2Handler := scoreControllers.NewEvaluateV2Handler(sService)
+
 	// Match Engine
 	matchC := matchCache.NewMatchCache(rdb, cfg.MatchCacheTTL)
 	mRepo := matchRepo.NewMatchRepo(db, matchC)
@@ -203,6 +213,7 @@ func run() error {
 	mountScoreRoutes := func(g *echo.Group) {
 		g.GET("/health", health)
 		g.POST("/evaluate", scoreHandler.Evaluate)
+		g.POST("/evaluate/:code", evaluateV2Handler.Evaluate)
 		g.POST("/simulate", scoreHandler.Simulate)
 		g.GET("/rulesets", scoreHandler.ListRulesets)
 		g.GET("/rulesets/active", scoreHandler.GetActiveRuleset)

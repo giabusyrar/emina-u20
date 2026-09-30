@@ -170,6 +170,42 @@ var choiceTypeSingle = map[string]bool{
 	"radiogroup": true, "dropdown": true, "buttongroup": true, "imagepicker": true,
 }
 
+// isAnswerEmpty reports whether a submitted answer value counts as "not
+// answered" for isRequired purposes — an absent key, nil, an empty string, or
+// an empty slice (checkbox/tagbox/ranking with nothing selected).
+func isAnswerEmpty(v interface{}) bool {
+	if v == nil {
+		return true
+	}
+	switch t := v.(type) {
+	case string:
+		return t == ""
+	case []interface{}:
+		return len(t) == 0
+	default:
+		return false
+	}
+}
+
+// ValidateRequiredAnswers checks every question the schema marks isRequired
+// has a non-empty answer in answers, collecting every violation rather than
+// failing on the first one. Callers only run this when answers were actually
+// submitted at all (data is optional on a vision-only evaluate call) — an
+// empty/omitted data payload is not itself a validation failure here.
+func ValidateRequiredAnswers(survey *SurveyModel, answers map[string]interface{}) *ValidationErrors {
+	verrs := &ValidationErrors{}
+	for _, q := range survey.GetAllQuestions() {
+		if !q.IsRequired {
+			continue
+		}
+		v, ok := answers[q.Name]
+		if !ok || isAnswerEmpty(v) {
+			verrs.Add(fmt.Sprintf("%s is required", q.Name))
+		}
+	}
+	return verrs
+}
+
 // ExtractEvaluationData extracts AnswerList, DimensionRefs, and CustomerConditions from survey answers.
 //
 // It resolves per-answer scores per dimension and tags each DimensionRef with the
@@ -177,7 +213,7 @@ var choiceTypeSingle = map[string]bool{
 // "sum"); the Score Module performs the actual aggregation. Supported question
 // types: radiogroup, dropdown, buttongroup, imagepicker, checkbox, tagbox,
 // ranking, boolean, rating, slider, and text(number).
-func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) ([]AnswerEntry, []DimensionRef, map[string]bool, map[string][]string, error) {
+func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) ([]AnswerEntry, []DimensionRef, map[string]bool, map[string]interface{}, error) {
 	questions := survey.GetAllQuestions()
 	questionsByName := make(map[string]SurveyQuestion, len(questions))
 	for _, q := range questions {
@@ -233,6 +269,7 @@ func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) 
 			}
 			minScore, maxScore := scaleBounds(q)
 			answerList = append(answerList, AnswerEntry{
+				Question: q.Name,
 				Answer:   ch.Text,
 				Score:    score,
 				MinScore: minScore,
@@ -278,10 +315,13 @@ func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) 
 		}
 	}
 
-	for name, ansVal := range answers {
-		q, ok := questionsByName[name]
+	// Iterate questions in SCHEMA order, not answers map order — Go map
+	// iteration is randomized, which was silently shuffling answer_list on
+	// every single call.
+	for _, q := range questions {
+		ansVal, ok := answers[q.Name]
 		if !ok {
-			continue // answer not in schema
+			continue // this question wasn't answered
 		}
 
 		switch {
@@ -311,6 +351,7 @@ func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) 
 				maxScore = 1
 			}
 			answerList = append(answerList, AnswerEntry{
+				Question: q.Name,
 				Answer:   fmt.Sprintf("%t", b),
 				Score:    score,
 				MinScore: minScore,
@@ -337,6 +378,7 @@ func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) 
 						score = *q.Columns[i].Score
 					}
 					answerList = append(answerList, AnswerEntry{
+						Question: q.Name,
 						Answer:   q.Columns[i].Text,
 						Score:    score,
 						MinScore: minScore,
@@ -355,6 +397,7 @@ func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) 
 			}
 			minScore, maxScore := scaleBounds(q)
 			answerList = append(answerList, AnswerEntry{
+				Question: q.Name,
 				Answer:   fmt.Sprintf("%d", score),
 				Score:    score,
 				MinScore: minScore,
@@ -385,5 +428,20 @@ func ExtractEvaluationData(survey *SurveyModel, answers map[string]interface{}) 
 		})
 	}
 
-	return answerList, dimensionRefs, customerCondition, labels, nil
+	// A label is a plain string for a question that can only ever have one
+	// selected answer (radiogroup, dropdown, boolean, a single number, ...)
+	// — e.g. Q6's main concern is one string, not a one-element array. It
+	// stays a list only for a question type that can genuinely carry more
+	// than one value (checkbox, tagbox, ranking, matrix).
+	out := make(map[string]interface{}, len(labels))
+	for qName, values := range labels {
+		q := questionsByName[qName]
+		if choiceTypeMulti[q.Type] || q.Type == "matrix" {
+			out[qName] = values
+		} else if len(values) > 0 {
+			out[qName] = values[0]
+		}
+	}
+
+	return answerList, dimensionRefs, customerCondition, out, nil
 }

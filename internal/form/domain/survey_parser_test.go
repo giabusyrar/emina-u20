@@ -236,3 +236,38 @@ func TestExtractEvaluationData_TheoreticalBounds(t *testing.T) {
 		t.Errorf("dark_spot bounds: want [0, 1], got [%d, %d]", got["dark_spot"].MinScore, got["dark_spot"].MaxScore)
 	}
 }
+
+func TestValidateRequiredAnswers(t *testing.T) {
+	schema := []byte(`{
+		"title": "t", "code": "c",
+		"pages": [{"name": "page1", "elements": [
+			{"type": "checkbox", "name": "q1", "isRequired": true, "choices": [{"value": "a", "text": "A"}]},
+			{"type": "radiogroup", "name": "q2", "isRequired": true, "choices": [{"value": "yes", "text": "Ya"}]},
+			{"type": "checkbox", "name": "q3", "choices": [{"value": "x", "text": "X"}]}
+		]}]
+	}`)
+	model, err := domain.ParseSurveySchema(schema)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	cases := []struct {
+		name    string
+		answers map[string]interface{}
+		wantErr bool
+	}{
+		{"all required answered", map[string]interface{}{"q1": []interface{}{"a"}, "q2": "yes"}, false},
+		{"q1 missing entirely", map[string]interface{}{"q2": "yes"}, true},
+		{"q1 present but empty selection", map[string]interface{}{"q1": []interface{}{}, "q2": "yes"}, true},
+		{"q2 present but empty string", map[string]interface{}{"q1": []interface{}{"a"}, "q2": ""}, true},
+		{"q3 (not required) never blocks", map[string]interface{}{"q1": []interface{}{"a"}, "q2": "yes"}, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			verrs := domain.ValidateRequiredAnswers(model, tc.answers)
+			if verrs.HasErrors() != tc.wantErr {
+				t.Errorf("HasErrors() = %v, want %v (errors: %v)", verrs.HasErrors(), tc.wantErr, verrs.Errors)
+			}
+		})
+	}
+}
