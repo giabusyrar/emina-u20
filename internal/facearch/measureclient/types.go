@@ -1,6 +1,6 @@
-// Package measureclient calls the ai-worker's face-measure endpoints
-// (vision profile) and mirrors their JSON. The contract is the ai-worker's
-// ai_worker/vision/schemas/face_measure.py and routers/face_measure.py
+// Package measureclient calls the face worker's face-measure endpoints
+// and mirrors their JSON. The contract is the face worker's
+// worker_face/schemas.py and routers/face_measure.py
 // (docs/FACE-MEASURE.md). Field names, order and nullability here follow
 // those Pydantic models exactly; do not add fields the worker does not send.
 package measureclient
@@ -11,7 +11,7 @@ import (
 	"fmt"
 )
 
-// Paths on the ai-worker (vision profile).
+// Paths on the face worker.
 const (
 	MeasurePath   = "/api/v1/face-measure"
 	CataloguePath = "/api/v1/face-measure/catalogue"

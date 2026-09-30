@@ -12,8 +12,8 @@ import (
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
 )
 
-// Frame is the ai-worker's canonical frame, rebuilt from the landmarks it
-// returned (apps/ai-worker/ai_worker/vision/facegeom/frame.py,
+// Frame is the face worker's canonical frame, rebuilt from the landmarks it
+// returned (apps/workers/face/worker_face/facegeom/frame.py,
 // canonicalise): origin at the midpoint of the two eye centres, an eye
 // centre being the midpoint of that eye's two corners; rotated so the eye
 // line is horizontal; lengths in eye-centre distances (IOD); +x toward the
