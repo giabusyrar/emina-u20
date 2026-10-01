@@ -76,6 +76,11 @@ const (
 	DefaultS3PresignTTL = 15 * time.Minute
 )
 
+// DefaultAssessmentListMaxLimit caps how many stored assessments one list
+// request returns (and is the size when the caller gives no limit). Policy,
+// not a measurement: it bounds response size for the dashboard's records view.
+const DefaultAssessmentListMaxLimit int64 = 200
+
 // defaultCORSAllowHeaders is what core-engine allowed before standardization.
 var defaultCORSAllowHeaders = []string{"*"}
 
@@ -129,6 +134,8 @@ type Config struct {
 	VisionDAGTimeout       time.Duration
 	SegmenterTimeout       time.Duration
 	FaceMeasureTimeout     time.Duration
+
+	AssessmentListMaxLimit int64
 }
 
 // Load reads .env files (see goplatform.LoadDotEnv), then the environment.
@@ -193,6 +200,9 @@ func FromEnv() (*Config, error) {
 		return nil, err
 	}
 	if cfg.ColourDebugEnabled, err = boolean("COLOUR_DEBUG_ENABLED", false); err != nil {
+		return nil, err
+	}
+	if cfg.AssessmentListMaxLimit, err = positiveInt64("ASSESSMENT_LIST_MAX_LIMIT", DefaultAssessmentListMaxLimit); err != nil {
 		return nil, err
 	}
 	return cfg, nil

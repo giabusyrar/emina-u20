@@ -45,9 +45,22 @@ type SkinGradingTier struct {
 	Severity     string  `json:"severity"`   // mild, moderate, severe, critical
 }
 
+// Warning explains something the caller should know about a result that
+// still succeeded, e.g. that it could not be stored.
+type Warning struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// WarningAssessmentNotSaved: the evaluation succeeded but its record could
+// not be written to customer_assessments.
+const WarningAssessmentNotSaved = "ASSESSMENT_NOT_SAVED"
+
 // EvaluationOutput is the unified diagnostic response shape returned by
-// POST /v1/survey/:code/evaluate. Evaluation itself is stateless; persistence
-// of the submission belongs to the Gateway Assessment layer.
+// POST /v1/survey/:code/evaluate. Scoring itself is stateless; the HTTP
+// handler stores each successful result as a customer assessment
+// (internal/assessment) and reports the stored id, or a warning if storing
+// failed.
 type EvaluationOutput struct {
 	Success            bool                   `json:"success"`
 	Code               string                 `json:"code"`
@@ -77,6 +90,10 @@ type EvaluationOutput struct {
 	// tagbox, ranking, matrix).
 	Labels      map[string]interface{} `json:"labels,omitempty"`
 	EvaluatedAt string                 `json:"evaluated_at,omitempty"`
+	// AssessmentID is the customer_assessments row this result was stored
+	// as. Empty when it was not stored (see Warnings).
+	AssessmentID string    `json:"assessment_id,omitempty"`
+	Warnings     []Warning `json:"warnings,omitempty"`
 }
 
 // ScoreModuleRequest is what the Form Module forwards to the Score

@@ -1,9 +1,13 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 
@@ -13,12 +17,45 @@ import (
 	"github.com/experience-gateway/packages/goplatform"
 )
 
+// AssessmentRecorder stores a successful evaluation as a customer assessment
+// and returns the stored record's id.
+type AssessmentRecorder interface {
+	Record(ctx context.Context, out *domain.EvaluationOutput, visionSignals map[string]float64, elapsed time.Duration) (string, error)
+}
+
 type SurveyHandler struct {
 	surveyService *service.SurveyService
+	recorder      AssessmentRecorder
 }
 
 func NewSurveyHandler(surveyService *service.SurveyService) *SurveyHandler {
 	return &SurveyHandler{surveyService: surveyService}
+}
+
+// WithRecorder makes the evaluate endpoints store every successful result.
+func (h *SurveyHandler) WithRecorder(r AssessmentRecorder) *SurveyHandler {
+	h.recorder = r
+	return h
+}
+
+// record stores out and reports the outcome on out itself: the stored id, or
+// an ASSESSMENT_NOT_SAVED warning. The evaluation is still returned when
+// storing fails; the caller is told rather than handed an error for a result
+// that was computed correctly.
+func (h *SurveyHandler) record(ctx context.Context, out *domain.EvaluationOutput, visionSignals map[string]float64, started time.Time) {
+	if h.recorder == nil || out == nil {
+		return
+	}
+	id, err := h.recorder.Record(ctx, out, visionSignals, time.Since(started))
+	if err != nil {
+		slog.ErrorContext(ctx, "store customer assessment", "code", out.Code, "brand_id", out.BrandID, "error", err)
+		out.Warnings = append(out.Warnings, domain.Warning{
+			Code:    domain.WarningAssessmentNotSaved,
+			Message: fmt.Sprintf("The evaluation succeeded but was not stored: %v", err),
+		})
+		return
+	}
+	out.AssessmentID = id
 }
 
 func (h *SurveyHandler) Get(c echo.Context) error {
@@ -94,6 +131,7 @@ func (h *SurveyHandler) Evaluate(c echo.Context) error {
 		return goplatform.JSONError(c, http.StatusBadRequest, "invalid request body")
 	}
 
+	started := time.Now()
 	out, err := h.surveyService.Evaluate(c.Request().Context(), code, req)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
@@ -106,6 +144,7 @@ func (h *SurveyHandler) Evaluate(c echo.Context) error {
 		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
+	h.record(c.Request().Context(), out, req.VisionSignals, started)
 	return c.JSON(http.StatusOK, out)
 }
 
@@ -150,6 +189,7 @@ func (h *SurveyHandler) EvaluateWithPhotos(c echo.Context) error {
 	}
 	defer file.Close()
 
+	started := time.Now()
 	out, err := h.surveyService.EvaluateWithPhotos(c.Request().Context(), code, req, file, fileHeader.Filename)
 	if err != nil {
 		if errors.Is(err, domain.ErrVisionUnavailable) {
@@ -165,5 +205,6 @@ func (h *SurveyHandler) EvaluateWithPhotos(c echo.Context) error {
 		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
+	h.record(c.Request().Context(), out.EvaluationOutput, out.VisionSignalsUsed, started)
 	return c.JSON(http.StatusOK, out)
 }
