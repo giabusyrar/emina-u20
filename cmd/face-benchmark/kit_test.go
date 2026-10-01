@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/benchmark"
+	"github.com/experience-gateway/apps/core-engine/internal/facearch/facearchtest"
 	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
 )
 
@@ -80,4 +81,49 @@ func TestKitCSVTemplatesHaveTheRequiredHeaders(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, header, strings.TrimSpace(string(raw)), file)
 	}
+}
+
+// perfectCorpFacialRatioFields is every results.facialratio field of
+// Perfect Corp's face-attr-analysis task (the OpenAPI document cited in the
+// map): the Make Over map must compare or list each one.
+var perfectCorpFacialRatioFields = []string{
+	"horizontal_third", "vertical_fifth", "face_aspect_ratio",
+	"left_eye_aspect_ratio", "right_eye_aspect_ratio",
+	"left_eyebrow_arch_to_eyebrow_width", "right_eyebrow_arch_to_eyebrow_width",
+	"left_eye_height_to_eyebrow_distance", "right_eye_height_to_eyebrow_distance", "overall_eye_height_to_eyebrow_distance",
+	"nose_aspect_ratio", "nose_width_to_mouth_width", "nose_to_lip_to_chin", "upper_lip_to_lower_lip",
+}
+
+func TestKitMakeOverMeasureMap(t *testing.T) {
+	m, err := benchmark.ReadMeasureMap(filepath.Join(kitDir, "measure-map.makeover.json"))
+	require.NoError(t, err)
+	assert.Equal(t, benchmark.SourceMakeover, m.Source)
+	cat := facearchtest.Catalogue()
+	assert.Equal(t, cat.CatalogueVersion, m.CatalogueVersion)
+	require.NoError(t, m.CheckShapes(cat))
+	covered := map[string]bool{}
+	for _, c := range m.Comparisons {
+		for _, k := range c.Ours {
+			_, ok := cat.Entry(k)
+			assert.True(t, ok, "%s: %s must be in the catalogue (the shipped map has no stale keys)", c.Name, k)
+		}
+		for _, v := range c.Vendor {
+			covered[v] = true
+		}
+		if c.Transform == benchmark.TransformInverse || c.Transform == benchmark.TransformIdentity {
+			assert.Contains(t, c.Note, "ASSUMED", "%s: the [1, x] direction must say it is an assumption", c.Name)
+		}
+	}
+	for v := range m.Unused {
+		covered[v] = true
+	}
+	assert.ElementsMatch(t, perfectCorpFacialRatioFields, keysOf(covered))
+}
+
+func keysOf(m map[string]bool) []string {
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	return out
 }
