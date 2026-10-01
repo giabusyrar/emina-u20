@@ -1,14 +1,14 @@
-# The plug-and-play model registry
+# The plug-and-play model registry (model server)
 
-> ## Deploying this is one-way: do not roll the worker back
+> ## Deploying this is one-way: do not roll the model server back
 >
 > This release drops the `vision_models_capability_code_key` unique
-> constraint (`app/db.py`, last statement in `SCHEMA_STATEMENTS`), because the
+> constraint (`worker_models/db.py`, last statement in `SCHEMA_STATEMENTS`), because the
 > library needs more than one row per capability. The **previous** release's
 > `upsert_model` inserted with `ON CONFLICT (capability_code)`, which needs
 > exactly that constraint. Once this release has run its migration:
 >
-> - Rolling the worker back to the previous release makes **every upload
+> - Rolling the model server back to the previous release makes **every upload
 >   fail** with `there is no unique or exclusion constraint matching the ON
 >   CONFLICT specification`. Reads, dispatch and scoring keep working; only
 >   uploads break.
@@ -20,15 +20,76 @@
 >   and recreating it on a library that happens not to have duplicates yet
 >   would break the next upload instead.
 >
-> Treat a deploy of this worker as a forward-only migration and plan the
+> Treat a deploy of this server as a forward-only migration and plan the
 > rollback as roll-forward. Same note, from the schema side, in
 > `docs/SHARED-DATABASE.md`.
 
-Lives in `apps/workers/skin`. Design background:
+Lives in `apps/workers/models` (the model server, `worker-models`, port 8096; it was part of the skin worker until the model-server split). Design background for the server itself: `docs/superpowers/specs/2026-10-01-model-server-design.md`. Registry design:
 `docs/superpowers/specs/2026-09-26-plug-and-play-model-registry-design.md`
 (read that for the *why*; this document is the *what's actually running*, and
 corrects the design doc's own claims where implementation proved them wrong —
 those corrections are called out inline there too).
+
+## The model server: where it runs and how models load
+
+The registry and ONNX inference run in their own service, `worker-models`
+(`apps/workers/models`, package `worker_models`), on **port 8096**. The
+`/api/v1/models/*` routes and their request and response bodies are unchanged
+from when they lived in the skin worker. Callers differ:
+
+- **core-engine** reaches it at `MODEL_SERVER_URL` (default
+  `http://127.0.0.1:8096`; compose sets `http://worker-models:8096`) for
+  capability dispatch only. The skin worker keeps segment-and-pose alone, on
+  `SKIN_WORKER_URL`, and its `/health` has no checks any more.
+- **Seagull-web** (model-registry pages, orchestrator) must target the model
+  server, not the skin worker. That change is reported in
+  `../Seagull-web/docs/REPORT-SEAGULL-CORE-WORKERS-SPLIT.md`, section 5.
+
+Environment names changed, with no fallback: `SKIN_MODEL_STORAGE_DIR` is now
+`MODEL_STORAGE_DIR` (local storage root when S3 is not configured) and
+`SKIN_WORKER_PUBLIC_URL` is now `MODEL_SERVER_PUBLIC_URL` (base URL of local
+download links). Both the model server and the skin worker refuse to start
+while the old names are set (`REMOVED_ENV` in `worker_models/main.py` and the
+skin worker). `MODEL_MAX_FILE_BYTES`, `MODEL_MAX_SMOKE_LATENCY_MS`,
+`MODEL_CACHE_MAX_BYTES`, `MODEL_LIBRARY_WARN_BYTES` and
+`MODEL_SCHEMA_LOCK_TIMEOUT_SECONDS` keep their names.
+
+### Storage and the disk cache
+
+S3 is the source of truth for model files. The server keeps a cache of them
+on disk, `MODEL_CACHE_DIR` (image: `/app/data/model-cache`, the compose named
+volume `model-cache`), one file per model named `<sha256>.onnx`
+(`worker_models/cache.py`). A cached file is used only after its hash matches
+the model's recorded SHA-256, so a restart or redeploy downloads nothing.
+`MODEL_DISK_CACHE_MAX_BYTES` (default 20 GB, policy) bounds the cache; the
+least recently used files are evicted first, and a file backing a bound model
+is never evicted. Orphaned `*.part` files from an interrupted write are
+deleted once they are older than an hour.
+
+The hash lives in a new `vision_models.sha256` column (additive, see
+`docs/SHARED-DATABASE.md`). New uploads record it; a legacy row without one
+gets it on first fetch.
+
+### Preload, load-on-bind, and failure
+
+- **Preload.** Every bound model is loaded at start (`worker_models/preload.py`),
+  before `/health` is ready, so no request waits on a download or a session
+  build. The in-memory session cache is bounded by `MODEL_CACHE_MAX_BYTES`.
+- **Bind loads first.** `PUT /capabilities/{code}/binding` loads the model
+  before moving the pointer. If it cannot load, the answer is 503 and the
+  binding is unchanged.
+- **`/health`.** Besides `database`, it lists one informational
+  `model:<capability>` entry per bound capability: `up`, or
+  `unavailable: <reason>`. An unloadable model degrades its capability, not
+  the service.
+- **Dispatch.** A capability whose model cannot be loaded is reported per
+  capability in `unsupportedCapabilities` (dispatch-zones, per zone) and in
+  the optional response field `unavailableCapabilities` (`{capability:
+  reason}`, on dispatch-zones and dispatch-capabilities); the other
+  requested capabilities still score. The answer is 503 only when nothing
+  requested can be served. It is never scored as zero.
+- **Retry.** A failed model is retried on later requests no more often than
+  every `MODEL_RETRY_INTERVAL_SECONDS` (default 30).
 
 ## What the registry is
 
@@ -61,7 +122,7 @@ capability is still bound to it.
 ## The runtime spec
 
 Stored per model in `vision_models.runtime_spec` (JSONB), parsed by
-`app/models/spec.py`. It declares how to feed the model and how to read what
+`worker_models/models/spec.py`. It declares how to feed the model and how to read what
 comes back. Field names follow DeepStream's `nvinfer` vocabulary
 (`netScaleFactor`, `offsets`, `colorFormat`) so they mean what a vision
 engineer already expects.
@@ -88,16 +149,16 @@ engineer already expects.
 `input.width` and `input.height` are **optional when `input.embedded` is
 `true`, and required otherwise.** `embedded: true` means the model was built
 with its own preprocessing baked into the graph (for example via
-`onnxruntime-extensions`); the worker then passes the encoded image bytes
+`onnxruntime-extensions`); the server then passes the encoded image bytes
 through untouched, and declaring any other `input` field alongside
 `embedded: true` is rejected as a contradiction rather than silently ignored.
 
 ### Output kinds and their fields
 
-Each kind is an adapter in `app/models/adapters.py`. An adapter turns raw
+Each kind is an adapter in `worker_models/models/adapters.py`. An adapter turns raw
 output tensors into `{capability_code: severity 0-100}` — the same currency
-`dispatch-zones` has always returned, so nothing downstream of the worker
-changes. `SEVERITY_SCALE = 100.0` is defined once, in `app/models/spec.py`,
+`dispatch-zones` has always returned, so nothing downstream of the server
+changes. `SEVERITY_SCALE = 100.0` is defined once, in `worker_models/models/spec.py`,
 as the contract with core-engine — not a tunable.
 
 | Kind | Fields | Produces |
@@ -127,7 +188,7 @@ batched slicing is not safe for them: a common NMS export for detection runs
 across the whole batch and emits one `[total_detections, 6]` tensor with a
 batch-index column (row *i* is not image *i*), and a segmentation head can
 similarly apply batch-level post-processing. Enforced in
-`app/models/model_registry.py` (`_BATCHABLE_OUTPUT_KINDS`).
+`worker_models/models/model_registry.py` (`_BATCHABLE_OUTPUT_KINDS`).
 
 Measured (`.superpowers/sdd/2026-09-26-plug-and-play-model-registry/task-11-report.md`),
 median latency for 8 crops:
@@ -164,7 +225,7 @@ library.
 
 ### Validation, and what each failure code means
 
-Validation runs before anything is stored, in `app/models/validation.py`
+Validation runs before anything is stored, in `worker_models/models/validation.py`
 (`validate_upload`), and rejects rather than adapts:
 
 - **400 — malformed request.** Missing `capability`, a non-`.onnx` filename,
@@ -179,7 +240,7 @@ Validation runs before anything is stored, in `app/models/validation.py`
   `activate` names a capability this model's spec does not `produce`.
 - **503 — storage or database down.** The model file couldn't be written to
   object storage, or the library row couldn't be inserted. If the row insert
-  fails after the file was already stored, the worker tries to delete the
+  fails after the file was already stored, the server tries to delete the
   orphaned object and says so in the error either way (cleanup succeeded or
   also failed) — it never leaves a silent dangling object unmentioned.
 
@@ -229,7 +290,7 @@ why. A caller that only checks the HTTP status code will miss this — check
   the 12th." Never read by the scoring path itself.
 
 Every bind or unbind is written to the activation log in the same
-transaction as the binding change (`app/db.py`, `set_binding` /
+transaction as the binding change (`worker_models/db.py`, `set_binding` /
 `clear_binding`), so the two never drift apart.
 
 ## Editing a model row, and what a spec change implies
@@ -245,7 +306,7 @@ transaction as the binding change (`app/db.py`, `set_binding` /
   and then silently scoring nothing, forever).
 - **409** if the new spec drops a capability this model is *currently bound
   for*. The response names the capability. Bind it to another model, or
-  unbind it, and retry — the worker will not quietly leave a live binding
+  unbind it, and retry — the server will not quietly leave a live binding
   pointing at a model that cannot serve it.
 - `applicableZones` distinguishes "omitted" (leave the stored scoping alone)
   from "explicitly sent" — an explicit `null`, an empty list, or a list of
@@ -283,7 +344,7 @@ not deleted — a transient storage failure is not a deregistration.
 
 ## The four limits
 
-Env config, read through `app/config.py`, never literals at call sites:
+Env config, read through `worker_models/config.py`, never literals at call sites:
 
 | Env var | Default | Why |
 |---|---|---|
@@ -311,15 +372,15 @@ silently letting a slow model through unremarked.
 ## Legacy rows
 
 A row with `runtime_spec = NULL` is a pre-existing model, from before this
-spec existed. It runs under `LEGACY_SPEC` (`app/models/spec.py`) — 224x224
+spec existed. It runs under `LEGACY_SPEC` (`worker_models/models/spec.py`) — 224x224
 RGB, NCHW, scale 1/255, no offsets, single `severity_scalar` output for its
 own `capability_code` — expressed as an explicit default spec in code, not as
 a separate branch. There is one dispatch code path for legacy and declared
-rows alike (`_spec_for` in `app/routers/models.py`).
+rows alike (`_spec_for` in `worker_models/routers/models.py`).
 
 ## Schema migration: concurrent startup, and reporting a failure
 
-`app/db.py`'s `init_pool` applies the whole statement list (`SCHEMA_STATEMENTS`
+`worker_models/db.py`'s `init_pool` applies the whole statement list (`SCHEMA_STATEMENTS`
 — the registry's tables, the bindings backfill, the constraint drop) at every
 process start, via `apply_schema`.
 
@@ -330,7 +391,7 @@ Two replicas booting together is the ordinary case on any rolling deploy. So
 `apply_schema` holds `pg_advisory_lock(SCHEMA_ADVISORY_LOCK_ID)` across the
 *whole* list — not per statement, because the backfill and the constraint
 drop must not interleave with another replica's copy of the same list. The
-lock id is a fixed constant in `app/db.py`; it must stay distinct from any
+lock id is a fixed constant in `worker_models/db.py`; it must stay distinct from any
 advisory-lock id Seagull-gateway takes on this shared database (a collision
 would only serialize unrelated migrations, never corrupt anything).
 
@@ -339,11 +400,11 @@ a session-level lock is held by the backend of a replica that was OOM-killed
 mid-migration until TCP keepalive reaps that backend — hours, by default.
 `init_pool` is awaited in the startup hook, so blocking there meant the next
 replica never answered `/healthz` and the orchestrator restart-looped the
-whole worker, taking segment-and-pose down with it — the exact outage
+whole server, taking capability dispatch down with it — the exact outage
 `init_pool` exists to prevent. So `apply_schema` polls
 `pg_try_advisory_lock` to a deadline:
 `MODEL_SCHEMA_LOCK_TIMEOUT_SECONDS`, **default 60s**
-(`Settings.schema_lock_timeout_seconds` in `app/config.py` documents the
+(`Settings.schema_lock_timeout_seconds` in `worker_models/config.py` documents the
 choice — many times the honest worst case for the statement list plus the one-time backfill,
 and far below any deployment's own timeout). On expiry it raises
 `db.SchemaLockTimeout` and **does not run the DDL unlocked** — the statements
@@ -368,25 +429,25 @@ off the response. The bare `Model registry database pool is not initialized`
 now means only "no pool and no recorded schema failure" — i.e. the database
 was never configured or connected at all.
 
-## Running the skin worker's tests
+## Running the model server's tests
 
-The skin worker's test dependencies — `pytest`, `pytest-asyncio`,
-`pytest-benchmark`, `onnx`, `torch`, `torchvision` — are declared **only** in
-the `[test]` extra of `apps/workers/skin/pyproject.toml` — not in
+The server's test dependencies - `pytest`, `pytest-asyncio`,
+`pytest-benchmark`, `onnx`, `torch`, `torchvision` - are declared **only** in
+the `[test]` extra of `apps/workers/models/pyproject.toml` - not in
 `[project].dependencies`, and not in the image built from
-`apps/workers/skin/Dockerfile`: the worker infers with `onnxruntime` and never
+`apps/workers/models/Dockerfile`: the server infers with `onnxruntime` and never
 imports any of them, and `torch` alone is several hundred megabytes. Install
 them explicitly (workers do not declare `worker-common`, so name both):
 
 ```bash
-pip install -e apps/workers/common -e "apps/workers/skin[test]"
-pytest apps/workers/skin      # or: npm run test:skin
+pip install -e apps/workers/common -e "apps/workers/models[test]"
+pytest apps/workers/models      # or: npm run test:models
 ```
 
 The dispatch benchmarks are wall-clock measurements (they export a real
 resnet18, and take minutes) and say nothing about correctness, so they are
 deselected from every ordinary run by the `addopts` in
-`apps/workers/skin/pyproject.toml`:
+`apps/workers/models/pyproject.toml`:
 
 ```
 addopts = '-m "not benchmark and not jev"'
@@ -395,17 +456,17 @@ addopts = '-m "not benchmark and not jev"'
 Each worker's suite runs in its own pytest process (`pytest
 apps/workers/<name>`); the packages share the test package name `tests`.
 
-- `npm run test:skin` — the skin suite (benchmarks and JEV deselected)
-- `npm run test:common`, `npm run test:face` — the shared library and the face worker
-- `npm run test:tryon` — tryon tests (requires torch; about 8 minutes, downloads
+- `npm run test:models` - the model server suite (benchmarks and JEV deselected)
+- `npm run test:common`, `npm run test:skin`, `npm run test:face` - the shared library, the skin worker and the face worker
+- `npm run test:tryon` - tryon tests (requires torch; about 8 minutes, downloads
   models)
-- `npm run test:colour` — colour tests (most need `face_landmarker.task`, see
+- `npm run test:colour` - colour tests (most need `face_landmarker.task`, see
   `docs/COLOUR-LOCAL-RUN.md`)
-- `npm run bench:skin` — dispatch benchmarks only
-- `npm run test:jev` — the JEV benchmark smoke test (skipped without `JEV_MODEL_ID`)
+- `npm run bench:models` - dispatch benchmarks only
+- `npm run test:jev` - the JEV benchmark smoke test (skipped without `JEV_MODEL_ID`)
 
-The `apps/workers/skin/tests/test_db_schema.py` suite needs a real Postgres and skips
-without one. Point `TEST_DATABASE_URL` at a **scratch** cluster — never a
+The `apps/workers/models/tests/test_db_schema.py` suite needs a real Postgres and skips
+without one. Point `TEST_DATABASE_URL` at a **scratch** cluster - never a
 shared or hosted database; it truncates the registry tables between tests.
 
 `/health` returns 503 while the registry database is down, or while startup's
