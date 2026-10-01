@@ -411,6 +411,59 @@ threshold. Validation reports every problem, not just the first:
 When a stored document is loaded at request time only its structure is checked (no
 catalogue); drift against the live catalogue is judged per request.
 
+## 3D head
+
+```
+POST /api/v1/vision/face-architecture/:brandId/:applicationId/head
+multipart: front (required), left, right (optional)
+```
+
+`facearch.HeadHandler` checks the upload and the active profile (the same
+brand+app, brand+`*`, `*`+`*` lookup as the measurement route), forwards the
+photos to the face worker's `POST /api/v1/face-head` (`facearch/headclient`,
+`FACE_WORKER_URL`; redirects are not followed) and returns the worker's status,
+content type and body **unchanged**: on success a `model/gltf-binary` GLB whose
+`asset.extras` is the `HeadReport` (Go struct `facearch.HeadReport`; fields and
+how to read them in `docs/FACE-HEAD.md`, "Phase 2"). It is a visualisation, not
+a measurement.
+
+Codes from core-engine itself:
+
+| Status | Body | When |
+|---|---|---|
+| 400 | `missing_image` (`view` when known) | No `front` part, an unparseable multipart body, or a part that cannot be read. |
+| 409 | `no_active_face_architecture_profile` | No active profile, as above. |
+| 413 | `upload_too_large` | The upload exceeds `FACE_HEAD_MAX_UPLOAD_BYTES`. |
+| 500 | `profile_lookup_failed` | The database lookup failed. |
+| 502 | `face_head_unreachable` | Transport failure to the worker (the cause is logged, not returned). |
+| 504 | `face_head_timeout` | The worker call exceeded `FACE_HEAD_TIMEOUT`. |
+
+Codes from the worker, passed through as-is (`{"detail": {"code": ...}}`):
+
+| Status | Code | When |
+|---|---|---|
+| 400 | `missing_front`, `empty_image`, `unreadable_image` (`view`) | No front photo, or a photo that is empty or cannot be decoded. |
+| 422 | `no_face`, `multiple_faces` (`view`) | Face count in a view is not one. |
+| 422 | `yaw_out_of_range`, `wrong_side` (`view`) | The view gates (`FACE_HEAD_FRONT_MAX_YAW_DEG`, `FACE_HEAD_SIDE_YAW_MIN_DEG` / `_MAX_DEG`). |
+| 422 | `fit_failed` (`reason`) | The fit raised `FitError`. |
+| 422 | `fit_rejected` (`nme` per view, `limit`) | A view's NME exceeds `FACE_HEAD_MAX_NME`. |
+| 503 | `fov_prior_unconfigured`, `fit_threshold_unconfigured` | Policy env unset; the route never returns an ungated head. |
+| 503 | `head_model_unavailable` | The GNM model or the landmarker could not be loaded. |
+| 500 | `report_non_finite` (`field`), `texture_encode_failed` | Internal faults. |
+
+Unlike the measurement route, the head route does not validate the worker's
+error body: whatever the worker answers is returned.
+
+### Seagull-gateway follow-up
+
+Not done from this repository (report it there):
+
+- Regenerate the contracts package so `HeadReport` is exported to clients.
+- Add the APISIX route for `.../head`: binary pass-through of
+  `model/gltf-binary` (no body rewriting), a request body limit of at least
+  `FACE_HEAD_MAX_UPLOAD_BYTES`, and an upstream timeout of at least
+  `FACE_HEAD_TIMEOUT`.
+
 ## Configuration
 
 `FACE_MEASURE_TIMEOUT`: bounds one synchronous face-worker face-measure call. Default
@@ -418,6 +471,14 @@ catalogue); drift against the live catalogue is judged per request.
 `DefaultVisionDispatchTimeout`, the other synchronous worker model call, because
 no latency has been measured yet (the call runs the landmarker plus
 `FACE_MEASURE_NOISE_SAMPLES` re-measurements). Benchmark timings replace it.
+
+`FACE_HEAD_TIMEOUT`: bounds one face-worker head call. Default **30 s**
+(`config.DefaultFaceHeadTimeout`), a starting value, not a measurement: the
+three-view p95 measured on a dev machine is 1.6 s (`docs/FACE-HEAD.md`).
+
+`FACE_HEAD_MAX_UPLOAD_BYTES`: caps the whole head multipart upload. Default
+**24 MiB** (`config.DefaultFaceHeadMaxUploadBytes`: three photos at up to 8 MB
+each), a starting value.
 
 ## Verification status
 
