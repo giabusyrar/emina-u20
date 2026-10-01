@@ -6,8 +6,14 @@ package facearch
 // gateway contracts generator. testdata/head_report.json is shared with the
 // worker's test (apps/workers/face/tests/test_head_report.py).
 type HeadReport struct {
-	Kind            string             `json:"kind"`
-	Model           HeadModelRef       `json:"model"`
+	Kind  string       `json:"kind"`
+	Model HeadModelRef `json:"model"`
+	// Segmenter is the photo segmentation model whose skin classes decide
+	// which pixels may texture skin and which vertices count as observed.
+	Segmenter HeadModelRef `json:"segmenter"`
+	// Parts lists the GLB primitives and what each claims: textured parts carry
+	// photo colour where _OBSERVED > 0; the cornea is geometry only.
+	Parts           []HeadPart         `json:"parts"`
 	Correspondence  HeadCorrespondence `json:"correspondence"`
 	Camera          HeadCamera         `json:"camera"`
 	Views           []HeadView         `json:"views"`
@@ -32,6 +38,12 @@ type HeadModelRef struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 	SHA256  string `json:"sha256"`
+}
+
+type HeadPart struct {
+	Name              string `json:"name"`
+	Textured          bool   `json:"textured"`
+	ObservedFromPhoto bool   `json:"observedFromPhoto"`
 }
 
 type HeadCorrespondence struct {

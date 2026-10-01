@@ -1,6 +1,11 @@
 {
   "kind": "fitted",
   "model": {"name": "gnm_head", "version": "3.0", "sha256": "61d78bbfb4ad8e0b38495804a4caef3214d3df00f8c3f68761e63b41ce3747eb"},
+  "segmenter": {"name": "selfie_multiclass", "version": "256x256 float32 (2023-04-26)", "sha256": "1111111111111111111111111111111111111111111111111111111111111111"},
+  "parts": [{"name": "skin", "textured": true, "observedFromPhoto": true},
+            {"name": "left_eyeball", "textured": true, "observedFromPhoto": true},
+            {"name": "right_eyeball", "textured": true, "observedFromPhoto": true},
+            {"name": "cornea", "textured": false, "observedFromPhoto": false}],
   "correspondence": {"version": 1, "sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
   "camera": {"fovDeg": 52.3, "fovSdDeg": 2.4, "fovSource": "estimated", "priorDeg": 60.0, "priorLogSd": 0.3},
   "views": [
