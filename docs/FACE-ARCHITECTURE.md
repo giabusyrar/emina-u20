@@ -449,7 +449,9 @@ Codes from the worker, passed through as-is (`{"detail": {"code": ...}}`):
 | 422 | `fit_rejected` (`nme` per view, `limit`) | A view's NME exceeds `FACE_HEAD_MAX_NME`. |
 | 503 | `fov_prior_unconfigured`, `fit_threshold_unconfigured` | Policy env unset; the route never returns an ungated head. |
 | 503 | `head_model_unavailable` | The GNM model or the landmarker could not be loaded. |
-| 500 | `report_non_finite` (`field`), `texture_encode_failed` | Internal faults. |
+| 503 | `prior_scale_invalid` (`value`) | `FACE_HEAD_PRIOR_SCALE` is not a positive finite number: with no prior, shape evidence and sigma have no meaning. |
+| 500 | `evidence_failed` (`reason`) | Shape evidence or sigma raised (e.g. the identity covariance is not positive definite). |
+| 500 | `report_non_finite` (`field`), `sigma_non_finite`, `texture_encode_failed` | Internal faults: a NaN or infinite report number or per-vertex sigma is refused, never written to the GLB. |
 
 Unlike the measurement route, the head route does not validate the worker's
 error body: whatever the worker answers is returned.
