@@ -67,7 +67,7 @@ func TestSegmenterWorker_MockAIService_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, zones)
 	assert.Equal(t, "ZONE_FOREHEAD", zones[0].ZoneCode)
-	assert.Equal(t, 0.98, zones[0].Confidence)
+	assert.True(t, zones[0].IsVisible)
 }
 
 func TestSegmenterWorker_UnreachableIsUnavailableNotTemplateZones(t *testing.T) {

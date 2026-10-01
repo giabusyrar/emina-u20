@@ -160,7 +160,6 @@ func run() error {
 	)
 	visionOrch := visionOrchestrator.NewVisionOrchestrator(
 		visionWorkers.NewSegmenterWorkerWithURL(cfg.SkinWorkerURL, cfg.SegmenterTimeout),
-		visionWorkers.NewOcclusionWorker(),
 		visionCatalog.NewResolver(visionReferenceCatalog),
 		visionInference.NewHTTPCapabilityClient(cfg.ModelServerURL, cfg.VisionDispatchTimeout),
 		cfg.VisionDAGTimeout,

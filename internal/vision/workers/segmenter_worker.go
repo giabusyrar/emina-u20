@@ -29,8 +29,10 @@ type SegmentedZone struct {
 	SourceAngle domain.ImageAngle
 	Polygon     []domain.NormalizedPoint
 	BoundingBox domain.BoundingBox
-	Confidence  float64
-	IsOccluded  bool
+	// IsVisible is false when the zone is out of frame for the detected
+	// angle (skin's measurement). No per-zone confidence or occlusion is
+	// measured, so none is carried.
+	IsVisible bool
 	// SourceImageIndex is the position of the request image this zone was
 	// segmented from, so crops use the right image even when angles repeat.
 	SourceImageIndex int
@@ -43,14 +45,11 @@ type pythonAISegmentResponse struct {
 		Yaw           float64 `json:"yaw"`
 		Pitch         float64 `json:"pitch"`
 		Roll          float64 `json:"roll"`
-		Confidence    float64 `json:"confidence"`
 	} `json:"headPose"`
 	Zones []struct {
 		ZoneCode    string                   `json:"zoneCode"`
 		ZoneName    string                   `json:"zoneName"`
 		IsVisible   bool                     `json:"isVisible"`
-		IsOccluded  bool                     `json:"isOccluded"`
-		Confidence  float64                  `json:"confidence"`
 		BoundingBox domain.BoundingBox       `json:"boundingBox"`
 		Polygon     []domain.NormalizedPoint `json:"polygon"`
 	} `json:"zones"`
@@ -112,8 +111,7 @@ func (s *SegmenterWorker) SegmentWithPose(declaredAngle domain.ImageAngle, img i
 			SourceAngle: detectedAngle,
 			Polygon:     z.Polygon,
 			BoundingBox: z.BoundingBox,
-			Confidence:  z.Confidence,
-			IsOccluded:  z.IsOccluded,
+			IsVisible:   z.IsVisible,
 		}
 	}
 	return results, detectedAngle, aiResp.HeadPose.Yaw, aiResp.HeadPose.Pitch, aiResp.HeadPose.Roll, nil

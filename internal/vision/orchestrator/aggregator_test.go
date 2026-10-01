@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/experience-gateway/apps/core-engine/internal/vision/catalog"
 	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
@@ -37,22 +38,20 @@ func TestRollUpZone_AveragesOnlyScoresThatExist(t *testing.T) {
 		"hyperpigmentation_net":  50,
 	}
 
-	metrics := orchestrator.RollUpZone(rollUpPlan(), health, 0.9)
+	metrics := orchestrator.RollUpZone(rollUpPlan(), health)
 
 	assert.InDelta(t, 70, metrics.SkinConditions["concern_acne_papule"].Score, 1e-9)
 	assert.InDelta(t, 60, metrics.SkinConditions["concern_blackhead"].Score, 1e-9)
 	assert.InDelta(t, 50, metrics.SkinConditions["concern_melasma"].Score, 1e-9)
-	assert.Equal(t, 0.9, metrics.SkinConditions["concern_melasma"].Confidence)
 	assert.NotContains(t, metrics.SkinConditions, "concern_redness")
 
 	assert.InDelta(t, 65, metrics.Dimensions["acne"].Score, 1e-9)
-	assert.Equal(t, 0.9, metrics.Dimensions["acne"].Confidence)
 	assert.NotContains(t, metrics.Dimensions, "pigmentation", "pigmentation was not requested")
 	assert.NotContains(t, metrics.Dimensions, "sensitivity", "sensitivity has no scored condition")
 }
 
 func TestRollUpZone_NoScoresGivesEmptyMaps(t *testing.T) {
-	metrics := orchestrator.RollUpZone(rollUpPlan(), map[string]float64{}, 0.9)
+	metrics := orchestrator.RollUpZone(rollUpPlan(), map[string]float64{})
 
 	assert.NotNil(t, metrics.Dimensions)
 	assert.NotNil(t, metrics.SkinConditions)
@@ -67,11 +66,11 @@ func zoneWith(dimensions, conditions map[string]domain.MetricValue) domain.ZoneB
 func TestAggregateScores_MeansAcrossZonesWhereScored(t *testing.T) {
 	breakdown := []domain.ZoneBreakdownItem{
 		zoneWith(
-			map[string]domain.MetricValue{"acne": {Score: 80, Confidence: 0.9}},
-			map[string]domain.MetricValue{"concern_acne_papule": {Score: 80, Confidence: 0.9}},
+			map[string]domain.MetricValue{"acne": {Score: 80}},
+			map[string]domain.MetricValue{"concern_acne_papule": {Score: 80}},
 		),
 		zoneWith(
-			map[string]domain.MetricValue{"acne": {Score: 60, Confidence: 0.7}, "sensitivity": {Score: 40, Confidence: 0.8}},
+			map[string]domain.MetricValue{"acne": {Score: 60}, "sensitivity": {Score: 40}},
 			map[string]domain.MetricValue{},
 		),
 		zoneWith(map[string]domain.MetricValue{}, map[string]domain.MetricValue{}),
@@ -80,27 +79,29 @@ func TestAggregateScores_MeansAcrossZonesWhereScored(t *testing.T) {
 	global := orchestrator.AggregateScores(breakdown)
 
 	assert.InDelta(t, 70, global.Dimensions["acne"].Score, 1e-9)
-	assert.InDelta(t, 0.8, global.Dimensions["acne"].Confidence, 1e-9)
 	assert.InDelta(t, 40, global.Dimensions["sensitivity"].Score, 1e-9)
 	assert.InDelta(t, 80, global.SkinConditions["concern_acne_papule"].Score, 1e-9)
-	assert.InDelta(t, 55, global.OverallSkinHealthScore, 1e-9, "mean of global dimension scores 70 and 40")
+	require.NotNil(t, global.OverallSkinHealthScore)
+	assert.InDelta(t, 55, *global.OverallSkinHealthScore, 1e-9, "mean of global dimension scores 70 and 40")
 }
 
 func TestAggregateScores_OverallFallsBackToConditions(t *testing.T) {
 	breakdown := []domain.ZoneBreakdownItem{
 		zoneWith(map[string]domain.MetricValue{}, map[string]domain.MetricValue{
-			"concern_blackhead": {Score: 30, Confidence: 0.9},
-			"concern_melasma":   {Score: 50, Confidence: 0.9},
+			"concern_blackhead": {Score: 30},
+			"concern_melasma":   {Score: 50},
 		}),
 	}
 
-	assert.InDelta(t, 40, orchestrator.AggregateScores(breakdown).OverallSkinHealthScore, 1e-9)
+	overall := orchestrator.AggregateScores(breakdown).OverallSkinHealthScore
+	require.NotNil(t, overall)
+	assert.InDelta(t, 40, *overall, 1e-9)
 }
 
-func TestAggregateScores_NothingScoredIsZero(t *testing.T) {
+func TestAggregateScores_NothingScoredIsNull(t *testing.T) {
 	global := orchestrator.AggregateScores([]domain.ZoneBreakdownItem{zoneWith(map[string]domain.MetricValue{}, map[string]domain.MetricValue{})})
 
-	assert.Equal(t, 0.0, global.OverallSkinHealthScore)
+	assert.Nil(t, global.OverallSkinHealthScore, "no score is reported when nothing was measured")
 	assert.Empty(t, global.Dimensions)
 	assert.Empty(t, global.SkinConditions)
 }

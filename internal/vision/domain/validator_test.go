@@ -9,7 +9,9 @@ import (
 
 func TestValidateRequest_NoImages(t *testing.T) {
 	req := &domain.AnalyzeVisionRequest{
-		Images: []domain.RawImageInput{},
+		BrandID:       "wardah",
+		ApplicationID: "skinverse",
+		Images:        []domain.RawImageInput{},
 	}
 	errResp := domain.ValidateRequest(req)
 	assert.NotNil(t, errResp)
@@ -20,6 +22,8 @@ func TestValidateRequest_NoImages(t *testing.T) {
 
 func TestValidateRequest_LeavesCodeValidationToTheResolver(t *testing.T) {
 	req := &domain.AnalyzeVisionRequest{
+		BrandID:       "wardah",
+		ApplicationID: "skinverse",
 		Images: []domain.RawImageInput{
 			{Angle: domain.AngleFront, FileName: "front.jpg", Data: []byte("dummy")},
 		},
@@ -27,4 +31,15 @@ func TestValidateRequest_LeavesCodeValidationToTheResolver(t *testing.T) {
 		SkinConditions: []string{"concern_acne_papule"},
 	}
 	assert.Nil(t, domain.ValidateRequest(req))
+}
+
+func TestValidateRequest_TenantIsRequired(t *testing.T) {
+	req := &domain.AnalyzeVisionRequest{
+		Images: []domain.RawImageInput{{Angle: domain.AngleFront, FileName: "front.jpg", Data: []byte("dummy")}},
+	}
+	errResp := domain.ValidateRequest(req)
+	if assert.NotNil(t, errResp) {
+		fields := []string{errResp.InvalidParameters[0].Field, errResp.InvalidParameters[1].Field}
+		assert.Equal(t, []string{"brandId", "applicationId"}, fields)
+	}
 }

@@ -25,11 +25,6 @@ type Segmenter interface {
 	SegmentWithPose(declaredAngle domain.ImageAngle, img image.Image) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error)
 }
 
-// OcclusionChecker decides whether a segmented zone is blocked.
-type OcclusionChecker interface {
-	CheckOcclusion(zone *workers.SegmentedZone, img image.Image) workers.OcclusionCheckResult
-}
-
 // PlanResolver turns requested dimension/skin-condition codes into a capability plan.
 type PlanResolver interface {
 	Resolve(ctx context.Context, dimensions, skinConditions []string) (*catalog.Plan, error)
@@ -37,7 +32,6 @@ type PlanResolver interface {
 
 type VisionOrchestrator struct {
 	segmenter    Segmenter
-	occlusion    OcclusionChecker
 	arbiter      *ZoneArbiter
 	resolver     PlanResolver
 	capabilities inference.CapabilityClient
@@ -46,14 +40,12 @@ type VisionOrchestrator struct {
 
 func NewVisionOrchestrator(
 	segmenter Segmenter,
-	occlusion OcclusionChecker,
 	resolver PlanResolver,
 	capabilities inference.CapabilityClient,
 	execTimeout time.Duration,
 ) *VisionOrchestrator {
 	return &VisionOrchestrator{
 		segmenter:    segmenter,
-		occlusion:    occlusion,
 		arbiter:      NewZoneArbiter(),
 		resolver:     resolver,
 		capabilities: capabilities,
@@ -88,7 +80,7 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 		decodedImages     = make([]image.Image, len(req.Images))
 	)
 
-	// Phase 1: Parallel Segmentation & Occlusion DAG Node
+	// Phase 1: Parallel segmentation DAG node
 	segGroup, _ := errgroup.WithContext(execCtx)
 
 	for idx, imgInput := range req.Images {
@@ -123,17 +115,9 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 				return err
 			}
 
-			var imgZones []workers.SegmentedZone
-			var imgWarnings []domain.WarningItem
-
+			imgZones := make([]workers.SegmentedZone, 0, len(zones))
 			for _, z := range zones {
-				occ := o.occlusion.CheckOcclusion(&z, img)
-				z.IsOccluded = occ.IsOccluded
-				z.Confidence = occ.Confidence
 				z.SourceImageIndex = imageIndex
-				if occ.Warning != nil {
-					imgWarnings = append(imgWarnings, *occ.Warning)
-				}
 				imgZones = append(imgZones, z)
 			}
 
@@ -150,7 +134,6 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 				Roll:             roll,
 			})
 			allCandidateZones = append(allCandidateZones, imgZones...)
-			warnings = append(warnings, imgWarnings...)
 			return nil
 		})
 	}
@@ -172,8 +155,7 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 			ZoneCode:    zone.ZoneCode,
 			ZoneName:    zone.ZoneName,
 			SourceAngle: zone.SourceAngle,
-			Confidence:  zone.Confidence,
-			IsOccluded:  zone.IsOccluded,
+			IsVisible:   zone.IsVisible,
 			BoundingBox: zone.BoundingBox,
 			Polygon:     zone.Polygon,
 			Metrics:     emptyZoneMetrics(),
@@ -181,7 +163,7 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 		// The arbiter keeps at most one winner per zone code.
 		itemIndexByZone[zone.ZoneCode] = i
 
-		if zone.IsOccluded {
+		if !zone.IsVisible {
 			continue
 		}
 		cropped, ok := cropZone(decodedImages[zone.SourceImageIndex], zone.BoundingBox)
@@ -214,7 +196,7 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 				health[capability] = SeverityToHealth(severity)
 				scoredCapabilities[capability] = true
 			}
-			zoneBreakdownItems[i].Metrics = RollUpZone(plan, health, zoneBreakdownItems[i].Confidence)
+			zoneBreakdownItems[i].Metrics = RollUpZone(plan, health)
 		}
 	}
 

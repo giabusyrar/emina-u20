@@ -37,14 +37,15 @@ type CaptureContext struct {
 
 type MetricValue struct {
 	Score         float64 `json:"score"`
-	Confidence    float64 `json:"confidence"`
 	Severity      string  `json:"severity,omitempty"`
 	DetectedCount int     `json:"detectedCount,omitempty"`
 	Priority      string  `json:"priority,omitempty"`
 }
 
 type GlobalAggregation struct {
-	OverallSkinHealthScore float64                `json:"overallSkinHealthScore"`
+	// OverallSkinHealthScore is null when nothing was scored; the warnings
+	// say why.
+	OverallSkinHealthScore *float64               `json:"overallSkinHealthScore"`
 	Dimensions             map[string]MetricValue `json:"dimensions"`
 	SkinConditions         map[string]MetricValue `json:"skinConditions"`
 }
@@ -55,11 +56,11 @@ type ZoneMetrics struct {
 }
 
 type ZoneBreakdownItem struct {
-	ZoneCode    string            `json:"zoneCode"`
-	ZoneName    string            `json:"zoneName"`
-	SourceAngle ImageAngle        `json:"sourceAngle"`
-	Confidence  float64           `json:"confidence"`
-	IsOccluded  bool              `json:"isOccluded"`
+	ZoneCode    string     `json:"zoneCode"`
+	ZoneName    string     `json:"zoneName"`
+	SourceAngle ImageAngle `json:"sourceAngle"`
+	// IsVisible is false when the zone was out of frame in every image.
+	IsVisible   bool              `json:"isVisible"`
 	BoundingBox BoundingBox       `json:"boundingBox"`
 	Polygon     []NormalizedPoint `json:"polygon"`
 	Metrics     ZoneMetrics       `json:"metrics"`

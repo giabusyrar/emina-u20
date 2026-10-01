@@ -28,7 +28,7 @@ func emptyZoneMetrics() domain.ZoneMetrics {
 // (mean of the condition's capabilities that were scored) and dimension scores
 // for the plan's dimensions (mean of their scored conditions). Missing scores
 // are skipped, never counted as zero.
-func RollUpZone(plan *catalog.Plan, health map[string]float64, confidence float64) domain.ZoneMetrics {
+func RollUpZone(plan *catalog.Plan, health map[string]float64) domain.ZoneMetrics {
 	metrics := emptyZoneMetrics()
 	conditionScores := make(map[string]float64, len(plan.Conditions))
 
@@ -45,7 +45,7 @@ func RollUpZone(plan *catalog.Plan, health map[string]float64, confidence float6
 		}
 		score := sum / float64(count)
 		conditionScores[condition.Code] = score
-		metrics.SkinConditions[condition.Code] = domain.MetricValue{Score: score, Confidence: confidence}
+		metrics.SkinConditions[condition.Code] = domain.MetricValue{Score: score}
 	}
 
 	for _, dimensionCode := range plan.Dimensions {
@@ -62,34 +62,29 @@ func RollUpZone(plan *catalog.Plan, health map[string]float64, confidence float6
 		if count == 0 {
 			continue
 		}
-		metrics.Dimensions[dimensionCode] = domain.MetricValue{Score: sum / float64(count), Confidence: confidence}
+		metrics.Dimensions[dimensionCode] = domain.MetricValue{Score: sum / float64(count)}
 	}
 
 	return metrics
 }
 
 type metricAccumulator struct {
-	scoreSum      float64
-	confidenceSum float64
-	count         int
+	scoreSum float64
+	count    int
 }
 
 func (a *metricAccumulator) add(value domain.MetricValue) {
 	a.scoreSum += value.Score
-	a.confidenceSum += value.Confidence
 	a.count++
 }
 
 func (a *metricAccumulator) mean() domain.MetricValue {
-	return domain.MetricValue{
-		Score:      a.scoreSum / float64(a.count),
-		Confidence: a.confidenceSum / float64(a.count),
-	}
+	return domain.MetricValue{Score: a.scoreSum / float64(a.count)}
 }
 
 // AggregateScores averages each dimension and condition over the zones that
 // scored it. The overall score is the mean of the global dimension scores,
-// falling back to the condition scores, then 0.
+// falling back to the condition scores; nil when nothing was scored.
 func AggregateScores(breakdown []domain.ZoneBreakdownItem) domain.GlobalAggregation {
 	dimensionTotals := make(map[string]*metricAccumulator)
 	conditionTotals := make(map[string]*metricAccumulator)
@@ -122,9 +117,11 @@ func AggregateScores(breakdown []domain.ZoneBreakdownItem) domain.GlobalAggregat
 
 	switch {
 	case len(global.Dimensions) > 0:
-		global.OverallSkinHealthScore = meanScore(global.Dimensions)
+		overall := meanScore(global.Dimensions)
+		global.OverallSkinHealthScore = &overall
 	case len(global.SkinConditions) > 0:
-		global.OverallSkinHealthScore = meanScore(global.SkinConditions)
+		overall := meanScore(global.SkinConditions)
+		global.OverallSkinHealthScore = &overall
 	}
 
 	return global

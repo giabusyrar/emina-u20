@@ -9,41 +9,58 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestZoneArbiter_Arbitrate_SingleAngle(t *testing.T) {
-	arbiter := orchestrator.NewZoneArbiter()
-
-	candidates := []workers.SegmentedZone{
-		{ZoneCode: domain.ZoneForehead, SourceAngle: domain.AngleFront, Confidence: 0.90, IsOccluded: false},
-		{ZoneCode: domain.ZoneLeftCheekOuter, SourceAngle: domain.AngleFront, Confidence: 0.85, IsOccluded: false},
+func winners(candidates ...workers.SegmentedZone) map[string]workers.SegmentedZone {
+	out := make(map[string]workers.SegmentedZone)
+	for _, w := range orchestrator.NewZoneArbiter().Arbitrate(candidates) {
+		out[w.ZoneCode] = w
 	}
-
-	winners := arbiter.Arbitrate(candidates)
-	assert.Len(t, winners, 2)
+	return out
 }
 
-func TestZoneArbiter_Arbitrate_MultiAngleSelection(t *testing.T) {
-	arbiter := orchestrator.NewZoneArbiter()
+func TestZoneArbiter_OneWinnerPerZone(t *testing.T) {
+	got := orchestrator.NewZoneArbiter().Arbitrate([]workers.SegmentedZone{
+		{ZoneCode: domain.ZoneForehead, SourceAngle: domain.AngleFront, IsVisible: true},
+		{ZoneCode: domain.ZoneLeftCheekOuter, SourceAngle: domain.AngleFront, IsVisible: true},
+	})
+	assert.Len(t, got, 2)
+}
 
-	candidates := []workers.SegmentedZone{
-		// Left cheek outer from front vs left angle
-		{ZoneCode: domain.ZoneLeftCheekOuter, SourceAngle: domain.AngleFront, Confidence: 0.85, IsOccluded: false},
-		{ZoneCode: domain.ZoneLeftCheekOuter, SourceAngle: domain.AngleLeft, Confidence: 0.85, IsOccluded: false},
-		// Forehead occluded in front vs clear in side
-		{ZoneCode: domain.ZoneForehead, SourceAngle: domain.AngleFront, Confidence: 0.90, IsOccluded: true},
-		{ZoneCode: domain.ZoneForehead, SourceAngle: domain.AngleLeft, Confidence: 0.80, IsOccluded: false},
-	}
+func TestZoneArbiter_PrefersTheAngleFacingTheZone(t *testing.T) {
+	got := winners(
+		workers.SegmentedZone{ZoneCode: domain.ZoneLeftCheekOuter, SourceAngle: domain.AngleFront, IsVisible: true},
+		workers.SegmentedZone{ZoneCode: domain.ZoneLeftCheekOuter, SourceAngle: domain.AngleLeft, IsVisible: true},
+		workers.SegmentedZone{ZoneCode: domain.ZoneForehead, SourceAngle: domain.AngleLeft, IsVisible: true},
+		workers.SegmentedZone{ZoneCode: domain.ZoneForehead, SourceAngle: domain.AngleFront, IsVisible: true},
+	)
+	assert.Equal(t, domain.AngleLeft, got[domain.ZoneLeftCheekOuter].SourceAngle)
+	assert.Equal(t, domain.AngleFront, got[domain.ZoneForehead].SourceAngle)
+}
 
-	winners := arbiter.Arbitrate(candidates)
-	assert.Len(t, winners, 2)
+func TestZoneArbiter_FrontBeatsTheOppositeSide(t *testing.T) {
+	got := winners(
+		workers.SegmentedZone{ZoneCode: domain.ZoneRightCheekInner, SourceAngle: domain.AngleLeft, IsVisible: true},
+		workers.SegmentedZone{ZoneCode: domain.ZoneRightCheekInner, SourceAngle: domain.AngleFront, IsVisible: true},
+	)
+	assert.Equal(t, domain.AngleFront, got[domain.ZoneRightCheekInner].SourceAngle)
+}
 
-	winnerMap := make(map[string]workers.SegmentedZone)
-	for _, w := range winners {
-		winnerMap[w.ZoneCode] = w
-	}
+func TestZoneArbiter_VisibleBeatsOutOfFrame(t *testing.T) {
+	got := winners(
+		workers.SegmentedZone{ZoneCode: domain.ZoneRightCheekOuter, SourceAngle: domain.AngleRight, IsVisible: false},
+		workers.SegmentedZone{ZoneCode: domain.ZoneRightCheekOuter, SourceAngle: domain.AngleLeft, IsVisible: true},
+	)
+	assert.Equal(t, domain.AngleLeft, got[domain.ZoneRightCheekOuter].SourceAngle)
+}
 
-	// Left cheek should favor AngleLeft due to angle affinity bonus
-	assert.Equal(t, domain.AngleLeft, winnerMap[domain.ZoneLeftCheekOuter].SourceAngle)
+func TestZoneArbiter_OutOfFrameEverywhereIsKeptAsNotVisible(t *testing.T) {
+	got := winners(workers.SegmentedZone{ZoneCode: domain.ZoneRightCheekOuter, SourceAngle: domain.AngleLeft, IsVisible: false})
+	assert.False(t, got[domain.ZoneRightCheekOuter].IsVisible)
+}
 
-	// Forehead should favor AngleLeft because Frontal is occluded (0.90 * 0.5 = 0.45 < 0.80)
-	assert.Equal(t, domain.AngleLeft, winnerMap[domain.ZoneForehead].SourceAngle)
+func TestZoneArbiter_EqualPreferenceKeepsTheEarlierImage(t *testing.T) {
+	got := winners(
+		workers.SegmentedZone{ZoneCode: domain.ZoneForehead, SourceAngle: domain.AngleFront, IsVisible: true, SourceImageIndex: 0},
+		workers.SegmentedZone{ZoneCode: domain.ZoneForehead, SourceAngle: domain.AngleFront, IsVisible: true, SourceImageIndex: 1},
+	)
+	assert.Equal(t, 0, got[domain.ZoneForehead].SourceImageIndex)
 }

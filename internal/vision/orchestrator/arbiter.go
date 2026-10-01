@@ -1,8 +1,6 @@
 package orchestrator
 
 import (
-	"math"
-
 	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
 	"github.com/experience-gateway/apps/core-engine/internal/vision/workers"
 )
@@ -13,53 +11,52 @@ func NewZoneArbiter() *ZoneArbiter {
 	return &ZoneArbiter{}
 }
 
-// CalculateQualityScore computes the effective score considering base confidence, angle affinity, and occlusion.
-func (a *ZoneArbiter) CalculateQualityScore(candidate workers.SegmentedZone) float64 {
-	score := candidate.Confidence
-
-	// Angle affinity bonus
-	angleBonus := 0.0
-	switch candidate.ZoneCode {
+// facingAngle is the camera angle that faces each zone: a cheek is seen best
+// from its own side, every other zone from the front. A fact about the face,
+// not a tunable.
+func facingAngle(zoneCode string) domain.ImageAngle {
+	switch zoneCode {
 	case domain.ZoneLeftCheekInner, domain.ZoneLeftCheekOuter:
-		if candidate.SourceAngle == domain.AngleLeft {
-			angleBonus = 0.10
-		}
+		return domain.AngleLeft
 	case domain.ZoneRightCheekInner, domain.ZoneRightCheekOuter:
-		if candidate.SourceAngle == domain.AngleRight {
-			angleBonus = 0.10
-		}
-	case domain.ZoneForehead, domain.ZoneTZoneNose, domain.ZonePeriorbitalEyelids, domain.ZoneChinJawline:
-		if candidate.SourceAngle == domain.AngleFront {
-			angleBonus = 0.10
-		}
+		return domain.AngleRight
+	default:
+		return domain.AngleFront
 	}
-	score += angleBonus
-
-	// Occlusion multiplier
-	occlusionMultiplier := 1.0
-	if candidate.IsOccluded {
-		occlusionMultiplier = 0.5
-	}
-
-	return score * occlusionMultiplier
 }
 
-// Arbitrate evaluates all candidate zones and returns the single highest quality candidate per canonical ZoneCode.
+// preference ranks a candidate view of a zone: visible beats out of frame,
+// then the facing angle, then FRONT. No measured quality score exists, so the
+// choice is this fixed order; equal ranks keep the earlier image.
+func preference(candidate workers.SegmentedZone) int {
+	if !candidate.IsVisible {
+		return 0
+	}
+	switch candidate.SourceAngle {
+	case facingAngle(candidate.ZoneCode):
+		return 3
+	case domain.AngleFront:
+		return 2
+	default:
+		return 1
+	}
+}
+
+// Arbitrate keeps one candidate per zone code: the most preferred view.
 func (a *ZoneArbiter) Arbitrate(candidates []workers.SegmentedZone) []workers.SegmentedZone {
 	bestByZone := make(map[string]workers.SegmentedZone)
-	bestScoreByZone := make(map[string]float64)
+	var order []string
 
 	for _, cand := range candidates {
-		score := a.CalculateQualityScore(cand)
-		currentBestScore, exists := bestScoreByZone[cand.ZoneCode]
-
-		if !exists || score > currentBestScore || (math.Abs(score-currentBestScore) < 0.001 && cand.SourceAngle == domain.AngleFront) {
+		current, exists := bestByZone[cand.ZoneCode]
+		if !exists {
+			order = append(order, cand.ZoneCode)
+		}
+		if !exists || preference(cand) > preference(current) {
 			bestByZone[cand.ZoneCode] = cand
-			bestScoreByZone[cand.ZoneCode] = score
 		}
 	}
 
-	// Canonical order preservation
 	canonicalOrder := []string{
 		domain.ZoneForehead,
 		domain.ZoneTZoneNose,
@@ -70,27 +67,19 @@ func (a *ZoneArbiter) Arbitrate(candidates []workers.SegmentedZone) []workers.Se
 		domain.ZonePeriorbitalEyelids,
 		domain.ZoneChinJawline,
 	}
-
+	canonical := make(map[string]bool, len(canonicalOrder))
 	var winners []workers.SegmentedZone
 	for _, code := range canonicalOrder {
+		canonical[code] = true
 		if winner, ok := bestByZone[code]; ok {
 			winners = append(winners, winner)
 		}
 	}
-
-	// Any non-standard zone codes that might exist
-	for code, winner := range bestByZone {
-		found := false
-		for _, c := range canonicalOrder {
-			if c == code {
-				found = true
-				break
-			}
-		}
-		if !found {
-			winners = append(winners, winner)
+	// Non-standard zone codes follow, in the order they were first seen.
+	for _, code := range order {
+		if !canonical[code] {
+			winners = append(winners, bestByZone[code])
 		}
 	}
-
 	return winners
 }

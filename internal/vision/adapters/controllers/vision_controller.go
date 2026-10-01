@@ -119,13 +119,6 @@ func (c *VisionController) AnalyzeImage(ctx echo.Context) error {
 		SkinConditions: c.parseStringList(ctx.FormValue("skinConditions")),
 	}
 
-	if req.BrandID == "" {
-		req.BrandID = "brand_wardah"
-	}
-	if req.ApplicationID == "" {
-		req.ApplicationID = "app_diagnostic"
-	}
-
 	// 1. Strict Parameter Validation
 	if valErr := domain.ValidateRequest(req); valErr != nil {
 		return ctx.JSON(http.StatusBadRequest, valErr)

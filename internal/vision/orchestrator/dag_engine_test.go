@@ -65,14 +65,6 @@ func (f *fakeSegmenter) SegmentWithPose(declared domain.ImageAngle, img image.Im
 	return zones, declared, 0, 0, 0, nil
 }
 
-type fakeOcclusion struct {
-	occluded map[string]bool
-}
-
-func (f fakeOcclusion) CheckOcclusion(zone *workers.SegmentedZone, img image.Image) workers.OcclusionCheckResult {
-	return workers.OcclusionCheckResult{IsOccluded: f.occluded[zone.ZoneCode], Confidence: zone.Confidence}
-}
-
 type fakeResolver struct {
 	plan *catalog.Plan
 	err  error
@@ -118,7 +110,7 @@ func testPlan() *catalog.Plan {
 }
 
 func request(images ...domain.RawImageInput) *domain.AnalyzeVisionRequest {
-	return &domain.AnalyzeVisionRequest{BrandID: "brand_wardah", ApplicationID: "app_diagnostic", Images: images}
+	return &domain.AnalyzeVisionRequest{BrandID: "wardah", ApplicationID: "skinverse", Images: images}
 }
 
 func findZone(t *testing.T, resp *domain.VisionAnalysisResponse, code string) domain.ZoneBreakdownItem {
@@ -150,9 +142,9 @@ func cropSize(t *testing.T, crop inference.ZoneCrop) (int, int) {
 func TestExecute_ScoresArbiterWinnersPerZone(t *testing.T) {
 	segmenter := &fakeSegmenter{zonesByWidth: map[int][]workers.SegmentedZone{
 		100: {
-			{ZoneCode: domain.ZoneForehead, ZoneName: "Forehead", BoundingBox: foreheadBox, Confidence: 0.9},
-			{ZoneCode: domain.ZoneTZoneNose, ZoneName: "T-Zone & Nose", BoundingBox: tinyNoseBox, Confidence: 0.9},
-			{ZoneCode: domain.ZoneLeftCheekOuter, ZoneName: "Left Cheek (Outer)", BoundingBox: leftCheekBox, Confidence: 0.9},
+			{ZoneCode: domain.ZoneForehead, ZoneName: "Forehead", BoundingBox: foreheadBox, IsVisible: true},
+			{ZoneCode: domain.ZoneTZoneNose, ZoneName: "T-Zone & Nose", BoundingBox: tinyNoseBox, IsVisible: true},
+			{ZoneCode: domain.ZoneLeftCheekOuter, ZoneName: "Left Cheek (Outer)", BoundingBox: leftCheekBox, IsVisible: false},
 		},
 	}}
 	client := &fakeCapabilityClient{result: &inference.DispatchResult{
@@ -161,8 +153,7 @@ func TestExecute_ScoresArbiterWinnersPerZone(t *testing.T) {
 		},
 		UnsupportedCapabilities: []string{"hyperpigmentation_net"},
 	}}
-	occlusion := fakeOcclusion{occluded: map[string]bool{domain.ZoneLeftCheekOuter: true}}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, occlusion, fakeResolver{plan: testPlan()}, client, 30*time.Second)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeResolver{plan: testPlan()}, client, 30*time.Second)
 
 	resp, err := orch.Execute(context.Background(), request(
 		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
@@ -171,7 +162,7 @@ func TestExecute_ScoresArbiterWinnersPerZone(t *testing.T) {
 
 	require.Equal(t, 1, client.calls)
 	assert.Equal(t, testPlan().Capabilities, client.capabilities)
-	require.Len(t, client.crops, 1, "tiny and occluded zones are not cropped")
+	require.Len(t, client.crops, 1, "tiny and out-of-frame zones are not cropped")
 	assert.Equal(t, domain.ZoneForehead, client.crops[0].ZoneCode)
 	width, height := cropSize(t, client.crops[0])
 	assert.Equal(t, 50, width)
@@ -180,17 +171,17 @@ func TestExecute_ScoresArbiterWinnersPerZone(t *testing.T) {
 	require.Len(t, resp.ZoneBreakdown, 3)
 	forehead := findZone(t, resp, domain.ZoneForehead)
 	assert.InDelta(t, 70, forehead.Metrics.SkinConditions["concern_acne_papule"].Score, 1e-9, "severity 30 becomes health 70")
-	assert.Equal(t, 0.9, forehead.Metrics.SkinConditions["concern_acne_papule"].Confidence)
 	assert.InDelta(t, 70, forehead.Metrics.Dimensions["acne"].Score, 1e-9)
 	assert.NotContains(t, forehead.Metrics.Dimensions, "pigmentation")
 	assert.NotContains(t, forehead.Metrics.SkinConditions, "concern_melasma")
 
 	assert.Empty(t, findZone(t, resp, domain.ZoneTZoneNose).Metrics.SkinConditions)
 	cheek := findZone(t, resp, domain.ZoneLeftCheekOuter)
-	assert.True(t, cheek.IsOccluded)
+	assert.False(t, cheek.IsVisible)
 	assert.Empty(t, cheek.Metrics.SkinConditions)
 
-	assert.InDelta(t, 70, resp.GlobalAggregation.OverallSkinHealthScore, 1e-9)
+	require.NotNil(t, resp.GlobalAggregation.OverallSkinHealthScore)
+	assert.InDelta(t, 70, *resp.GlobalAggregation.OverallSkinHealthScore, 1e-9)
 	assert.Equal(t, []string{"acne_lesion_classifier"}, resp.ExecutionMetrics.ExecutedModels)
 	assert.Equal(t, 1, resp.ExecutionMetrics.ExecutedModelsCount)
 	assert.Equal(t, 1, resp.ExecutionMetrics.SkippedModelsCount)
@@ -205,24 +196,25 @@ func TestExecute_ScoresArbiterWinnersPerZone(t *testing.T) {
 }
 
 func TestExecute_CropsFromTheWinningCandidatesOwnImage(t *testing.T) {
-	// Two inputs declare the same angle; the arbiter must pick the 200px
-	// image's forehead (higher confidence) and the crop must come from it.
+	// The 100px image is a LEFT view and the 200px image a FRONT view; the
+	// arbiter must pick the FRONT forehead (the angle facing it) and the crop
+	// must come from that image.
 	segmenter := &fakeSegmenter{zonesByWidth: map[int][]workers.SegmentedZone{
-		100: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, Confidence: 0.8}},
-		200: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, Confidence: 0.9}},
+		100: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, IsVisible: true}},
+		200: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, IsVisible: true}},
 	}}
 	client := &fakeCapabilityClient{}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client, 30*time.Second)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeResolver{plan: testPlan()}, client, 30*time.Second)
 
 	resp, err := orch.Execute(context.Background(), request(
-		domain.RawImageInput{Angle: domain.AngleFront, FileName: "small.png", Data: createTestPng(100)},
-		domain.RawImageInput{Angle: domain.AngleFront, FileName: "large.png", Data: createTestPng(200)},
+		domain.RawImageInput{Angle: domain.AngleLeft, FileName: "left.png", Data: createTestPng(100)},
+		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(200)},
 	))
 	require.NoError(t, err)
 
 	assert.Equal(t, "MULTI_ANGLE", resp.CaptureContext.CaptureMode)
 	require.Len(t, resp.ZoneBreakdown, 1)
-	assert.Equal(t, 0.9, resp.ZoneBreakdown[0].Confidence)
+	assert.Equal(t, domain.AngleFront, resp.ZoneBreakdown[0].SourceAngle)
 	require.Len(t, client.crops, 1)
 	width, height := cropSize(t, client.crops[0])
 	assert.Equal(t, 100, width)
@@ -231,10 +223,10 @@ func TestExecute_CropsFromTheWinningCandidatesOwnImage(t *testing.T) {
 
 func TestExecute_NoUsableCropsSkipsDispatchAndWarns(t *testing.T) {
 	segmenter := &fakeSegmenter{zonesByWidth: map[int][]workers.SegmentedZone{
-		100: {{ZoneCode: domain.ZoneTZoneNose, BoundingBox: tinyNoseBox, Confidence: 0.9}},
+		100: {{ZoneCode: domain.ZoneTZoneNose, BoundingBox: tinyNoseBox, IsVisible: true}},
 	}}
 	client := &fakeCapabilityClient{}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client, 30*time.Second)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeResolver{plan: testPlan()}, client, 30*time.Second)
 
 	resp, err := orch.Execute(context.Background(), request(
 		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
@@ -245,14 +237,14 @@ func TestExecute_NoUsableCropsSkipsDispatchAndWarns(t *testing.T) {
 	assert.Equal(t, []string{"NO_APPLICABLE_ZONE", "NO_APPLICABLE_ZONE"}, warningCodes(resp))
 	assert.Empty(t, resp.ExecutionMetrics.ExecutedModels)
 	assert.Equal(t, 2, resp.ExecutionMetrics.SkippedModelsCount)
-	assert.Equal(t, 0.0, resp.GlobalAggregation.OverallSkinHealthScore)
+	assert.Nil(t, resp.GlobalAggregation.OverallSkinHealthScore, "nothing scored: no overall score")
 }
 
 func TestExecute_ResolverErrorStopsBeforeSegmentation(t *testing.T) {
 	segmenter := &fakeSegmenter{}
 	client := &fakeCapabilityClient{}
 	invalid := &catalog.ValidationError{Items: []domain.ValidationErrorItem{{Field: "dimensions", Value: "pigment"}}}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{err: invalid}, client, 30*time.Second)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeResolver{err: invalid}, client, 30*time.Second)
 
 	resp, err := orch.Execute(context.Background(), request(
 		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
@@ -269,9 +261,9 @@ func TestExecutedModelsCountDoesNotDoubleCountZones(t *testing.T) {
 	// One capability scored on three zones is one executed model, not three.
 	segmenter := &fakeSegmenter{zonesByWidth: map[int][]workers.SegmentedZone{
 		100: {
-			{ZoneCode: domain.ZoneForehead, ZoneName: "Forehead", BoundingBox: foreheadBox, Confidence: 0.9},
-			{ZoneCode: domain.ZoneLeftCheekOuter, ZoneName: "Left Cheek (Outer)", BoundingBox: leftCheekBox, Confidence: 0.9},
-			{ZoneCode: domain.ZoneChinJawline, ZoneName: "Chin & Jawline", BoundingBox: foreheadBox, Confidence: 0.9},
+			{ZoneCode: domain.ZoneForehead, ZoneName: "Forehead", BoundingBox: foreheadBox, IsVisible: true},
+			{ZoneCode: domain.ZoneLeftCheekOuter, ZoneName: "Left Cheek (Outer)", BoundingBox: leftCheekBox, IsVisible: true},
+			{ZoneCode: domain.ZoneChinJawline, ZoneName: "Chin & Jawline", BoundingBox: foreheadBox, IsVisible: true},
 		},
 	}}
 	client := &fakeCapabilityClient{result: &inference.DispatchResult{
@@ -282,7 +274,7 @@ func TestExecutedModelsCountDoesNotDoubleCountZones(t *testing.T) {
 		},
 	}}
 	plan := &catalog.Plan{Capabilities: []string{"acne"}}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: plan}, client, 30*time.Second)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeResolver{plan: plan}, client, 30*time.Second)
 
 	resp, err := orch.Execute(context.Background(), request(
 		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
@@ -295,10 +287,10 @@ func TestExecutedModelsCountDoesNotDoubleCountZones(t *testing.T) {
 
 func TestExecute_DispatchFailureIsReturned(t *testing.T) {
 	segmenter := &fakeSegmenter{zonesByWidth: map[int][]workers.SegmentedZone{
-		100: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, Confidence: 0.9}},
+		100: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, IsVisible: true}},
 	}}
 	client := &fakeCapabilityClient{err: fmt.Errorf("%w: connection refused", inference.ErrWorkerUnavailable)}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client, 30*time.Second)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeResolver{plan: testPlan()}, client, 30*time.Second)
 
 	resp, err := orch.Execute(context.Background(), request(
 		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
@@ -310,7 +302,7 @@ func TestExecute_DispatchFailureIsReturned(t *testing.T) {
 
 func TestExecute_UnloadableCapabilityIsReportedAsUnavailableNotUnuploaded(t *testing.T) {
 	segmenter := &fakeSegmenter{zonesByWidth: map[int][]workers.SegmentedZone{
-		100: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, Confidence: 0.9}},
+		100: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, IsVisible: true}},
 	}}
 	// dispatch-zones lists an unloadable capability in both fields.
 	client := &fakeCapabilityClient{result: &inference.DispatchResult{
@@ -320,7 +312,7 @@ func TestExecute_UnloadableCapabilityIsReportedAsUnavailableNotUnuploaded(t *tes
 		UnsupportedCapabilities: []string{"hyperpigmentation_net"},
 		UnavailableCapabilities: map[string]string{"hyperpigmentation_net": "RuntimeError: S3 unreachable"},
 	}}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client, 30*time.Second)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeResolver{plan: testPlan()}, client, 30*time.Second)
 
 	resp, err := orch.Execute(context.Background(), request(
 		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
@@ -342,7 +334,7 @@ func TestExecute_SegmentationUnavailableFailsTheAnalysis(t *testing.T) {
 		100: fmt.Errorf("%w: skin worker returned 503", workers.ErrSegmentationUnavailable),
 	}}
 	client := &fakeCapabilityClient{}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client, 30*time.Second)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeResolver{plan: testPlan()}, client, 30*time.Second)
 
 	_, err := orch.Execute(context.Background(), request(
 		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
@@ -354,12 +346,12 @@ func TestExecute_SegmentationUnavailableFailsTheAnalysis(t *testing.T) {
 func TestExecute_NoFaceSkipsOnlyThatImage(t *testing.T) {
 	segmenter := &fakeSegmenter{
 		zonesByWidth: map[int][]workers.SegmentedZone{
-			100: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, Confidence: 0.9}},
+			100: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, IsVisible: true}},
 		},
 		errByWidth: map[int]error{80: fmt.Errorf("%w: no landmarks", workers.ErrNoFace)},
 	}
 	client := &fakeCapabilityClient{}
-	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client, 30*time.Second)
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeResolver{plan: testPlan()}, client, 30*time.Second)
 
 	resp, err := orch.Execute(context.Background(), request(
 		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},

@@ -37,7 +37,7 @@ func (stubSegmenter) SegmentWithPose(declared domain.ImageAngle, img image.Image
 		ZoneName:    "Forehead",
 		SourceAngle: angle,
 		BoundingBox: domain.BoundingBox{MinX: 0.1, MinY: 0.1, MaxX: 0.9, MaxY: 0.9},
-		Confidence:  0.9,
+		IsVisible:   true,
 	}}, angle, 0, 0, 0, nil
 }
 
@@ -86,7 +86,7 @@ var acnePlan = &catalog.Plan{
 }
 
 func newController(resolver orchestrator.PlanResolver, capabilities inference.CapabilityClient) *controllers.VisionController {
-	orch := orchestrator.NewVisionOrchestrator(stubSegmenter{}, workers.NewOcclusionWorker(), resolver, capabilities, 30*time.Second)
+	orch := orchestrator.NewVisionOrchestrator(stubSegmenter{}, resolver, capabilities, 30*time.Second)
 	return controllers.NewVisionController(orch, stubCatalog{snapshot: &catalog.Snapshot{}})
 }
 
@@ -116,8 +116,15 @@ func analyzeRequest(t *testing.T, fields map[string]string, uploads ...upload) *
 		require.NoError(t, err)
 		_, _ = part.Write(pngBytes())
 	}
+	// Tenant fields are required; tests that check their absence pass "" to omit one.
+	all := map[string]string{"brandId": "wardah", "applicationId": "skinverse"}
 	for key, value := range fields {
-		_ = writer.WriteField(key, value)
+		all[key] = value
+	}
+	for key, value := range all {
+		if value != "" {
+			_ = writer.WriteField(key, value)
+		}
 	}
 	_ = writer.Close()
 
@@ -207,7 +214,7 @@ func TestVisionController_UnlabelledMultiImage(t *testing.T) {
 
 func serveRegistry(t *testing.T, referenceCatalog catalog.Catalog) *httptest.ResponseRecorder {
 	t.Helper()
-	orch := orchestrator.NewVisionOrchestrator(stubSegmenter{}, workers.NewOcclusionWorker(), stubResolver{plan: acnePlan}, stubCapabilities{}, 30*time.Second)
+	orch := orchestrator.NewVisionOrchestrator(stubSegmenter{}, stubResolver{plan: acnePlan}, stubCapabilities{}, 30*time.Second)
 	ctrl := controllers.NewVisionController(orch, referenceCatalog)
 	req := httptest.NewRequest(http.MethodGet, "/api/vision/registry", nil)
 	rec := httptest.NewRecorder()
@@ -258,7 +265,7 @@ func (unavailableSegmenter) SegmentWithPose(declared domain.ImageAngle, img imag
 }
 
 func TestVisionController_SegmentationUnavailable_HTTP503(t *testing.T) {
-	orch := orchestrator.NewVisionOrchestrator(unavailableSegmenter{}, workers.NewOcclusionWorker(), stubResolver{plan: acnePlan}, stubCapabilities{}, 30*time.Second)
+	orch := orchestrator.NewVisionOrchestrator(unavailableSegmenter{}, stubResolver{plan: acnePlan}, stubCapabilities{}, 30*time.Second)
 	ctrl := controllers.NewVisionController(orch, stubCatalog{snapshot: &catalog.Snapshot{}})
 
 	rec := serveAnalyze(t, ctrl, analyzeRequest(t, nil, upload{"image_front", "front.png"}))
@@ -266,4 +273,15 @@ func TestVisionController_SegmentationUnavailable_HTTP503(t *testing.T) {
 	assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
 	assert.Contains(t, rec.Body.String(), "SEGMENTATION_UNAVAILABLE")
 	assert.Contains(t, rec.Body.String(), "LANDMARKER_UNAVAILABLE")
+}
+
+func TestVisionController_MissingTenant_HTTP400(t *testing.T) {
+	ctrl := newController(stubResolver{plan: acnePlan}, stubCapabilities{})
+
+	rec := serveAnalyze(t, ctrl, analyzeRequest(t, map[string]string{"brandId": "", "applicationId": ""}, upload{"image_front", "front.png"}))
+
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Contains(t, rec.Body.String(), "brandId")
+	assert.Contains(t, rec.Body.String(), "applicationId")
+	assert.NotContains(t, rec.Body.String(), "brand_wardah")
 }
