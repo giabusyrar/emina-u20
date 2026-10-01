@@ -38,7 +38,7 @@ func TestMeasure_SendsImageWithLandmarksAndDecodes(t *testing.T) {
 	assert.Equal(t, []string{"roll", "yaw", "pitch", "iod_px"}, resp.Quality.GatesPassed)
 	assert.Contains(t, resp.Quality.Warnings, "face_partly_out_of_frame")
 	assert.Equal(t, "occluded", resp.Regions["jaw"])
-	assert.Len(t, resp.Measurements, 49)
+	assert.Len(t, resp.Measurements, 51)
 }
 
 func TestMeasure_PassesThroughClientAndAvailabilityErrors(t *testing.T) {
