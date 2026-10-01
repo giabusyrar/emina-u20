@@ -430,7 +430,8 @@ a measurement.
 GLB parts and report fields (realism A). The mesh has four primitives, each
 tagged `extras.part`, in this order: `skin`, `left_eyeball`, `right_eyeball`,
 `cornea` (the cornea is transparent and untextured; viewers should look parts
-up by name). `asset.extras` adds `segmenter` = `{name, version, sha256}`
+up by name); the mouth parts follow when `FACE_HEAD_INCLUDE_MOUTH_INTERIOR` is
+on. `asset.extras` adds `segmenter` = `{name, version, sha256}`
 (the segmentation model used for the texture bake) and `parts` = a list of
 `{name, textured, observedFromPhoto}`. The worker needs `worker-models` to
 serve `head_segmenter`, otherwise it answers 503 `head_model_unavailable`;
