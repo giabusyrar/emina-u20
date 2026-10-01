@@ -1,7 +1,7 @@
 {
   "kind": "fitted",
   "model": {"name": "gnm_head", "version": "3.0", "sha256": "61d78bbfb4ad8e0b38495804a4caef3214d3df00f8c3f68761e63b41ce3747eb"},
-  "segmenter": {"name": "selfie_multiclass", "version": "256x256 float32 (2023-04-26)", "sha256": "1111111111111111111111111111111111111111111111111111111111111111"},
+  "segmenter": {"name": "selfie_multiclass", "version": "fixture-version", "sha256": "1111111111111111111111111111111111111111111111111111111111111111"},
   "parts": [{"name": "skin", "textured": true, "observedFromPhoto": true},
             {"name": "left_eyeball", "textured": true, "observedFromPhoto": true},
             {"name": "right_eyeball", "textured": true, "observedFromPhoto": true},
@@ -22,5 +22,5 @@
   "landmarkVertices": [[10, 11, 12, 0.2, 0.3, 0.5]],
   "landmarkPoints": [[0.012, 0.271, 0.131]],
   "observedBits": {"front": 1, "left": 2, "right": 4},
-  "notice": "Visualisation only. _OBSERVED = 0 regions are the model's estimate; _SIGMA_MM is a model lower bound, not a confidence interval; viewConsistency compares geometry only and cannot detect look-alikes."
+  "notice": "Visualisation only. _OBSERVED > 0: a photo pixel of the right class (skin for skin, the eye region for eyeballs) saw the vertex; _OBSERVED = 0: no photo saw it, or one did but its pixel was hair, clothes, background or (for an eyeball) outside the eye opening, so its colour is not from a photo. Photo colour appears only on triangles whose vertices are all observed. _SIGMA_MM is a model lower bound, not a confidence interval; viewConsistency compares geometry only and cannot detect look-alikes."
 }

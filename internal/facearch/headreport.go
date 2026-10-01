@@ -8,11 +8,16 @@ package facearch
 type HeadReport struct {
 	Kind  string       `json:"kind"`
 	Model HeadModelRef `json:"model"`
-	// Segmenter is the photo segmentation model whose skin classes decide
-	// which pixels may texture skin and which vertices count as observed.
+	// Segmenter is the photo segmentation model whose classes decide which
+	// pixels may texture skin and the eyeballs, and so which vertices count as
+	// observed.
 	Segmenter HeadModelRef `json:"segmenter"`
-	// Parts lists the GLB primitives and what each claims: textured parts carry
-	// photo colour where _OBSERVED > 0; the cornea is geometry only.
+	// Parts lists the GLB primitives and what each claims. _OBSERVED > 0 at a
+	// vertex: a photo pixel of the right class (skin for skin, the eye region
+	// for eyeballs) saw it; 0: no photo saw it, or its pixel was hair, clothes,
+	// background or (for an eyeball) outside the eye opening. Textured parts
+	// carry photo colour only on triangles whose vertices are all observed;
+	// the cornea is geometry only (always 0).
 	Parts           []HeadPart         `json:"parts"`
 	Correspondence  HeadCorrespondence `json:"correspondence"`
 	Camera          HeadCamera         `json:"camera"`
