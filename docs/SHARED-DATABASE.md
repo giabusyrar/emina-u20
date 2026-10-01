@@ -1,39 +1,24 @@
-# The database was not split
+# The core database
 
-Seagull was split into three repositories. **Postgres was not.**
+seagull-core and Seagull-gateway use separate Postgres databases. Every seagull-core table (ref_*, match_*, survey_definitions, score_rulesets, face_architecture_profiles, the model server's vision_* tables) lives in the core database only. The gateway database holds gateway-engine's tables only. `goplatform.OpenPostgres` refuses a DATABASE_URL that contains gateway tables (api_keys, collections, routes, route_groups), so a misconfigured service or seeder fails at start (packages/goplatform/dbguard.go).
 
-`gateway-engine` (Seagull-gateway), `core-engine` and `reference-service`
-(Seagull-core) each call GORM `AutoMigrate` on startup against the same
-`DATABASE_URL`. Before the split, one `go test ./...` and one code review saw
-every model at once. Now they do not.
-
-## What this means in practice
-
-- **A model change in one repo can break the other.** `AutoMigrate` adds columns
-  and indexes; it does not drop or rename. Two repos adding a differently-typed
-  column with the same name on the same table is the failure this document
-  exists to prevent.
-- **Table ownership is by repo, and it is not enforced by anything.** Nothing in
-  Postgres stops core-engine from migrating a gateway table. The only protection
-  is that you read this first.
-- **Deploy order matters when a contract changes.** A reader deployed before the
-  writer that creates its column will fail at query time, not at startup.
+Inside this repo the database is still shared: core-engine and reference-service run GORM AutoMigrate, and the model server runs raw SQL, all against the same core database. Ownership between them is by service and is not enforced.
 
 ## Before changing any GORM model
 
-1. Find which repo owns the table. Run `AutoMigrate` lists in both repos:
-   - Seagull-gateway: `apps/gateway-engine/cmd/server/main.go`, `apps/gateway-engine/api/index.go`
-   - Seagull-core: `apps/core-engine/cmd/server/main.go`, `apps/reference-service/cmd/server/main.go`
-2. If the table is owned by the other repo, raise it there. Do not add the column
+1. Find which service owns the table. Run `AutoMigrate` lists:
+   - `apps/core-engine/cmd/server/main.go`, `apps/reference-service/cmd/server/main.go`
+   - The model server (`apps/workers/models`) creates its tables with raw SQL.
+2. If the table is owned by another service, raise it with that service's owner. Do not add the column
    from your side because `AutoMigrate` will happily let you.
-3. If the change crosses both, land the additive migration first, deploy both,
+3. If the change crosses services, land the additive migration first, deploy both,
    then land the code that depends on it.
 
 ## Tables owned by the model server (`apps/workers/models`)
 
 These are created by raw SQL in `apps/workers/models/worker_models/db.py`
 (`SCHEMA_STATEMENTS`), not by GORM `AutoMigrate` — the model server is a Python
-service and has no Go models. They still live in the same shared Postgres, so
+service and has no Go models. They live in the core database, so
 the ownership-and-read rules above apply to them the same way. No other
 repository reads any of these tables.
 
@@ -108,9 +93,7 @@ The same warning, from the server's side, is at the top of
 `pg_advisory_lock(SCHEMA_ADVISORY_LOCK_ID)` — a fixed constant, currently
 `1581646198` — for the whole of `SCHEMA_STATEMENTS`, because
 `CREATE TABLE IF NOT EXISTS` and `ADD COLUMN IF NOT EXISTS` are not race-free
-and two replicas boot together on every rolling deploy. **If Seagull-gateway
-ever takes advisory locks on this shared database, keep its ids distinct from
-this one.** A collision is not corrupting — it would only serialize two
+and two replicas boot together on every rolling deploy. **If another core service ever takes advisory locks on this database, keep its ids distinct from this one.** A collision is not corrupting — it would only serialize two
 unrelated migrations against each other — but it is a needless startup stall,
 and a deadlock risk if both sides ever take two locks.
 
