@@ -117,10 +117,10 @@ migrates them; both commands refuse to run until the tables exist.
 `ref_products` ids. There are no foreign keys; reference-service validates
 references on save, and product deletes are soft (`deleted_at`).
 
-`match_product_catalog` is retired: core-engine no longer migrates or reads
-it. Its rows were copied into `ref_products` with the same ids by
-`migrate-product-catalog`. Dropping the table is a separate recorded step,
-not done yet.
+`match_product_catalog` is gone: its rows were copied into `ref_products`
+with the same ids by `migrate-product-catalog`, and the table was dropped
+(see "Table drops outside AutoMigrate" below). `migrate-product-catalog`
+now has nothing to read and stops with "match_product_catalog not found".
 
 ## If you want this to stop being a hazard
 
@@ -137,3 +137,13 @@ and it is not done. Until it is, this document is the whole protection.
   `apps/core-engine/cmd/shade-asset-keys -apply` after converting each URL
   to its object key; see `docs/OBJECT-STORAGE.md`. No other repository
   reads this table.
+
+## Table drops outside AutoMigrate
+
+- **`match_product_catalog`** (core-engine), dropped from the core database
+  (`ep-hidden-unit`) on 2026-10-01, after checking that all 31 of its ids were
+  in `ref_products` and that no `match_shades` row lacked a product. A JSON
+  backup of the 31 rows was taken first
+  (`Paragon/db-backups/match_product_catalog-ep-hidden-unit-20261001.json`,
+  outside this repository). Its copy in the gateway database had already been
+  dropped with the other core tables.
