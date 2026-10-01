@@ -80,19 +80,10 @@
   },
 
   "hueNames": {
-    "status": "brief",
+    "status": "standard",
+    "note": "Names are the ISCC-NBS colour-name blocks (Kelly 1958, NBS RP2911), level 3, by nearest centroid under CIEDE2000; the table is in code (internal/colour/domain/isccnbs). They replaced the brief's hue-angle families (Beige ... Brown), which named saturated reds 'Peach'.",
     "categories": ["lip", "blush", "complexion"],
-    "categoriesNote": "The brief's hue families (Beige ... Brown, by hue angle only) describe lip, cheek and skin colours. On eye products they mislabel (a light cream eyeshadow reads 'Brown', black mascara 'Red'), so eye categories get no hue name. Empty list = every category (notebook behaviour).",
-    "ranges": [
-      { "name": "Beige", "from": 40,  "to": 70 },
-      { "name": "Peach", "from": 20,  "to": 40 },
-      { "name": "Coral", "from": 10,  "to": 20 },
-      { "name": "Red",   "from": 0,   "to": 10 },
-      { "name": "Rose",  "from": 345, "to": 360 },
-      { "name": "Pink",  "from": 325, "to": 345 },
-      { "name": "Berry", "from": 300, "to": 325 },
-      { "name": "Brown", "from": 70,  "to": 95 }
-    ]
+    "categoriesNote": "Unchanged from the brief-era setting: lip, cheek and skin colours get a name, eye products none (the old hue-angle families mislabelled them, e.g. black mascara 'Red'). ISCC-NBS names blacks and browns correctly, so adding eye categories is now a choice, not a fix. Empty list = every category."
   },
 
   "presentation": {

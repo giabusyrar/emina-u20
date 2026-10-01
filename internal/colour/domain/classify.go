@@ -110,19 +110,22 @@ func HueAngle(lab Lab) float64 {
 	return h
 }
 
-// HueName is the notebook's wardah_hue_name.
+// HueName is the ISCC-NBS colour name of lab (ISCCNBSName). It replaced the
+// notebook's wardah_hue_name, whose families went by hue angle alone and so
+// named saturated reds "Peach": in CIELAB a vivid red and a peach share a
+// hue angle and differ in lightness and chroma. LoadConfig checks the
+// centroid table, so the error branch is unreachable after startup; it
+// returns no name rather than a wrong one.
 func (c *Config) HueName(lab Lab) string {
-	h := HueAngle(lab)
-	for _, r := range c.HueNames.Ranges {
-		if (r.From <= h && h < r.To) || (r.From > r.To && (h >= r.From || h < r.To)) {
-			return r.Name
-		}
+	name, err := ISCCNBSName(lab)
+	if err != nil {
+		return ""
 	}
-	return "-"
+	return name
 }
 
-// HueNameOf is the shade's hue name, or "" for a category the brief's hue
-// families do not describe (config hueNames.categories).
+// HueNameOf is the shade's hue name, or "" for a category not named
+// (config hueNames.categories).
 func (c *Config) HueNameOf(s ShadeCandidate) string {
 	if !c.NamesHue(s.Category) {
 		return ""

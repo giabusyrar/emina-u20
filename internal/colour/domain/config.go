@@ -81,12 +81,8 @@ type Config struct {
 
 	HueNames struct {
 		// Categories whose shades get a hue name. Empty names every category.
+		// The names themselves are the ISCC-NBS standard's (isccnbs.go).
 		Categories []string `json:"categories"`
-		Ranges     []struct {
-			Name string  `json:"name"`
-			From float64 `json:"from"`
-			To   float64 `json:"to"`
-		} `json:"ranges"`
 	} `json:"hueNames"`
 
 	Presentation struct {
@@ -144,6 +140,9 @@ func (c *Config) validate() error {
 	}
 	if c.Recommendation.PerCategory <= 0 {
 		return fmt.Errorf("recommendation.perCategory must be positive")
+	}
+	if _, err := ISCCNBSCentroids(); err != nil {
+		return err
 	}
 	return nil
 }

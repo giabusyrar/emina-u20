@@ -128,8 +128,8 @@ func TestRatedAndNamedCategories(t *testing.T) {
 		t.Errorf("black mascara hue name %q, want none", got)
 	}
 	lip := ShadeCandidate{Category: "lip", Lab: Lab{51.68, 28.82, 16.21}}
-	if got := c.HueNameOf(lip); got != "Peach" {
-		t.Errorf("lip hue name %q, want Peach", got)
+	if got := c.HueNameOf(lip); got != "grayish red" {
+		t.Errorf("lip hue name %q, want grayish red (ISCC-NBS)", got)
 	}
 	var all Config
 	if !all.Rates("mascara") || !all.NamesHue("mascara") {
@@ -141,13 +141,5 @@ func TestSourceRank(t *testing.T) {
 	if !(SourceRank(SourceCube) < SourceRank(SourceSwatch) && SourceRank(SourceSwatch) < SourceRank(SourceEstimate) &&
 		SourceRank(SourceEstimate) < SourceRank("unknown")) {
 		t.Fatal("cube > swatch > estimate > unknown")
-	}
-}
-
-func TestHueNames(t *testing.T) {
-	c := loadTestConfig(t)
-	// Notebook export: lip Lab 51.68/28.82/16.21 -> "Peach" (hue 29.4°).
-	if got := c.HueName(Lab{51.68, 28.82, 16.21}); got != "Peach" {
-		t.Fatalf("got %s want Peach", got)
 	}
 }

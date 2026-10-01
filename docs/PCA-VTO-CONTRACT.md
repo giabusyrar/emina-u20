@@ -154,7 +154,7 @@ Response `200` (classification + presentation layers; measurement stays internal
     "lip": [
       {
         "shadeId": "shd_…", "productId": "prd_…", "productName": "…", "shadeName": "…",
-        "hexColor": "#B5476A", "hueName": "Rose",
+        "hexColor": "#B5476A", "hueName": "strong purplish red",
         "status": "same_quadrant", "colourSource": "swatch"
       }
     ]
@@ -188,7 +188,10 @@ Response `200` (classification + presentation layers; measurement stays internal
   eyeliner and eyeshadow look). Without it, a category with no kept shade
   (black mascara for most people) could not be tried at all.
 - `hueName` only for lip, blush and complexion (config `hueNames.categories`);
-  `""` elsewhere.
+  `""` elsewhere. It is the ISCC-NBS level-3 colour name (Kelly 1958, NBS
+  RP2911) of the nearest of the 267 block centroids by CIEDE2000, e.g.
+  "vivid red", "light yellowish pink". Nearest centroid approximates block
+  membership near block boundaries (§8, item 6).
 - `colourSource`: `cube`, `swatch` or `estimate`. Swatch-derived shades are
   flagged; `estimate` is a demo colour, not from the brand, and the UI says so.
 - Raw colorimetry (the user's `skinLab`) is **never** in this response unless
@@ -265,7 +268,7 @@ provenance tag kept:
 | Temperature from b\*−a\* | 5.6 / 4.4 | `[WCPA]` |
 | Foundation L\* bands | 70 / 66 / 63 / 60 | `[WCPA]` |
 | Complementary map | `KOMPLEMENTER` | `[INTERPRETASI]` → `provisional` |
-| Wardah hue names by hue angle | `WARDAH_HUE` | brief |
+| Hue names | ISCC-NBS level 3, nearest centroid (CIEDE2000) | standard (Kelly 1958); replaced the brief's `WARDAH_HUE` |
 | Hue-name categories | lip, blush, complexion | service choice (§8) |
 | Rated categories | lip, blush, complexion, eyeshadow | service choice (§8) |
 | Presentation: quadrant names, season table, labels | `NAMA_KUADRAN`, `SEASON_PADANAN` | brand / colourist to confirm |
@@ -323,9 +326,16 @@ constants move into `render_params.json` at this step.
    that says nothing about them. Config `recommendation.categories` rates lip,
    blush, complexion and eyeshadow; the rest are offered unrated in `catalog`.
    An empty list restores the notebook.
-6. Hue names: the brief's families (by hue angle only) mislabel eye products
-   (a light cream eyeshadow reads "Brown", black mascara "Red"); config
-   `hueNames.categories` names lip, blush and complexion only.
+6. Hue names: the brief's families went by hue angle only, so they named
+   saturated reds "Peach" (94 of 162 catalogue lip shades on 2026-10-01; a
+   vivid red and a peach share a CIELAB hue angle and differ in lightness and
+   chroma) and mislabelled eye products (black mascara "Red"). They are
+   replaced by ISCC-NBS level-3 names, from the nearest of the standard's 267
+   block centroids under CIEDE2000 (`internal/colour/domain/isccnbs`). That is
+   an approximation: the standard defines blocks by Munsell boundaries, and a
+   colour near a boundary can be nearer a neighbouring centroid; the 32
+   open-chroma ("+") blocks have a lower-bound centroid. Config
+   `hueNames.categories` still names lip, blush and complexion only.
 7. Munsell chroma: the notebook's colour-science path never ran. It called
    `colour.xyY_to_munsell_specification`, which colour-science (every release
    up to 0.4.7) has only in `colour.notation.munsell`; the AttributeError was
