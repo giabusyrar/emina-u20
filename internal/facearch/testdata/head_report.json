@@ -1,0 +1,20 @@
+{
+  "kind": "fitted",
+  "model": {"name": "gnm_head", "version": "3.0", "sha256": "61d78bbfb4ad8e0b38495804a4caef3214d3df00f8c3f68761e63b41ce3747eb"},
+  "correspondence": {"version": 1, "sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
+  "camera": {"fovDeg": 52.3, "fovSdDeg": 2.4, "fovSource": "estimated", "priorDeg": 60.0, "priorLogSd": 0.3},
+  "views": [
+    {"name": "front", "yawDeg": 2.1, "pitchDeg": -4.0, "rollDeg": 0.8, "nme": 0.021, "focalPx": 1320.5,
+     "residualsPx": {"0": 1.2, "1": 0.8}},
+    {"name": "right", "yawDeg": -31.0, "pitchDeg": -2.0, "rollDeg": 1.1, "nme": 0.028, "focalPx": 1320.5,
+     "residualsPx": {"0": 1.9, "1": 1.1}}
+  ],
+  "nmeLimit": 0.077,
+  "viewConsistency": {"rmsMm": 2.4, "thresholdMm": 3.5, "flag": "consistent"},
+  "shapeEvidence": {"effectiveComponents": 32.9, "distanceFromMean": 412.0},
+  "sigmaKind": "model_lower_bound",
+  "components": {"identity": 60, "lowerFace": 30, "eye": 5},
+  "landmarkVertices": [[10, 11, 12, 0.2, 0.3, 0.5]],
+  "observedBits": {"front": 1, "left": 2, "right": 4},
+  "notice": "Visualisation only. _OBSERVED = 0 regions are the model's estimate; _SIGMA_MM is a model lower bound, not a confidence interval; viewConsistency compares geometry only and cannot detect look-alikes."
+}
