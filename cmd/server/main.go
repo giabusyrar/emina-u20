@@ -15,6 +15,9 @@ import (
 	"github.com/experience-gateway/apps/core-engine/internal/config"
 	"github.com/experience-gateway/packages/goplatform"
 
+	// Customer assessments
+	"github.com/experience-gateway/apps/core-engine/internal/assessment"
+
 	// Form Engine
 	formCache "github.com/experience-gateway/apps/core-engine/internal/form/adapters/cache"
 	formControllers "github.com/experience-gateway/apps/core-engine/internal/form/adapters/controllers"
@@ -101,6 +104,7 @@ func run() error {
 		&matchEntity.ShadeAsset{},
 		&faceProfile.FaceArchitectureProfile{},
 		&colourEntity.ShadeColorimetry{},
+		&assessment.Record{},
 	); err != nil {
 		deps.Log.Error("automigrate failed", "err", err)
 	}
@@ -117,7 +121,9 @@ func run() error {
 	scoreEngine := formScoreEngine.New(sService, cfg.ScoreClientTimeout)
 	paradevClient := formVisionClient.New(cfg.ParadevGatewayURL, cfg.ParadevGatewayAPIKey, cfg.ParadevTimeout)
 	fService := formService.NewSurveyService(fRepo, formC, scoreEngine, paradevClient)
-	formHandler := formControllers.NewSurveyHandler(fService)
+	// Every successful survey evaluation is stored as a customer assessment.
+	assessmentStore := assessment.NewGormStore(db)
+	formHandler := formControllers.NewSurveyHandler(fService).WithRecorder(assessment.NewRecorder(assessmentStore))
 
 	// Unified evaluate (Fase 3+4): Score Engine now owns the whole evaluate
 	// pipeline, reaching into Form Engine's survey lookup and a vision
@@ -288,6 +294,11 @@ func run() error {
 	}
 	mountColourRoutes(e.Group("/core/colour-engine"))
 	mountColourRoutes(e.Group("/api/colour"))
+
+	// Customer assessments (stored by the form evaluate routes above)
+	assessmentHandler := assessment.NewHandler(assessmentStore, int(cfg.AssessmentListMaxLimit))
+	assessmentHandler.Mount(e.Group("/core/assessments"))
+	assessmentHandler.Mount(e.Group("/api/assessments"))
 
 	return goplatform.Run(ctx, e, ":"+cfg.Port, cfg.ShutdownTimeout)
 }
