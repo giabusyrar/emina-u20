@@ -22,6 +22,7 @@ import (
 	"flag"
 	"log"
 	"log/slog"
+	"sort"
 
 	"gorm.io/gorm"
 
@@ -81,14 +82,28 @@ func main() {
 		if err != nil {
 			return err
 		}
+		var brandRows []string
+		if err := tx.Raw("SELECT id FROM ref_brands").Scan(&brandRows).Error; err != nil {
+			return err
+		}
+		brands := make(map[string]bool, len(brandRows))
+		for _, id := range brandRows {
+			brands[id] = true
+		}
 		for _, o := range olds {
-			catID, err := refcatalog.EnsureCategory(tx, o.Category, o.Category)
+			catID, catNew, err := refcatalog.EnsureCategory(tx, o.Category, o.Category)
 			if err != nil {
 				return err
 			}
-			texID, err := refcatalog.EnsureTexture(tx, o.Texture, o.Texture)
+			if catNew {
+				log.Printf("will create category %q (id %s)", refcatalog.Code(o.Category), catID)
+			}
+			texID, texNew, err := refcatalog.EnsureTexture(tx, o.Texture, o.Texture)
 			if err != nil {
 				return err
+			}
+			if texNew {
+				log.Printf("will create texture %q (id %s)", refcatalog.Code(o.Texture), texID)
 			}
 			inserted, err := refcatalog.InsertProductIfAbsent(tx, toProduct(o, catID, texID))
 			if err != nil {
@@ -100,6 +115,9 @@ func main() {
 				continue
 			}
 			copied++
+			if !brands[o.BrandID] {
+				log.Printf("brand %s not in ref_brands: product %s copied but reference-service will refuse to save it until the brand exists", o.BrandID, o.ID)
+			}
 			ids, missing := refcatalog.SplitIngredients(o.Ingredients, byName)
 			for _, m := range missing {
 				unmatched[m]++
@@ -118,8 +136,13 @@ func main() {
 		log.Fatalf("migrating: %v", err)
 	}
 	log.Printf("copied %d products, kept %d already present, linked %d ingredients", copied, kept, linked)
-	for name, n := range unmatched {
-		log.Printf("ingredient %q (%d products) has no ref_ingredients row; not linked", name, n)
+	names := make([]string, 0, len(unmatched))
+	for name := range unmatched {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		log.Printf("ingredient %q (%d products) has no ref_ingredients row; not linked", name, unmatched[name])
 	}
 	if *dryRun {
 		log.Print("dry run: nothing was written")

@@ -62,16 +62,16 @@ func scratchDB(t *testing.T) *gorm.DB {
 
 func TestEnsureCategoryIsIdempotent(t *testing.T) {
 	db := scratchDB(t)
-	a, err := EnsureCategory(db, "lip", "lip")
-	if err != nil || a != "cat-lip" {
-		t.Fatalf("first = %q %v", a, err)
+	a, created, err := EnsureCategory(db, "lip", "lip")
+	if err != nil || a != "cat-lip" || !created {
+		t.Fatalf("first = %q created=%v %v, want cat-lip created", a, created, err)
 	}
-	b, err := EnsureCategory(db, "LIP ", "Lip")
-	if err != nil || b != a {
-		t.Fatalf("second = %q %v, want %q", b, err, a)
+	b, created, err := EnsureCategory(db, "LIP ", "Lip")
+	if err != nil || b != a || created {
+		t.Fatalf("second = %q created=%v %v, want %q not created", b, created, err, a)
 	}
-	if id, _ := EnsureCategory(db, "", ""); id != "" {
-		t.Errorf("empty code must give no category, got %q", id)
+	if id, created, _ := EnsureCategory(db, "", ""); id != "" || created {
+		t.Errorf("empty code must give no category, got %q created=%v", id, created)
 	}
 }
 

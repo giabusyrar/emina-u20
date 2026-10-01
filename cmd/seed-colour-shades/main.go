@@ -279,7 +279,7 @@ func main() {
 			prodID := id("clr-prd-", brands[i], r.produk)
 			if !seenProd[prodID] {
 				seenProd[prodID] = true
-				catID, err := refcatalog.EnsureCategory(tx, r.kategori, r.kategori)
+				catID, _, err := refcatalog.EnsureCategory(tx, r.kategori, r.kategori)
 				if err != nil {
 					return fmt.Errorf("category %q: %w", r.kategori, err)
 				}
@@ -321,7 +321,7 @@ func main() {
 			if source == colourDomain.SourceEstimate {
 				nEstimate++
 			}
-			// Load the existing row first, like products and shades above, so
+			// Load the existing row first, like shades above, so
 			// a re-seed updates it without resetting its created_at.
 			colID := id("clr-col-", shadeID, source)
 			var col colourEntity.ShadeColorimetry

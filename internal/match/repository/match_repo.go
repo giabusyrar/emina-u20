@@ -46,7 +46,7 @@ func NewMatchRepo(db *gorm.DB, c ...*cache.MatchCache) *MatchRepo {
 }
 
 // -------------------------------------------------------------
-// Product Master Catalog CRUD & Fetching
+// Product Master Catalog (read-only; written by reference-service)
 // -------------------------------------------------------------
 // productsQuery reads the product master reference-service owns
 // (ref_products, docs/superpowers/specs/2026-10-01-reference-products-design.md).

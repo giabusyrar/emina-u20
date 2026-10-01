@@ -35,34 +35,35 @@ func RequireTables(db *gorm.DB) error {
 // Code normalises a category or texture text into its code.
 func Code(s string) string { return strings.ToLower(strings.TrimSpace(s)) }
 
-func ensure(tx *gorm.DB, table, prefix, code, name string) (string, error) {
+func ensure(tx *gorm.DB, table, prefix, code, name string) (id string, created bool, err error) {
 	code = Code(code)
 	if code == "" {
-		return "", nil
+		return "", false, nil
 	}
 	var ids []string
 	if err := tx.Raw("SELECT id FROM "+table+" WHERE code = ? LIMIT 1", code).Scan(&ids).Error; err != nil {
-		return "", err
+		return "", false, err
 	}
 	if len(ids) > 0 {
-		return ids[0], nil
+		return ids[0], false, nil
 	}
-	id := prefix + code
+	id = prefix + code
 	if err := tx.Exec("INSERT INTO "+table+" (id, code, name, description, created_at, updated_at) VALUES (?, ?, ?, '', now(), now())",
 		id, code, strings.TrimSpace(name)).Error; err != nil {
-		return "", fmt.Errorf("%s %q: %w", table, code, err)
+		return "", false, fmt.Errorf("%s %q: %w", table, code, err)
 	}
-	return id, nil
+	return id, true, nil
 }
 
 // EnsureCategory returns the id of the category with this code, creating it
-// (id cat-<code>) if absent. An empty code means no category: "".
-func EnsureCategory(tx *gorm.DB, code, name string) (string, error) {
+// (id cat-<code>) if absent, and whether it created it. An empty code means
+// no category: "".
+func EnsureCategory(tx *gorm.DB, code, name string) (id string, created bool, err error) {
 	return ensure(tx, "ref_categories", "cat-", code, name)
 }
 
 // EnsureTexture is EnsureCategory for ref_textures (id tex-<code>).
-func EnsureTexture(tx *gorm.DB, code, name string) (string, error) {
+func EnsureTexture(tx *gorm.DB, code, name string) (id string, created bool, err error) {
 	return ensure(tx, "ref_textures", "tex-", code, name)
 }
 
