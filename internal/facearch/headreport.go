@@ -16,9 +16,14 @@ type HeadReport struct {
 	// vertex: a photo pixel of the right class (skin for skin, the eye region
 	// for eyeballs) saw it; 0: no photo saw it, or its pixel was hair, clothes,
 	// background or (for an eyeball) outside the eye opening. Textured parts
-	// carry photo colour only on triangles whose vertices are all observed;
-	// the cornea is geometry only (always 0).
-	Parts           []HeadPart         `json:"parts"`
+	// carry photo colour on triangles whose vertices are all observed and,
+	// where fill applied, an estimated colour elsewhere; grey only where it
+	// did not. The cornea is geometry only (always 0).
+	Parts []HeadPart `json:"parts"`
+	// Fill says, per filled part, whether its unseen region carries an
+	// estimated colour (diffused from the seen vertices toward the part's
+	// median tone) or stays grey, and why. Filled vertices keep _OBSERVED 0.
+	Fill            []HeadFill         `json:"fill"`
 	Correspondence  HeadCorrespondence `json:"correspondence"`
 	Camera          HeadCamera         `json:"camera"`
 	Views           []HeadView         `json:"views"`
@@ -49,6 +54,21 @@ type HeadPart struct {
 	Name              string `json:"name"`
 	Textured          bool   `json:"textured"`
 	ObservedFromPhoto bool   `json:"observedFromPhoto"`
+}
+
+// HeadFill: Reason is set only when Applied is false ("too_few_observed" or
+// "not_converged"); ToneLinear/ToneSrgbHex only when some vertex was seen.
+// The tone is an estimate derived from this request's photos.
+type HeadFill struct {
+	Part             string      `json:"part"`
+	Applied          bool        `json:"applied"`
+	Reason           string      `json:"reason,omitempty"`
+	Method           string      `json:"method"`
+	ToneLinear       *[3]float64 `json:"toneLinear,omitempty"`
+	ToneSrgbHex      string      `json:"toneSrgbHex,omitempty"`
+	ObservedVertices int         `json:"observedVertices"`
+	TotalVertices    int         `json:"totalVertices"`
+	DecayMm          float64     `json:"decayMm"`
 }
 
 type HeadCorrespondence struct {
