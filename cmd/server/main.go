@@ -58,6 +58,7 @@ import (
 
 	// Face Architecture
 	"github.com/experience-gateway/apps/core-engine/internal/facearch"
+	faceHead "github.com/experience-gateway/apps/core-engine/internal/facearch/headclient"
 	faceMeasure "github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
 	faceProfile "github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
 )
@@ -165,6 +166,11 @@ func run() error {
 		faceMeasure.New(cfg.FaceWorkerURL, cfg.FaceMeasureTimeout),
 		faceProfile.NewGormStore(db),
 	)
+	faceHeadHandler := facearch.NewHeadHandler(
+		faceHead.New(cfg.FaceWorkerURL, cfg.FaceHeadTimeout),
+		faceProfile.NewGormStore(db),
+		cfg.FaceHeadMaxUploadBytes,
+	)
 
 	// Colour Engine. A missing or invalid WCPA config disables only these
 	// routes (503 with the reason), not the whole service.
@@ -257,6 +263,7 @@ func run() error {
 		g.GET("/config/:brandId/:applicationId", visionHandler.GetConfig)
 		g.GET("/registry", visionHandler.GetRegistry)
 		g.POST("/face-architecture/:brandId/:applicationId", faceArchHandler.Analyze)
+		g.POST("/face-architecture/:brandId/:applicationId/head", faceHeadHandler.Head)
 	}
 	mountVisionRoutes(e.Group("/core/vision-engine"))
 	mountVisionRoutes(e.Group("/api/v1/vision"))

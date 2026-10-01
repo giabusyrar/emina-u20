@@ -73,8 +73,6 @@ func detail(code string, extra map[string]any) map[string]any {
 //	500 profile lookup failed, the stored document no longer loads, or the
 //	    measure client returned neither a measurement nor an error
 func (h *Handler) Analyze(c echo.Context) error {
-	brandID, appID := c.Param("brandId"), c.Param("applicationId")
-
 	fh, err := c.FormFile("image")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, detail(CodeMissingImage, map[string]any{"reason": "multipart field \"image\" is required"}))
@@ -92,16 +90,9 @@ func (h *Handler) Analyze(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, detail(CodeMissingImage, map[string]any{"reason": reasonImageUnreadable}))
 	}
 
-	p, err := h.profiles.Active(ctx, brandID, appID)
-	if errors.Is(err, profile.ErrNoActiveProfile) {
-		return c.JSON(http.StatusConflict, detail(CodeNoActiveProfile, map[string]any{"brandId": brandID, "applicationId": appID}))
-	}
-	if err == nil && p == nil {
-		err = errors.New("profile finder returned no profile and no error")
-	}
-	if err != nil {
-		slog.ErrorContext(ctx, "face-architecture profile lookup failed", "brandId", brandID, "applicationId", appID, "err", err)
-		return c.JSON(http.StatusInternalServerError, detail(CodeProfileLookupFailed, nil))
+	p, failed, err := activeProfile(c, h.profiles)
+	if failed {
+		return err
 	}
 	doc, err := profile.Load(p)
 	if err != nil {
@@ -126,6 +117,28 @@ func (h *Handler) Analyze(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, detail(CodeFaceMeasureInvalidResponse, nil))
 	}
 	return c.JSON(http.StatusOK, Interpret(p, doc, m))
+}
+
+// activeProfile looks up the active profile for the request's brand and
+// application. When it returns failed=true the error response (409 no active
+// profile, or 500 lookup failed) has already been written and err is the
+// write's result; the caller returns it. Analyze and the head route share it
+// so the two cannot drift.
+func activeProfile(c echo.Context, profiles ProfileFinder) (p *profile.FaceArchitectureProfile, failed bool, err error) {
+	brandID, appID := c.Param("brandId"), c.Param("applicationId")
+	ctx := c.Request().Context()
+	p, lookupErr := profiles.Active(ctx, brandID, appID)
+	if errors.Is(lookupErr, profile.ErrNoActiveProfile) {
+		return nil, true, c.JSON(http.StatusConflict, detail(CodeNoActiveProfile, map[string]any{"brandId": brandID, "applicationId": appID}))
+	}
+	if lookupErr == nil && p == nil {
+		lookupErr = errors.New("profile finder returned no profile and no error")
+	}
+	if lookupErr != nil {
+		slog.ErrorContext(ctx, "face-architecture profile lookup failed", "brandId", brandID, "applicationId", appID, "err", lookupErr)
+		return nil, true, c.JSON(http.StatusInternalServerError, detail(CodeProfileLookupFailed, nil))
+	}
+	return p, false, nil
 }
 
 // hasDetail reports whether body is a JSON object whose "detail" key is an
