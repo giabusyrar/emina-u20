@@ -57,8 +57,12 @@ type Response struct {
 	// only: measurements stay in the canonical IOD frame. Each point is
 	// [x, y] exactly as returned; any further component is dropped. JSON null
 	// unless the worker returned all of them, each with finite x and y.
-	Landmarks  [][2]float64 `json:"landmarks"`
-	Provenance Provenance   `json:"provenance"`
+	Landmarks [][2]float64 `json:"landmarks"`
+	// Landmarks3D are Landmarks with the worker's relative-depth estimate as
+	// a third component, for 3D display only; never measured from. JSON null
+	// unless the worker returned all of them, each with finite x, y and z.
+	Landmarks3D [][3]float64 `json:"landmarks3d"`
+	Provenance  Provenance   `json:"provenance"`
 }
 
 // displayLandmarks returns m's landmarks as [x, y] pixels, or nil when they
@@ -78,6 +82,26 @@ func displayLandmarks(pts [][]float64) [][2]float64 {
 	return out
 }
 
+// displayLandmarks3D is displayLandmarks for [x, y, z]; nil, never partial.
+func displayLandmarks3D(pts [][]float64) [][3]float64 {
+	if len(pts) != measureclient.NLandmarks {
+		return nil
+	}
+	out := make([][3]float64, len(pts))
+	for i, p := range pts {
+		if len(p) < 3 {
+			return nil
+		}
+		for _, v := range p[:3] {
+			if math.IsNaN(v) || math.IsInf(v, 0) {
+				return nil
+			}
+		}
+		out[i] = [3]float64{p[0], p[1], p[2]}
+	}
+	return out
+}
+
 // Interpret applies a loaded profile document to one measure response.
 // It never fails: drift between the profile and the worker's catalogue
 // marks the affected classifier or trait "unavailable" with a reason.
@@ -90,6 +114,7 @@ func Interpret(p *profile.FaceArchitectureProfile, doc *profile.Document, m *mea
 		Classifications: map[string]classify.Result{},
 		Traits:          map[string]traits.Result{},
 		Landmarks:       displayLandmarks(m.Landmarks),
+		Landmarks3D:     displayLandmarks3D(m.Landmarks3D),
 		Provenance: Provenance{
 			Model:            m.Model,
 			CatalogueVersion: m.CatalogueVersion,

@@ -222,3 +222,42 @@ func TestInterpret_EyesOccludedWithholdsEverything(t *testing.T) {
 		assert.True(t, meas.Value.IsNull(), meas.Key)
 	}
 }
+
+func withDepth(m *measureclient.Response) {
+	m.Landmarks3D = make([][]float64, len(m.Landmarks))
+	for i, p := range m.Landmarks {
+		m.Landmarks3D[i] = []float64{p[0], p[1], float64(i) * -0.1}
+	}
+}
+
+func TestInterpret_Landmarks3DPassThrough(t *testing.T) {
+	p, d := testProfile(t)
+	m := facearchtest.FixtureFace()
+	withDepth(m)
+	out := facearch.Interpret(p, d, m)
+	require.Len(t, out.Landmarks3D, measureclient.NLandmarks)
+	for i, pt := range m.Landmarks3D {
+		assert.Equal(t, [3]float64{pt[0], pt[1], pt[2]}, out.Landmarks3D[i], "landmark %d", i)
+	}
+}
+
+func TestInterpret_Landmarks3DNullWhenAbsentOrUnusable(t *testing.T) {
+	p, d := testProfile(t)
+	nan := math.NaN()
+	for name, mutate := range map[string]func(m *measureclient.Response){
+		"none":         func(m *measureclient.Response) { m.Landmarks3D = nil },
+		"wrong count":  func(m *measureclient.Response) { m.Landmarks3D = m.Landmarks3D[:10] },
+		"short point":  func(m *measureclient.Response) { m.Landmarks3D[3] = []float64{1, 2} },
+		"z not finite": func(m *measureclient.Response) { m.Landmarks3D[3] = []float64{1, 2, nan} },
+	} {
+		m := facearchtest.FixtureFace()
+		withDepth(m)
+		mutate(m)
+		out := facearch.Interpret(p, d, m)
+		assert.Nil(t, out.Landmarks3D, name)
+		assert.NotNil(t, out.Landmarks, name+": 2D landmarks unaffected")
+		b, err := json.Marshal(out)
+		require.NoError(t, err, name)
+		assert.Contains(t, string(b), `"landmarks3d":null`, name)
+	}
+}

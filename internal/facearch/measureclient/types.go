@@ -122,6 +122,9 @@ type Response struct {
 	Regions          map[string]string `json:"regions"`
 	Measurements     []Measurement     `json:"measurements"`
 	Landmarks        [][]float64       `json:"landmarks"`
+	// Landmarks3D is 478 x [x, y, z]: x, y as Landmarks, z the worker's
+	// MediaPipe relative-depth estimate in the same pixel scale. Not measured.
+	Landmarks3D [][]float64 `json:"landmarks3d"`
 }
 
 // CatalogueEntry mirrors CatalogueEntryOut. Shape is "scalar" (value is a

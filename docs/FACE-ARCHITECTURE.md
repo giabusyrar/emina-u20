@@ -56,6 +56,7 @@ guidance polygons and returns them as `landmarks` for drawing.
 | `traits` | One entry per profile trait (see below). |
 | `guidance` | `null` when the profile has no `guidance` section; otherwise `regions` and `droppedTemplates` (see Guidance). |
 | `landmarks` | The worker's 478 landmarks as `[x, y]` in **image pixels**, the same space as `guidance.regions[].polygon`, at the worker's landmark index (MediaPipe 0-477; `measurements[].landmarks` index into it). Passed through unchanged: no resampling, rounding or reordering; a component beyond `x, y` (a `z`) would be dropped. `null` unless the worker returned all 478, each with finite `x` and `y`: never an empty or partial array. **For display only**: measurements are computed in the canonical IOD frame, not from these pixels. |
+| `landmarks3d` | 478 × `[x, y, z]`, `z` = MediaPipe relative-depth estimate (pixel scale), for 3D display only; `null` unless complete and finite. Seagull-gateway contracts need regenerating. |
 | `provenance` | `model`, `catalogueVersion` (the worker's), `profile` (`id`, `code`, `version`, and the `catalogueVersion` the profile targets), `calibration` (`status`, and `benchmarkRunId` / `target` when set). |
 
 ### Classifications
