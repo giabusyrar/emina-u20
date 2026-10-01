@@ -100,3 +100,23 @@ func TestDemoCatalog(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+// A product created through reference-service (an id the seeder cannot
+// compute) gets its shades, and its row is not overwritten; one the seeder
+// made, or none at all, is upserted under the computed id as before.
+func TestResolveProduct(t *testing.T) {
+	cases := []struct {
+		existing, wantID string
+		wantUpsert       bool
+	}{
+		{"", "clr-prd-x", true},
+		{"clr-prd-x", "clr-prd-x", true},
+		{"prd-1790", "prd-1790", false},
+	}
+	for _, c := range cases {
+		id, upsert := resolveProduct("clr-prd-x", c.existing)
+		if id != c.wantID || upsert != c.wantUpsert {
+			t.Errorf("existing %q: got %q %v, want %q %v", c.existing, id, upsert, c.wantID, c.wantUpsert)
+		}
+	}
+}

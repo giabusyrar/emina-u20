@@ -212,6 +212,18 @@ func productFor(brandID, categoryID string, r csvRow) refcatalog.Product {
 	}
 }
 
+// resolveProduct picks the product a CSV row's shades belong to. existing is
+// the id of the brand's product with that name ("" if none). A product the
+// seeder created itself has the computed id and is upserted as before; one
+// created through reference-service keeps its own id and row, which the
+// seeder does not overwrite: an editor owns it.
+func resolveProduct(computed, existing string) (prodID string, upsert bool) {
+	if existing == "" || existing == computed {
+		return computed, true
+	}
+	return existing, false
+}
+
 func main() {
 	csvPath := flag.String("csv", "", "path to vto_products.csv (required)")
 	brandID := flag.String("brand", "", "brand id for rows without a brand column value, as used elsewhere in the gateway")
@@ -274,17 +286,28 @@ func main() {
 
 	var nProd, nShade, nCol, nEstimate int
 	err = db.Transaction(func(tx *gorm.DB) error {
-		seenProd := map[string]bool{}
+		prodFor := map[string]string{} // brand id + produk -> product id
 		for i, r := range rows {
-			prodID := id("clr-prd-", brands[i], r.produk)
-			if !seenProd[prodID] {
-				seenProd[prodID] = true
-				catID, _, err := refcatalog.EnsureCategory(tx, r.kategori, r.kategori)
+			key := brands[i] + "\x1f" + r.produk
+			prodID, seen := prodFor[key]
+			if !seen {
+				existing, err := refcatalog.ProductIDByName(tx, brands[i], r.produk)
 				if err != nil {
-					return fmt.Errorf("category %q: %w", r.kategori, err)
-				}
-				if err := refcatalog.UpsertProduct(tx, productFor(brands[i], catID, r)); err != nil {
 					return fmt.Errorf("product %q: %w", r.produk, err)
+				}
+				var upsert bool
+				prodID, upsert = resolveProduct(id("clr-prd-", brands[i], r.produk), existing)
+				prodFor[key] = prodID
+				if upsert {
+					catID, _, err := refcatalog.EnsureCategory(tx, r.kategori, r.kategori)
+					if err != nil {
+						return fmt.Errorf("category %q: %w", r.kategori, err)
+					}
+					if err := refcatalog.UpsertProduct(tx, productFor(brands[i], catID, r)); err != nil {
+						return fmt.Errorf("product %q: %w", r.produk, err)
+					}
+				} else {
+					log.Printf("product %q: shades attach to existing %s (created outside the seeder; row left as is)", r.produk, prodID)
 				}
 				nProd++
 			}

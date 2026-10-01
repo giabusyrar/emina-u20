@@ -103,6 +103,27 @@ func UpsertProduct(tx *gorm.DB, p Product) error {
 		p.ID, p.BrandID, nullable(p.CategoryID), nullable(p.TextureID), p.Name, p.Description, p.ImageURL, p.IsActive).Error
 }
 
+// ProductIDByName returns the id of the live (not deleted) product of this
+// brand whose name matches, ignoring case and surrounding space, or "" when
+// there is none. Products created through reference-service have ids the
+// seeder cannot compute, so this is how a CSV row finds them. More than one
+// match is an error: shades must not be attached to a guess.
+func ProductIDByName(tx *gorm.DB, brandID, name string) (string, error) {
+	var ids []string
+	if err := tx.Raw(`SELECT id FROM ref_products
+		WHERE brand_id = ? AND LOWER(TRIM(name)) = ? AND deleted_at IS NULL`,
+		brandID, Code(name)).Scan(&ids).Error; err != nil {
+		return "", err
+	}
+	switch len(ids) {
+	case 0:
+		return "", nil
+	case 1:
+		return ids[0], nil
+	}
+	return "", fmt.Errorf("%d live products of brand %s are named %q: %v", len(ids), brandID, name, ids)
+}
+
 // IngredientIDsByName maps Code(name) to id for every ref_ingredients row.
 func IngredientIDsByName(tx *gorm.DB) (map[string]string, error) {
 	var rows []struct{ ID, Name string }

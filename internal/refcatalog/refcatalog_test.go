@@ -115,3 +115,22 @@ func TestRequireTablesWithoutProducts(t *testing.T) {
 		t.Fatalf("tables exist, got %v", err)
 	}
 }
+
+func TestProductIDByName(t *testing.T) {
+	db := scratchDB(t)
+	db.Exec(`INSERT INTO ref_products (id, brand_id, name, is_active) VALUES
+		('prd-1','brd-1','Wardah Matte Lip Cream',true),
+		('prd-2','brd-1','Gone',true),
+		('prd-3','brd-2','Wardah Matte Lip Cream',true)`)
+	db.Exec(`UPDATE ref_products SET deleted_at = now() WHERE id = 'prd-2'`)
+	if id, err := ProductIDByName(db, "brd-1", " wardah matte lip cream "); err != nil || id != "prd-1" {
+		t.Errorf("match = %q %v, want prd-1 (case and space ignored, other brand ignored)", id, err)
+	}
+	if id, err := ProductIDByName(db, "brd-1", "Gone"); err != nil || id != "" {
+		t.Errorf("a deleted product must not match, got %q %v", id, err)
+	}
+	db.Exec(`INSERT INTO ref_products (id, brand_id, name, is_active) VALUES ('prd-4','brd-1','Wardah Matte Lip Cream',true)`)
+	if _, err := ProductIDByName(db, "brd-1", "Wardah Matte Lip Cream"); err == nil {
+		t.Error("two live matches must be an error, not a guess")
+	}
+}
