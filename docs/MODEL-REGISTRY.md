@@ -49,8 +49,8 @@ Environment names changed, with no fallback: `SKIN_MODEL_STORAGE_DIR` is now
 `MODEL_STORAGE_DIR` (local storage root when S3 is not configured) and
 `SKIN_WORKER_PUBLIC_URL` is now `MODEL_SERVER_PUBLIC_URL` (base URL of local
 download links). Both the model server and the skin worker refuse to start
-while the old names are set (`REMOVED_ENV` in `worker_models/main.py` and the
-skin worker). `MODEL_MAX_FILE_BYTES`, `MODEL_MAX_SMOKE_LATENCY_MS`,
+while the old names are set (`REMOVED_ENV` in `worker_models/worker.py` and in
+`worker_skin/worker.py`). `MODEL_MAX_FILE_BYTES`, `MODEL_MAX_SMOKE_LATENCY_MS`,
 `MODEL_CACHE_MAX_BYTES`, `MODEL_LIBRARY_WARN_BYTES` and
 `MODEL_SCHEMA_LOCK_TIMEOUT_SECONDS` keep their names.
 
@@ -344,7 +344,7 @@ not deleted — a transient storage failure is not a deregistration.
 
 ## The four limits
 
-Env config, read through `worker_models/config.py`, never literals at call sites:
+Env config, read through `worker_models/settings.py`, never literals at call sites:
 
 | Env var | Default | Why |
 |---|---|---|
@@ -399,12 +399,12 @@ would only serialize unrelated migrations, never corrupt anything).
 a session-level lock is held by the backend of a replica that was OOM-killed
 mid-migration until TCP keepalive reaps that backend — hours, by default.
 `init_pool` is awaited in the startup hook, so blocking there meant the next
-replica never answered `/healthz` and the orchestrator restart-looped the
+replica never answered its health check and the orchestrator restart-looped the
 whole server, taking capability dispatch down with it — the exact outage
 `init_pool` exists to prevent. So `apply_schema` polls
 `pg_try_advisory_lock` to a deadline:
 `MODEL_SCHEMA_LOCK_TIMEOUT_SECONDS`, **default 60s**
-(`Settings.schema_lock_timeout_seconds` in `worker_models/config.py` documents the
+(`ModelServerSettings.schema_lock_timeout_seconds` in `worker_models/settings.py` documents the
 choice — many times the honest worst case for the statement list plus the one-time backfill,
 and far below any deployment's own timeout). On expiry it raises
 `db.SchemaLockTimeout` and **does not run the DDL unlocked** — the statements
@@ -473,14 +473,17 @@ shared or hosted database; it truncates the registry tables between tests.
 schema-lock wait timed out, and stays that way with no reconnect attempt until
 the process restarts. A platform health check that polls `/health` will
 therefore fail such a deploy — that is intended: `dispatch-zones` cannot serve
-correctly with the registry database unreachable. `/healthz` is unaffected and
-stays 200.
+correctly with the registry database unreachable. (`/healthz`, a liveness route, exists on
+worker-skin only; the model server has none.)
 
 ## What Seagull-web must change
 
 This work is raised and implemented **in the Seagull-web repository, not from
 here** — `Seagull-web` is a separate repo (the Next.js dashboard) and this
-repo does not touch it. What follows is the handoff.
+repo does not touch it. What follows is the handoff. All of it now targets
+the model server (`MODEL_SERVER_URL`, default `http://127.0.0.1:8096`), not the
+skin worker; the routes are the same. See section 5 of
+`../Seagull-web/docs/REPORT-SEAGULL-CORE-WORKERS-SPLIT.md`.
 
 ### The two replaced 410 paths
 

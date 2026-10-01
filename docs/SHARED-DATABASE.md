@@ -31,8 +31,8 @@ every model at once. Now they do not.
 
 ## Tables owned by the model server (`apps/workers/models`)
 
-These are created by raw SQL in `apps/workers/skin/worker_skin/db.py`
-(`SCHEMA_STATEMENTS`), not by GORM `AutoMigrate` — the worker is a Python
+These are created by raw SQL in `apps/workers/models/worker_models/db.py`
+(`SCHEMA_STATEMENTS`), not by GORM `AutoMigrate` — the model server is a Python
 service and has no Go models. They still live in the same shared Postgres, so
 the ownership-and-read rules above apply to them the same way. No other
 repository reads any of these tables.
