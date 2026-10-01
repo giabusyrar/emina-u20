@@ -147,3 +147,8 @@ and it is not done. Until it is, this document is the whole protection.
   (`Paragon/db-backups/match_product_catalog-ep-hidden-unit-20261001.json`,
   outside this repository). Its copy in the gateway database had already been
   dropped with the other core tables.
+- **`ref_statuses`** (reference-service), dropped from the core database on
+  2026-10-01 after reference-service stopped migrating and serving it
+  (commit 3528ab2). It had no rows, so there is no backup. Ruleset statuses are
+  not reference data: core-engine scores only `ACTIVE`
+  (`apps/core-engine/internal/score/entity/ruleset.go`).
