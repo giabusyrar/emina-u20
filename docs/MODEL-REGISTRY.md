@@ -576,7 +576,7 @@ and versions them; it never runs them, and capability dispatch never sees them.
 | `GET /api/v1/assets/{name}/history` | activation log, newest first |
 | `PUT /api/v1/assets/{name}/active` | `{"assetId": "<uuid>"}` of a version of that name |
 | `DELETE /api/v1/assets/{name}/active` | deactivate |
-| `GET /api/v1/assets/{name}` | the active file; `X-Content-SHA256`, `ETag`, `X-Asset-Id`; `If-None-Match` gives 304; 404 nothing active; 503 not cached and S3 unreachable |
+| `GET /api/v1/assets/{name}` | the active file; `X-Content-SHA256`, `ETag`, `X-Asset-Id`; `If-None-Match` gives 304; 404 nothing active; 503 when the file cannot be served (database down, not cached and S3 unreachable, or a hash mismatch) |
 
 Names: `^[a-z0-9_]{1,64}$`. Size: `MODEL_ASSET_MAX_FILE_BYTES` (default 200 MB).
 Asset files share the model disk cache (`MODEL_CACHE_DIR`, `<sha256>.onnx`).
@@ -588,9 +588,22 @@ uvicorn (Dockerfiles, `npm run dev:<worker>`). Each worker's `asset_needs()`
 names the asset and the path its loader reads (skin: `SKIN_LANDMARKER_PATH`,
 set by its image to `/app/data/models/face_landmarker/face_landmarker.task`);
 face pins the builds it has facegeom manifests for. A hash or pin mismatch
-leaves no file (the worker reports the model unavailable); an unreachable
-worker-models leaves an existing file in use, unchecked. `MODEL_SERVER_URL`
-points workers at worker-models (compose: `http://worker-models:8096`).
+leaves no file (the worker reports the model unavailable). An unreachable
+worker-models is retried for `MODEL_ASSET_FETCH_WAIT_SECONDS` (default 120,
+so a worker started alongside it waits for its port); after that the worker
+starts with an existing file in use, unchecked, or without one. The fetch
+never stops a worker from starting. Compose starts skin, face and colour
+after worker-models has *started*, not after it is healthy, because its
+health includes the registry database. `MODEL_SERVER_URL` points workers at
+worker-models (compose: `http://worker-models:8096`).
+
+**The active `face_landmarker` must be face's pinned build** — sha256
+`64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff` (float16
+v1, `apps/workers/face/worker_face/facegeom/manifests/`). Skin and colour
+accept any build, but face refuses one without a manifest and deletes its
+local copy, so activating another build disables face-measure at face's next
+restart. Compare the sha256 `import_asset` (or the upload response) prints.
 
 Seeding a file already in the bucket:
 `python -m worker_models.import_asset face_landmarker model-mirror/assets/face_landmarker/face_landmarker.task --label "float16 v1"`.
+Each run adds a new version row and activates it, even for the same file.
