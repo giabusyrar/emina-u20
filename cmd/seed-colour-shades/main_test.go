@@ -41,6 +41,23 @@ func TestBrandMap(t *testing.T) {
 	}
 }
 
+// Product ids must not change: match_shades, product groups and the
+// migrated ref_products rows already use them. Pinned against the id stored
+// in the neon-seagull database on 2026-10-01.
+func TestProductIDIsStable(t *testing.T) {
+	if got := id("clr-prd-", "brd-1790654876204254300", "Make Over Blush On Single"); got != "clr-prd-e41ea982f8fcb07e" {
+		t.Errorf("product id = %q, want clr-prd-e41ea982f8fcb07e", got)
+	}
+}
+
+func TestProductFromRow(t *testing.T) {
+	p := productFor("brd-1", "cat-lip", csvRow{produk: "Wardah Colorfit Velvet Matte Lip Mousse"})
+	if p.ID != id("clr-prd-", "brd-1", "Wardah Colorfit Velvet Matte Lip Mousse") || p.CategoryID != "cat-lip" ||
+		p.BrandID != "brd-1" || p.Name != "Wardah Colorfit Velvet Matte Lip Mousse" || !p.IsActive {
+		t.Errorf("got %+v", p)
+	}
+}
+
 // The demo catalog in seed/ must parse, and every section must have
 // products to try (brow and eyeliner only black/brown; mascara by type).
 func TestDemoCatalog(t *testing.T) {

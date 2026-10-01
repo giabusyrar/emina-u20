@@ -229,9 +229,10 @@ WebGL. Video and the live plan: `docs/VIDEO-RENDER.md`.
 
 ## 5. Data model (core-engine, owns `match_*` tables)
 
-`match_shades` and `match_product_catalog` are **not changed**. The seeder
-writes ordinary rows (`Shade.Region` mapped to lip/eye/cheek/skin; the exact
-category lives on the colorimetry row).
+`match_shades` is **not changed**. Products now live in `ref_products` (owned by
+reference-service; `match_product_catalog` is retired). The seeder writes
+`ref_products`, `match_shades` and `match_shade_colorimetry` (`Shade.Region` mapped
+to lip/eye/cheek/skin; the exact category lives on the colorimetry row).
 
 **New table `match_shade_colorimetry`** — the shade's colour in WCPA terms,
 kept separate from the shade because it is re-measured (swatch → cube) and must

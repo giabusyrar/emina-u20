@@ -1,6 +1,8 @@
 // Idempotent seeder: loads the VTO catalog CSV used by the WCPA notebook
 // (vto_products.csv, or the demo catalog seed/vto_products_demo.csv) into
-// match_product_catalog + match_shades + match_shade_colorimetry.
+// ref_products (+ ref_categories) + match_shades + match_shade_colorimetry.
+// The ref tables belong to reference-service and are created by its
+// AutoMigrate, so it must have started against this database once.
 //
 // Colours are converted by the colour worker (POST /colour/munsell
 // at COLOUR_WORKER_URL; npm run dev:colour) — the same hex→Lab and Lab→Munsell
@@ -49,6 +51,7 @@ import (
 	colourEntity "github.com/experience-gateway/apps/core-engine/internal/colour/entity"
 	"github.com/experience-gateway/apps/core-engine/internal/config"
 	matchEntity "github.com/experience-gateway/apps/core-engine/internal/match/entity"
+	"github.com/experience-gateway/apps/core-engine/internal/refcatalog"
 	"github.com/experience-gateway/packages/goplatform"
 )
 
@@ -200,6 +203,15 @@ func brandIDs(rows []csvRow, fallback string, byName map[string]string) ([]strin
 	return ids, nil
 }
 
+// productFor is the ref_products row for a CSV product. The id formula is
+// pinned by TestProductIDIsStable.
+func productFor(brandID, categoryID string, r csvRow) refcatalog.Product {
+	return refcatalog.Product{
+		ID: id("clr-prd-", brandID, r.produk), BrandID: brandID, CategoryID: categoryID,
+		Name: r.produk, IsActive: true,
+	}
+}
+
 func main() {
 	csvPath := flag.String("csv", "", "path to vto_products.csv (required)")
 	brandID := flag.String("brand", "", "brand id for rows without a brand column value, as used elsewhere in the gateway")
@@ -253,6 +265,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("connecting to database: %v", err)
 	}
+	if err := refcatalog.RequireTables(db); err != nil {
+		log.Fatal(err)
+	}
 	if err := db.AutoMigrate(&colourEntity.ShadeColorimetry{}); err != nil {
 		log.Fatalf("migrating match_shade_colorimetry: %v", err)
 	}
@@ -264,12 +279,11 @@ func main() {
 			prodID := id("clr-prd-", brands[i], r.produk)
 			if !seenProd[prodID] {
 				seenProd[prodID] = true
-				var p matchEntity.ProductCatalogItem
-				if err := tx.Where("id = ?", prodID).First(&p).Error; err != nil && err != gorm.ErrRecordNotFound {
-					return err
+				catID, _, err := refcatalog.EnsureCategory(tx, r.kategori, r.kategori)
+				if err != nil {
+					return fmt.Errorf("category %q: %w", r.kategori, err)
 				}
-				p.ID, p.BrandID, p.Name, p.Category, p.IsActive = prodID, brands[i], r.produk, r.kategori, true
-				if err := tx.Save(&p).Error; err != nil {
+				if err := refcatalog.UpsertProduct(tx, productFor(brands[i], catID, r)); err != nil {
 					return fmt.Errorf("product %q: %w", r.produk, err)
 				}
 				nProd++
@@ -307,7 +321,7 @@ func main() {
 			if source == colourDomain.SourceEstimate {
 				nEstimate++
 			}
-			// Load the existing row first, like products and shades above, so
+			// Load the existing row first, like shades above, so
 			// a re-seed updates it without resetting its created_at.
 			colID := id("clr-col-", shadeID, source)
 			var col colourEntity.ShadeColorimetry

@@ -94,7 +94,6 @@ func run() error {
 	if err := db.Session(&gorm.Session{Logger: db.Logger.LogMode(gormlogger.Error)}).AutoMigrate(
 		&formEntity.SurveyDefinition{},
 		&scoreEntity.ScoreRuleset{},
-		&matchEntity.ProductCatalogItem{},
 		&matchEntity.ConflictMatrixRule{},
 		&matchEntity.ProductGroup{},
 		&matchEntity.Shade{},

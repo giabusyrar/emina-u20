@@ -266,18 +266,6 @@ func (s *MatchService) ListProducts(ctx context.Context, brandID string) ([]enti
 	return s.repo.ListProducts(ctx, brandID)
 }
 
-func (s *MatchService) CreateProduct(ctx context.Context, product entity.ProductCatalogItem) (*entity.ProductCatalogItem, error) {
-	return s.repo.CreateProduct(ctx, product)
-}
-
-func (s *MatchService) UpdateProduct(ctx context.Context, product entity.ProductCatalogItem) (*entity.ProductCatalogItem, error) {
-	return s.repo.UpdateProduct(ctx, product)
-}
-
-func (s *MatchService) DeleteProduct(ctx context.Context, id string) error {
-	return s.repo.DeleteProduct(ctx, id)
-}
-
 func (s *MatchService) ListConflictRules(ctx context.Context, brandID, appID string) ([]entity.ConflictMatrixRule, error) {
 	return s.repo.ListConflictRules(ctx, brandID, appID)
 }

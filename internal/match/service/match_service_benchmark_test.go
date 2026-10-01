@@ -29,7 +29,7 @@ func BenchmarkMatchService_Evaluate(b *testing.B) {
 	}
 
 	for i := 0; i < 500; i++ {
-		repo.CreateProduct(ctx, entity.ProductCatalogItem{
+		repo.AddInMemoryProduct(ctx, entity.ProductCatalogItem{
 			ID:          fmt.Sprintf("BENCH-PROD-%d", i),
 			BrandID:     "wardah",
 			Name:        fmt.Sprintf("Benchmark Product %d", i),
