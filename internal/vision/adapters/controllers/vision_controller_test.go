@@ -250,3 +250,20 @@ func TestVisionController_GetRegistry_ReferenceDataUnavailable_HTTP503(t *testin
 	assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
 	assert.Contains(t, rec.Body.String(), "REFERENCE_DATA_UNAVAILABLE")
 }
+
+type unavailableSegmenter struct{}
+
+func (unavailableSegmenter) SegmentWithPose(declared domain.ImageAngle, img image.Image) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error) {
+	return nil, declared, 0, 0, 0, fmt.Errorf("%w: skin worker returned 503: LANDMARKER_UNAVAILABLE", workers.ErrSegmentationUnavailable)
+}
+
+func TestVisionController_SegmentationUnavailable_HTTP503(t *testing.T) {
+	orch := orchestrator.NewVisionOrchestrator(unavailableSegmenter{}, workers.NewOcclusionWorker(), stubResolver{plan: acnePlan}, stubCapabilities{}, 30*time.Second)
+	ctrl := controllers.NewVisionController(orch, stubCatalog{snapshot: &catalog.Snapshot{}})
+
+	rec := serveAnalyze(t, ctrl, analyzeRequest(t, nil, upload{"image_front", "front.png"}))
+
+	assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+	assert.Contains(t, rec.Body.String(), "SEGMENTATION_UNAVAILABLE")
+	assert.Contains(t, rec.Body.String(), "LANDMARKER_UNAVAILABLE")
+}

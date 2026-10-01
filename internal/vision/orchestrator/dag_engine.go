@@ -3,6 +3,8 @@ package orchestrator
 import (
 	"bytes"
 	"context"
+	"errors"
+	"fmt"
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
@@ -106,8 +108,19 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 			}
 
 			zones, detectedAngle, yaw, pitch, roll, err := o.segmenter.SegmentWithPose(input.Angle, img)
-			if err != nil {
+			if errors.Is(err, workers.ErrNoFace) {
+				// This image has no measurable face; the others still count.
+				muCandidates.Lock()
+				warnings = append(warnings, domain.WarningItem{
+					Code:    "NO_FACE_DETECTED",
+					Message: fmt.Sprintf("No face found in %s: %v", input.FileName, err),
+				})
+				muCandidates.Unlock()
 				return nil
+			}
+			if err != nil {
+				// No substitute zones exist: fail the analysis.
+				return err
 			}
 
 			var imgZones []workers.SegmentedZone
@@ -129,13 +142,12 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 			decodedImages[imageIndex] = img
 			providedAngles = append(providedAngles, detectedAngle)
 			processedImages = append(processedImages, domain.ProcessedImageMeta{
-				Angle:              detectedAngle,
-				FileName:           input.FileName,
-				LandmarkDetected:   true,
-				LandmarkConfidence: 0.95,
-				Yaw:                yaw,
-				Pitch:              pitch,
-				Roll:               roll,
+				Angle:            detectedAngle,
+				FileName:         input.FileName,
+				LandmarkDetected: true,
+				Yaw:              yaw,
+				Pitch:            pitch,
+				Roll:             roll,
 			})
 			allCandidateZones = append(allCandidateZones, imgZones...)
 			warnings = append(warnings, imgWarnings...)
@@ -143,7 +155,9 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 		})
 	}
 
-	_ = segGroup.Wait()
+	if err := segGroup.Wait(); err != nil {
+		return nil, err
+	}
 
 	// Phase 2: In-DAG Zone Arbiter (Prune to at most 8 canonical winning zones)
 	winningZones := o.arbiter.Arbitrate(allCandidateZones)

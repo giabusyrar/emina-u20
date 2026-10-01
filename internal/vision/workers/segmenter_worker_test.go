@@ -70,12 +70,35 @@ func TestSegmenterWorker_MockAIService_Success(t *testing.T) {
 	assert.Equal(t, 0.98, zones[0].Confidence)
 }
 
-func TestSegmenterWorker_OfflineFallback(t *testing.T) {
-	// Worker pointing to unreachable port -> triggers fallback
+func TestSegmenterWorker_UnreachableIsUnavailableNotTemplateZones(t *testing.T) {
 	worker := workers.NewSegmenterWorkerWithURL("http://127.0.0.1:59999", 5*time.Second)
 	zones, err := worker.Segment(domain.AngleFront, createTestImage())
 
-	assert.NoError(t, err)
-	assert.Len(t, zones, 8) // Fallback emits all 8 standard zones
-	assert.Equal(t, "ZONE_FOREHEAD", zones[0].ZoneCode)
+	assert.ErrorIs(t, err, workers.ErrSegmentationUnavailable)
+	assert.Empty(t, zones)
+}
+
+func TestSegmenterWorker_Skin503CarriesReason(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = w.Write([]byte(`{"detail":{"code":"LANDMARKER_UNAVAILABLE","message":"no FaceLandmarker model path is configured"}}`))
+	}))
+	defer server.Close()
+
+	_, err := workers.NewSegmenterWorkerWithURL(server.URL, 5*time.Second).Segment(domain.AngleFront, createTestImage())
+	assert.ErrorIs(t, err, workers.ErrSegmentationUnavailable)
+	assert.Contains(t, err.Error(), "LANDMARKER_UNAVAILABLE")
+}
+
+func TestSegmenterWorker_Skin422IsNoFace(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		_, _ = w.Write([]byte(`{"detail":"Failed to identify facial landmarks from image"}`))
+	}))
+	defer server.Close()
+
+	_, err := workers.NewSegmenterWorkerWithURL(server.URL, 5*time.Second).Segment(domain.AngleFront, createTestImage())
+	assert.ErrorIs(t, err, workers.ErrNoFace)
+	assert.NotErrorIs(t, err, workers.ErrSegmentationUnavailable)
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
 	"github.com/experience-gateway/apps/core-engine/internal/vision/inference"
 	"github.com/experience-gateway/apps/core-engine/internal/vision/orchestrator"
+	"github.com/experience-gateway/apps/core-engine/internal/vision/workers"
 )
 
 type VisionController struct {
@@ -152,6 +153,11 @@ func (c *VisionController) writeError(ctx echo.Context, err error) error {
 	case errors.Is(err, catalog.ErrCatalogUnavailable):
 		return ctx.JSON(http.StatusServiceUnavailable, map[string]string{
 			"error":   "REFERENCE_DATA_UNAVAILABLE",
+			"message": err.Error(),
+		})
+	case errors.Is(err, workers.ErrSegmentationUnavailable):
+		return ctx.JSON(http.StatusServiceUnavailable, map[string]string{
+			"error":   "SEGMENTATION_UNAVAILABLE",
 			"message": err.Error(),
 		})
 	case errors.Is(err, inference.ErrWorkerUnavailable):

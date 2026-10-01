@@ -47,12 +47,16 @@ type fakeSegmenter struct {
 	mu           sync.Mutex
 	calls        int
 	zonesByWidth map[int][]workers.SegmentedZone
+	errByWidth   map[int]error
 }
 
 func (f *fakeSegmenter) SegmentWithPose(declared domain.ImageAngle, img image.Image) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error) {
 	f.mu.Lock()
 	f.calls++
 	f.mu.Unlock()
+	if err := f.errByWidth[img.Bounds().Dx()]; err != nil {
+		return nil, declared, 0, 0, 0, err
+	}
 	zones := make([]workers.SegmentedZone, 0)
 	for _, zone := range f.zonesByWidth[img.Bounds().Dx()] {
 		zone.SourceAngle = declared
@@ -331,4 +335,38 @@ func TestExecute_UnloadableCapabilityIsReportedAsUnavailableNotUnuploaded(t *tes
 			assert.Equal(t, `Model for capability "hyperpigmentation_net" could not be loaded: RuntimeError: S3 unreachable`, warning.Message)
 		}
 	}
+}
+
+func TestExecute_SegmentationUnavailableFailsTheAnalysis(t *testing.T) {
+	segmenter := &fakeSegmenter{errByWidth: map[int]error{
+		100: fmt.Errorf("%w: skin worker returned 503", workers.ErrSegmentationUnavailable),
+	}}
+	client := &fakeCapabilityClient{}
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client, 30*time.Second)
+
+	_, err := orch.Execute(context.Background(), request(
+		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
+	))
+	assert.ErrorIs(t, err, workers.ErrSegmentationUnavailable)
+	assert.Equal(t, 0, client.calls)
+}
+
+func TestExecute_NoFaceSkipsOnlyThatImage(t *testing.T) {
+	segmenter := &fakeSegmenter{
+		zonesByWidth: map[int][]workers.SegmentedZone{
+			100: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, Confidence: 0.9}},
+		},
+		errByWidth: map[int]error{80: fmt.Errorf("%w: no landmarks", workers.ErrNoFace)},
+	}
+	client := &fakeCapabilityClient{}
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client, 30*time.Second)
+
+	resp, err := orch.Execute(context.Background(), request(
+		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
+		domain.RawImageInput{Angle: domain.AngleLeft, FileName: "left.png", Data: createTestPng(80)},
+	))
+	require.NoError(t, err)
+	assert.Contains(t, warningCodes(resp), "NO_FACE_DETECTED")
+	assert.Len(t, resp.CaptureContext.ProcessedImages, 1)
+	assert.Nil(t, resp.CaptureContext.ProcessedImages[0].LandmarkConfidence)
 }

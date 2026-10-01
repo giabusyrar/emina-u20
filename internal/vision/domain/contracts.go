@@ -16,13 +16,15 @@ type AnalyzeVisionRequest struct {
 }
 
 type ProcessedImageMeta struct {
-	Angle              ImageAngle `json:"angle"`
-	FileName           string     `json:"fileName"`
-	LandmarkDetected   bool       `json:"landmarkDetected"`
-	LandmarkConfidence float64    `json:"landmarkConfidence"`
-	Yaw                float64    `json:"yaw"`
-	Pitch              float64    `json:"pitch"`
-	Roll               float64    `json:"roll"`
+	Angle            ImageAngle `json:"angle"`
+	FileName         string     `json:"fileName"`
+	LandmarkDetected bool       `json:"landmarkDetected"`
+	// LandmarkConfidence is nil: the skin worker reports no landmark
+	// confidence (MediaPipe FaceLandmarker gives none), so none is shown.
+	LandmarkConfidence *float64 `json:"landmarkConfidence,omitempty"`
+	Yaw                float64  `json:"yaw"`
+	Pitch              float64  `json:"pitch"`
+	Roll               float64  `json:"roll"`
 }
 
 type CaptureContext struct {
@@ -30,8 +32,6 @@ type CaptureContext struct {
 	InputCount           int                  `json:"inputCount"`
 	ProvidedAngles       []ImageAngle         `json:"providedAngles"`
 	CoverageCompleteness string               `json:"coverageCompleteness"`
-	HijabDetected        bool                 `json:"hijabDetected"`
-	HijabConfidence      float64              `json:"hijabConfidence"`
 	ProcessedImages      []ProcessedImageMeta `json:"processedImages"`
 }
 
