@@ -47,6 +47,17 @@ const (
 // until benchmark timings replace it.
 const DefaultFaceMeasureTimeout = 20 * time.Second
 
+// Defaults for the 3D head route (facearch/headclient, POST .../head). Both
+// are starting values, not measurements.
+const (
+	// DefaultFaceHeadTimeout bounds one three-view head fit plus texture. The
+	// spec budget is p95 under 3 s; the rest is margin for a cold model load.
+	DefaultFaceHeadTimeout = 30 * time.Second
+	// DefaultFaceHeadMaxUploadBytes caps the whole multipart upload: three
+	// phone photos at up to 8 MB each.
+	DefaultFaceHeadMaxUploadBytes int64 = 24 << 20
+)
+
 // Defaults for the colour engine (internal/colour): WCPA personal colour
 // analysis and photo try-on, measured and rendered by the ai-worker colour
 // profile. Carried over unchanged from the feat/tryon-engine branch, except
@@ -134,6 +145,8 @@ type Config struct {
 	VisionDAGTimeout       time.Duration
 	SegmenterTimeout       time.Duration
 	FaceMeasureTimeout     time.Duration
+	FaceHeadTimeout        time.Duration
+	FaceHeadMaxUploadBytes int64
 
 	AssessmentListMaxLimit int64
 }
@@ -189,6 +202,7 @@ func FromEnv() (*Config, error) {
 		{"VISION_DAG_TIMEOUT", DefaultVisionDAGTimeout, &cfg.VisionDAGTimeout},
 		{"SEGMENTER_TIMEOUT", DefaultSegmenterTimeout, &cfg.SegmenterTimeout},
 		{"FACE_MEASURE_TIMEOUT", DefaultFaceMeasureTimeout, &cfg.FaceMeasureTimeout},
+		{"FACE_HEAD_TIMEOUT", DefaultFaceHeadTimeout, &cfg.FaceHeadTimeout},
 		{"COLOUR_WORKER_TIMEOUT", DefaultColourWorkerTimeout, &cfg.ColourWorkerTimeout},
 		{"S3_PRESIGN_TTL", DefaultS3PresignTTL, &cfg.S3PresignTTL},
 	} {
@@ -200,6 +214,9 @@ func FromEnv() (*Config, error) {
 		return nil, err
 	}
 	if cfg.ColourDebugEnabled, err = boolean("COLOUR_DEBUG_ENABLED", false); err != nil {
+		return nil, err
+	}
+	if cfg.FaceHeadMaxUploadBytes, err = positiveInt64("FACE_HEAD_MAX_UPLOAD_BYTES", DefaultFaceHeadMaxUploadBytes); err != nil {
 		return nil, err
 	}
 	if cfg.AssessmentListMaxLimit, err = positiveInt64("ASSESSMENT_LIST_MAX_LIMIT", DefaultAssessmentListMaxLimit); err != nil {

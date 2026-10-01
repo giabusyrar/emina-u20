@@ -21,7 +21,7 @@ var tunables = []string{"FORM_CACHE_TTL", "SCORE_CACHE_TTL", "MATCH_CACHE_TTL", 
 	"MODEL_SERVER_URL", "PARADEV_GATEWAY_URL", "PARADEV_GATEWAY_API_KEY",
 	// Colour engine.
 	"COLOUR_WORKER_URL", "WCPA_CONFIG_PATH", "COLOUR_WORKER_TIMEOUT", "COLOUR_MAX_IMAGE_BYTES",
-	"COLOUR_DEBUG_ENABLED",
+	"COLOUR_DEBUG_ENABLED", "FACE_HEAD_TIMEOUT", "FACE_HEAD_MAX_UPLOAD_BYTES",
 	// S3 configuration for shade textures.
 	"S3_ENDPOINT", "S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY", "S3_REGION", "S3_PRESIGN_TTL"}
 
@@ -230,5 +230,32 @@ func TestFromEnv_ModelServerURL(t *testing.T) {
 	t.Setenv("MODEL_SERVER_URL", "http://worker-models:8096")
 	if cfg, err = config.FromEnv(); err != nil || cfg.ModelServerURL != "http://worker-models:8096" {
 		t.Fatalf("override: %v %q", err, cfg.ModelServerURL)
+	}
+}
+
+func TestFromEnv_FaceHeadDefaultsAndOverrides(t *testing.T) {
+	setBaseEnv(t)
+	cfg, err := config.FromEnv()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.FaceHeadTimeout != 30*time.Second || cfg.FaceHeadMaxUploadBytes != 24<<20 {
+		t.Errorf("FaceHeadTimeout=%v FaceHeadMaxUploadBytes=%d", cfg.FaceHeadTimeout, cfg.FaceHeadMaxUploadBytes)
+	}
+	t.Setenv("FACE_HEAD_TIMEOUT", "45s")
+	t.Setenv("FACE_HEAD_MAX_UPLOAD_BYTES", "1048576")
+	cfg, err = config.FromEnv()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.FaceHeadTimeout != 45*time.Second || cfg.FaceHeadMaxUploadBytes != 1<<20 {
+		t.Errorf("FaceHeadTimeout=%v FaceHeadMaxUploadBytes=%d", cfg.FaceHeadTimeout, cfg.FaceHeadMaxUploadBytes)
+	}
+	for key, val := range map[string]string{"FACE_HEAD_TIMEOUT": "0s", "FACE_HEAD_MAX_UPLOAD_BYTES": "0"} {
+		setBaseEnv(t)
+		t.Setenv(key, val)
+		if _, err := config.FromEnv(); err == nil {
+			t.Errorf("want error for %s=%s", key, val)
+		}
 	}
 }
