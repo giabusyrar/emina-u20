@@ -180,6 +180,7 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 	// Phase 4: One batched capability dispatch to the vision AI worker
 	scoredCapabilities := make(map[string]bool)
 	var unsupportedCapabilities []string
+	var unavailableCapabilities map[string]string
 
 	if len(plan.Capabilities) > 0 && len(crops) > 0 {
 		result, err := o.capabilities.DispatchZones(execCtx, plan.Capabilities, crops)
@@ -187,6 +188,7 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 			return nil, err
 		}
 		unsupportedCapabilities = result.UnsupportedCapabilities
+		unavailableCapabilities = result.UnavailableCapabilities
 
 		for _, zoneScores := range result.Zones {
 			i, ok := itemIndexByZone[zoneScores.ZoneCode]
@@ -202,7 +204,7 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 		}
 	}
 
-	warnings = append(warnings, capabilityWarnings(plan, unsupportedCapabilities, scoredCapabilities)...)
+	warnings = append(warnings, capabilityWarnings(plan, unsupportedCapabilities, unavailableCapabilities, scoredCapabilities)...)
 
 	// Phase 5: Aggregation Rollup
 	globalAgg := AggregateScores(zoneBreakdownItems)

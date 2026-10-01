@@ -303,3 +303,32 @@ func TestExecute_DispatchFailureIsReturned(t *testing.T) {
 	assert.Nil(t, resp)
 	assert.True(t, errors.Is(err, inference.ErrWorkerUnavailable))
 }
+
+func TestExecute_UnloadableCapabilityIsReportedAsUnavailableNotUnuploaded(t *testing.T) {
+	segmenter := &fakeSegmenter{zonesByWidth: map[int][]workers.SegmentedZone{
+		100: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, Confidence: 0.9}},
+	}}
+	// dispatch-zones lists an unloadable capability in both fields.
+	client := &fakeCapabilityClient{result: &inference.DispatchResult{
+		Zones: []inference.ZoneScores{
+			{ZoneCode: domain.ZoneForehead, SourceAngle: domain.AngleFront, Telemetry: map[string]float64{"acne_lesion_classifier": 30}},
+		},
+		UnsupportedCapabilities: []string{"hyperpigmentation_net"},
+		UnavailableCapabilities: map[string]string{"hyperpigmentation_net": "RuntimeError: S3 unreachable"},
+	}}
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeOcclusion{}, fakeResolver{plan: testPlan()}, client, 30*time.Second)
+
+	resp, err := orch.Execute(context.Background(), request(
+		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
+	))
+	require.NoError(t, err)
+
+	codes := warningCodes(resp)
+	assert.Contains(t, codes, "CAPABILITY_UNAVAILABLE")
+	assert.NotContains(t, codes, "UNSUPPORTED_CAPABILITY")
+	for _, warning := range resp.Warnings {
+		if warning.Code == "CAPABILITY_UNAVAILABLE" {
+			assert.Equal(t, `Model for capability "hyperpigmentation_net" could not be loaded: RuntimeError: S3 unreachable`, warning.Message)
+		}
+	}
+}

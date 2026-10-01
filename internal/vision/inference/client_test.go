@@ -100,3 +100,16 @@ func TestHTTPCapabilityClient_ContextDeadlineIsWorkerUnavailable(t *testing.T) {
 
 	assert.True(t, errors.Is(err, inference.ErrWorkerUnavailable))
 }
+
+func TestHTTPCapabilityClient_DecodesUnavailableCapabilities(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"results":[],"unsupportedCapabilities":["acne_lesion_classifier"],"unavailableCapabilities":{"acne_lesion_classifier":"RuntimeError: S3 unreachable"}}`))
+	}))
+	defer server.Close()
+
+	result, err := inference.NewHTTPCapabilityClient(server.URL, 5*time.Second).DispatchZones(context.Background(), []string{"acne_lesion_classifier"}, []inference.ZoneCrop{{ZoneCode: "Z"}})
+
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"acne_lesion_classifier": "RuntimeError: S3 unreachable"}, result.UnavailableCapabilities)
+}

@@ -34,6 +34,10 @@ type ZoneScores struct {
 type DispatchResult struct {
 	Zones                   []ZoneScores
 	UnsupportedCapabilities []string
+	// UnavailableCapabilities maps a capability whose bound model could not
+	// be loaded to the model server's reason. dispatch-zones also lists these
+	// in UnsupportedCapabilities.
+	UnavailableCapabilities map[string]string
 }
 
 // ErrWorkerUnavailable wraps every failure to get scores from the vision AI worker.
@@ -76,6 +80,7 @@ type dispatchZoneResult struct {
 type dispatchResponse struct {
 	Results                 []dispatchZoneResult `json:"results"`
 	UnsupportedCapabilities []string             `json:"unsupportedCapabilities"`
+	UnavailableCapabilities map[string]string    `json:"unavailableCapabilities"`
 }
 
 func (c *HTTPCapabilityClient) DispatchZones(ctx context.Context, capabilities []string, crops []ZoneCrop) (*DispatchResult, error) {
@@ -116,6 +121,7 @@ func (c *HTTPCapabilityClient) DispatchZones(ctx context.Context, capabilities [
 	result := &DispatchResult{
 		Zones:                   make([]ZoneScores, len(decoded.Results)),
 		UnsupportedCapabilities: decoded.UnsupportedCapabilities,
+		UnavailableCapabilities: decoded.UnavailableCapabilities,
 	}
 	for i, r := range decoded.Results {
 		result.Zones[i] = ZoneScores{
