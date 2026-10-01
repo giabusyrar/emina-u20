@@ -110,8 +110,9 @@ func TestKitMakeOverMeasureMap(t *testing.T) {
 		for _, v := range c.Vendor {
 			covered[v] = true
 		}
-		if c.Transform == benchmark.TransformInverse || c.Transform == benchmark.TransformIdentity {
-			assert.Contains(t, c.Note, "ASSUMED", "%s: the [1, x] direction must say it is an assumption", c.Name)
+		assert.Contains(t, c.Note, "ASSUMED", "%s: the [1, x] direction (or the percent component order) must say it is an assumption", c.Name)
+		if c.Transform == benchmark.TransformInverse && len(c.Vendor) > 1 {
+			assert.Contains(t, c.Note, "Jensen", "%s: the vendor averages per-side values, ours inverts the mean; the note must say so", c.Name)
 		}
 	}
 	for v := range m.Unused {

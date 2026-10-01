@@ -144,6 +144,11 @@ func pair(it Item, c Comparison, vendor map[string]map[string]string) ([]float64
 			theirs[k] += v[k] / float64(len(c.Vendor))
 		}
 	}
+	for _, v := range theirs {
+		if math.IsNaN(v) || math.IsInf(v, 0) {
+			return nil, nil, ExcludeVendorUnparseable
+		}
+	}
 	ours, reason := oursOnVendorScale(it.Response, c)
 	if reason != "" {
 		return nil, nil, reason
@@ -206,6 +211,8 @@ func oursOnVendorScale(r *measureclient.Response, c Comparison) ([]float64, stri
 		for _, v := range m.Value.List {
 			out = append(out, 100*v)
 		}
+	default:
+		panic(fmt.Sprintf("benchmark.CompareMeasurements: unknown transform %q (call MeasureMap.Check first)", c.Transform))
 	}
 	for _, v := range out {
 		if math.IsNaN(v) || math.IsInf(v, 0) {
@@ -255,6 +262,9 @@ func measureMarkdown(r *MeasureReport) string {
 		}
 	}
 	b.WriteString("\n## Comparisons\n\n")
+	if !hasValuePairs(r) {
+		b.WriteString("No value pairs in any comparison: every image was left out, so the table above has no statistics. The exclusion counts below give the reasons.\n\n")
+	}
 	for _, c := range r.Comparisons {
 		fmt.Fprintf(&b, "- **%s**: vendor %s, ours %s (%s). %s", c.Name, strings.Join(c.Vendor, " + "), strings.Join(c.Ours, ", "), c.Transform, c.Note)
 		if len(c.Excluded) > 0 {
@@ -276,6 +286,17 @@ func measureMarkdown(r *MeasureReport) string {
 		}
 	}
 	return b.String()
+}
+
+func hasValuePairs(r *MeasureReport) bool {
+	for _, c := range r.Comparisons {
+		for _, a := range c.Components {
+			if a.N > 0 {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func fmtStat(x *float64) string {

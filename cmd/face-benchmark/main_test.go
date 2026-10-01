@@ -86,6 +86,15 @@ type files struct {
 	w                                                *worker
 }
 
+// subjectWLR is subject i's width_length_ratio, shared by setup (the worker's
+// reply) and TestCompareMeasurements (the vendor numbers derived from it).
+func subjectWLR(i int) float64 {
+	if i%2 == 1 {
+		return 0.88 + float64(i%4)/100
+	}
+	return 0.58 + float64(i%4)/100
+}
+
 // setup writes 20 subjects' images (placeholder bytes), their labels and a
 // worker that knows all of them.
 func setup(t *testing.T) files {
@@ -98,9 +107,9 @@ func setup(t *testing.T) files {
 		id := fmt.Sprintf("img-%02d", i)
 		content := "bytes of " + id
 		require.NoError(t, os.WriteFile(filepath.Join(dir, id+".jpg"), []byte(content), 0o600))
-		shape, wlr := "Oblong", 0.58+float64(i%4)/100
+		shape, wlr := "Oblong", subjectWLR(i)
 		if i%2 == 1 {
-			shape, wlr = "Round", 0.88+float64(i%4)/100
+			shape = "Round"
 		}
 		nose, alar := "Average", 0.9+float64(i%5)/100
 		if i%3 == 0 {
@@ -434,11 +443,7 @@ func TestCompareMeasurements(t *testing.T) {
 	// Vendor numbers for every image: 1/wlr + 0.05, so the bias is -0.05.
 	res := []string{"image_id,source,attribute,value"}
 	for i := 0; i < 20; i++ {
-		wlr := 0.58 + float64(i%4)/100
-		if i%2 == 1 {
-			wlr = 0.88 + float64(i%4)/100
-		}
-		res = append(res, fmt.Sprintf("img-%02d,makeover,ratio:face_aspect_ratio,1:%.10f", i, 1/wlr+0.05))
+		res = append(res, fmt.Sprintf("img-%02d,makeover,ratio:face_aspect_ratio,1:%.10f", i, 1/subjectWLR(i)+0.05))
 	}
 	results := filepath.Join(f.dir, "ratios.csv")
 	require.NoError(t, os.WriteFile(results, []byte(strings.Join(res, "\n")+"\n"), 0o600))
@@ -459,7 +464,8 @@ func TestCompareMeasurements(t *testing.T) {
 	assert.Equal(t, 20, a.N)
 	assert.InDelta(t, -0.05, *a.Bias, 1e-6)
 	for _, name := range []string{benchmark.MeasureReportJSONName, benchmark.MeasureReportMarkdownName} {
-		b, _ := os.ReadFile(filepath.Join(out, name))
+		b, err := os.ReadFile(filepath.Join(out, name))
+		require.NoError(t, err)
 		assert.NotContains(t, string(b), "img-", name)
 	}
 }

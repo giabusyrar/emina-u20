@@ -179,9 +179,95 @@ func TestMeasureReportFilesCarryNoImageIDsAndAreDeterministic(t *testing.T) {
 		assert.NotContains(t, string(a), "secret-subject", name)
 	}
 	var back benchmark.MeasureReport
-	raw, _ := os.ReadFile(filepath.Join(dir1, benchmark.MeasureReportJSONName))
+	raw, err := os.ReadFile(filepath.Join(dir1, benchmark.MeasureReportJSONName))
+	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(raw, &back))
 	assert.Equal(t, 5, cmpFind(t, &back, "faceAspect").Components[0].N)
-	md, _ := os.ReadFile(filepath.Join(dir1, benchmark.MeasureReportMarkdownName))
+	md, err := os.ReadFile(filepath.Join(dir1, benchmark.MeasureReportMarkdownName))
+	require.NoError(t, err)
 	assert.True(t, strings.Contains(string(md), "no pass/fail"), "the report says it does not judge")
+}
+
+func TestCompareUnknownTransformPanicsNamingCheck(t *testing.T) {
+	m := cmpMap(t)
+	m.Comparisons[0].Transform = "log"
+	items := []benchmark.Item{cmpItem("secret-subject-a", cmpResponse(map[string]float64{"width_length_ratio": 0.5}, nil))}
+	rows := []benchmark.ResultRow{cmpRow("secret-subject-a", "face_aspect_ratio", "1:1.9")}
+	assert.PanicsWithValue(t, `benchmark.CompareMeasurements: unknown transform "log" (call MeasureMap.Check first)`, func() {
+		benchmark.CompareMeasurements(benchmark.CompareInput{Items: items, Results: rows, Map: m, Catalogue: facearchtest.Catalogue()})
+	})
+}
+
+func TestCompareCountsAddUpToImages(t *testing.T) {
+	good := cmpResponse(map[string]float64{"width_length_ratio": 0.5, "eye_aperture_ratio": 0.25, "thirds_upper_proxy": 1, "thirds_mid": 1, "thirds_lower": 2},
+		map[string][]float64{"fifths": {0.1, 0.2, 0.4, 0.2, 0.1}})
+	items := []benchmark.Item{
+		cmpItem("secret-subject-a", good),
+		cmpItem("secret-subject-b", good),
+		cmpItem("secret-subject-c", nil),
+		cmpItem("secret-subject-d", cmpResponse(nil, nil, "width_length_ratio")),
+		cmpItem("secret-subject-e", cmpResponse(map[string]float64{}, nil)),
+	}
+	rows := []benchmark.ResultRow{
+		cmpRow("secret-subject-a", "face_aspect_ratio", "1:1.9"),
+		cmpRow("secret-subject-b", "face_aspect_ratio", "1,9"),
+		cmpRow("secret-subject-d", "face_aspect_ratio", "1:1.9"),
+		cmpRow("secret-subject-e", "face_aspect_ratio", "1:1.9"),
+		cmpRow("secret-subject-a", "left_eye_aspect_ratio", "1:3"),
+		cmpRow("secret-subject-a", "right_eye_aspect_ratio", "1:5"),
+		cmpRow("secret-subject-a", "horizontal_third", "25/25/50"),
+		cmpRow("secret-subject-a", "vertical_fifth", "10/20/40/20/10"),
+	}
+	rep := benchmark.CompareMeasurements(benchmark.CompareInput{Items: items, Results: rows, Map: cmpMap(t), Catalogue: facearchtest.Catalogue()})
+	require.Len(t, rep.Comparisons, 4)
+	for _, c := range rep.Comparisons {
+		var excluded int
+		for _, n := range c.Excluded {
+			excluded += n
+		}
+		for k, a := range c.Components {
+			assert.Equal(t, rep.Images, a.N+excluded, "%s[%d]", c.Name, k)
+		}
+	}
+}
+
+func TestParseVendorValueRejectsAnOverflowingQuotient(t *testing.T) {
+	_, ok := benchmark.ParseVendorValue("1e-309:2", 1)
+	assert.False(t, ok, "2 / 1e-309 is +Inf")
+}
+
+func TestCompareNeverPassesANonFiniteVendorValueToAgree(t *testing.T) {
+	items := []benchmark.Item{
+		cmpItem("secret-subject-a", cmpResponse(map[string]float64{"width_length_ratio": 0.5, "eye_aperture_ratio": 0.25}, nil)),
+	}
+	rows := []benchmark.ResultRow{
+		cmpRow("secret-subject-a", "face_aspect_ratio", "1e-309:2"),
+		cmpRow("secret-subject-a", "left_eye_aspect_ratio", "1e308"),
+		cmpRow("secret-subject-a", "right_eye_aspect_ratio", "1e308"),
+	}
+	var rep *benchmark.MeasureReport
+	require.NotPanics(t, func() {
+		rep = benchmark.CompareMeasurements(benchmark.CompareInput{Items: items, Results: rows, Map: cmpMap(t), Catalogue: facearchtest.Catalogue()})
+	})
+	assert.Equal(t, map[string]int{benchmark.ExcludeVendorUnparseable: 1}, cmpFind(t, rep, "faceAspect").Excluded)
+	eye := cmpFind(t, rep, "eyeAspect")
+	assert.Equal(t, 1, eye.Components[0].N+eye.Excluded[benchmark.ExcludeVendorUnparseable])
+}
+
+func TestMeasureMarkdownSaysWhenThereAreNoValuePairs(t *testing.T) {
+	items := []benchmark.Item{cmpItem("secret-subject-a", cmpResponse(map[string]float64{"width_length_ratio": 0.5}, nil))}
+	rep := benchmark.CompareMeasurements(benchmark.CompareInput{Items: items, Map: cmpMap(t), Catalogue: facearchtest.Catalogue()})
+	dir := t.TempDir()
+	require.NoError(t, benchmark.WriteMeasureReport(dir, rep))
+	md, err := os.ReadFile(filepath.Join(dir, benchmark.MeasureReportMarkdownName))
+	require.NoError(t, err)
+	assert.Contains(t, string(md), "No value pairs in any comparison")
+	assert.Contains(t, string(md), "vendor_absent 1")
+
+	rows := []benchmark.ResultRow{cmpRow("secret-subject-a", "face_aspect_ratio", "1:1.9")}
+	rep = benchmark.CompareMeasurements(benchmark.CompareInput{Items: items, Results: rows, Map: cmpMap(t), Catalogue: facearchtest.Catalogue()})
+	require.NoError(t, benchmark.WriteMeasureReport(dir, rep))
+	md, err = os.ReadFile(filepath.Join(dir, benchmark.MeasureReportMarkdownName))
+	require.NoError(t, err)
+	assert.NotContains(t, string(md), "No value pairs")
 }

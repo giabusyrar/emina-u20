@@ -123,3 +123,16 @@ func TestParseVendorValue(t *testing.T) {
 		assert.False(t, parsed, name)
 	}
 }
+
+func TestCheckListsUnusedProblemsInSortedOrder(t *testing.T) {
+	m, err := benchmark.ReadMeasureMap(mmWrite(t, mmValid))
+	require.NoError(t, err)
+	m.Unused = map[string]string{"z_field": "", "a_field": "", "m_field": ""}
+	for i := 0; i < 20; i++ {
+		err := m.Check()
+		require.Error(t, err)
+		msg := err.Error()
+		a, mm, z := strings.Index(msg, `"a_field"`), strings.Index(msg, `"m_field"`), strings.Index(msg, `"z_field"`)
+		require.True(t, a >= 0 && a < mm && mm < z, msg)
+	}
+}

@@ -131,8 +131,8 @@ func (m *MeasureMap) Check() error {
 			p = append(p, fmt.Sprintf("%s: unknown transform %q", at, c.Transform))
 		}
 	}
-	for v, why := range m.Unused {
-		if why == "" {
+	for _, v := range sortedKeys(m.Unused) {
+		if m.Unused[v] == "" {
 			p = append(p, fmt.Sprintf("unused %q: reason is empty", v))
 		}
 	}
@@ -184,7 +184,11 @@ func ParseVendorValue(raw string, components int) ([]float64, bool) {
 			if !okA || !okB || x <= 0 {
 				return nil, false
 			}
-			return []float64{y / x}, true
+			q := y / x
+			if math.IsNaN(q) || math.IsInf(q, 0) {
+				return nil, false
+			}
+			return []float64{q}, true
 		}
 		v, ok := parseFinite(s)
 		if !ok {
