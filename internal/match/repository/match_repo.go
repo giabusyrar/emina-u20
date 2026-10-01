@@ -48,6 +48,40 @@ func NewMatchRepo(db *gorm.DB, c ...*cache.MatchCache) *MatchRepo {
 // -------------------------------------------------------------
 // Product Master Catalog CRUD & Fetching
 // -------------------------------------------------------------
+// productsQuery reads the product master reference-service owns
+// (ref_products, docs/superpowers/specs/2026-10-01-reference-products-design.md).
+// A product without a category or texture gets an empty one, never a guess.
+func productsQuery(brandID string) (string, []any) {
+	q := `
+		SELECT
+			p.id AS id,
+			p.brand_id::text AS brand_id,
+			p.name AS name,
+			COALESCE(c.name, '') AS category,
+			COALESCE(t.name, '') AS texture,
+			COALESCE(
+				(SELECT string_agg(ing.name, ', ')
+				 FROM ref_product_ingredients rpi
+				 JOIN ref_ingredients ing ON ing.id = rpi.ingredient_id
+				 WHERE rpi.product_id = p.id), ''
+			) AS ingredients,
+			COALESCE(p.description, '') AS key_actives,
+			COALESCE(p.image_url, '') AS image_url,
+			p.is_active AS is_active,
+			p.created_at AS created_at,
+			p.updated_at AS updated_at
+		FROM ref_products p
+		LEFT JOIN ref_brands b ON b.id = p.brand_id
+		LEFT JOIN ref_categories c ON c.id = p.category_id
+		LEFT JOIN ref_textures t ON t.id = p.texture_id
+		WHERE p.deleted_at IS NULL AND p.is_active`
+	if brandID == "" || brandID == "*" {
+		return q + " ORDER BY c.name ASC, p.name ASC", nil
+	}
+	return q + " AND (LOWER(p.brand_id::text) = LOWER(?) OR LOWER(b.name) = LOWER(?)) ORDER BY c.name ASC, p.name ASC",
+		[]any{brandID, brandID}
+}
+
 func (r *MatchRepo) ListProducts(ctx context.Context, brandID string) ([]entity.ProductCatalogItem, error) {
 	cacheKey := fmt.Sprintf("match:products:%s", strings.ToLower(brandID))
 	var cached []entity.ProductCatalogItem
@@ -74,39 +108,9 @@ func (r *MatchRepo) ListProducts(ctx context.Context, brandID string) ([]entity.
 	}
 
 	var res []entity.ProductCatalogItem
-	rawQuery := `
-		SELECT 
-			p.id AS id,
-			p.brand_id::text AS brand_id,
-			p.name AS name,
-			COALESCE(c.name, 'Skincare') AS category,
-			COALESCE(t.name, 'Gel') AS texture,
-			COALESCE(
-				(SELECT string_agg(ing.name, ', ') 
-				 FROM ref_product_ingredients rpi 
-				 JOIN ref_ingredients ing ON ing.id = rpi.ingredient_id 
-				 WHERE rpi.product_id = p.id), ''
-			) AS ingredients,
-			COALESCE(p.description, '') AS key_actives,
-			TRUE AS is_active,
-			p.created_at AS created_at,
-			p.updated_at AS updated_at
-		FROM ref_products p
-		LEFT JOIN ref_brands b ON b.id = p.brand_id
-		LEFT JOIN ref_categories c ON c.id = p.category_id
-		LEFT JOIN ref_textures t ON t.id = p.texture_id
-		WHERE p.deleted_at IS NULL
-	`
-	if brandID != "" && brandID != "*" {
-		rawQuery += " AND (LOWER(p.brand_id::text) = LOWER(?) OR LOWER(b.name) = LOWER(?)) ORDER BY c.name ASC, p.name ASC"
-		if err := r.db.WithContext(ctx).Raw(rawQuery, brandID, brandID).Scan(&res).Error; err != nil {
-			return nil, err
-		}
-	} else {
-		rawQuery += " ORDER BY c.name ASC, p.name ASC"
-		if err := r.db.WithContext(ctx).Raw(rawQuery).Scan(&res).Error; err != nil {
-			return nil, err
-		}
+	q, args := productsQuery(brandID)
+	if err := r.db.WithContext(ctx).Raw(q, args...).Scan(&res).Error; err != nil {
+		return nil, err
 	}
 	if r.cache != nil && len(res) > 0 {
 		r.cache.Set(ctx, cacheKey, res)
@@ -114,7 +118,14 @@ func (r *MatchRepo) ListProducts(ctx context.Context, brandID string) ([]entity.
 	return res, nil
 }
 
-func (r *MatchRepo) CreateProduct(ctx context.Context, product entity.ProductCatalogItem) (*entity.ProductCatalogItem, error) {
+// AddInMemoryProduct loads a product into the in-memory repo (no database:
+// tests and local runs without Postgres). With a database it refuses:
+// products are written through reference-service, and a write here would
+// vanish on restart while looking saved.
+func (r *MatchRepo) AddInMemoryProduct(ctx context.Context, product entity.ProductCatalogItem) (*entity.ProductCatalogItem, error) {
+	if !r.useMemory {
+		return nil, fmt.Errorf("match products are read-only here; write them through reference-service /api/reference/products")
+	}
 	if product.ID == "" {
 		product.ID = fmt.Sprintf("prod-%d", time.Now().UnixNano())
 	}
@@ -128,43 +139,6 @@ func (r *MatchRepo) CreateProduct(ctx context.Context, product entity.ProductCat
 		r.cache.InvalidatePrefix(ctx, "match:products:")
 	}
 	return &product, nil
-}
-
-func (r *MatchRepo) UpdateProduct(ctx context.Context, product entity.ProductCatalogItem) (*entity.ProductCatalogItem, error) {
-	now := time.Now()
-	product.UpdatedAt = &now
-
-	r.memMu.Lock()
-	defer r.memMu.Unlock()
-	for i, p := range r.products {
-		if p.ID == product.ID {
-			r.products[i] = product
-			if r.cache != nil {
-				r.cache.InvalidatePrefix(ctx, "match:products:")
-			}
-			return &product, nil
-		}
-	}
-	r.products = append([]entity.ProductCatalogItem{product}, r.products...)
-	if r.cache != nil {
-		r.cache.InvalidatePrefix(ctx, "match:products:")
-	}
-	return &product, nil
-}
-
-func (r *MatchRepo) DeleteProduct(ctx context.Context, id string) error {
-	r.memMu.Lock()
-	defer r.memMu.Unlock()
-	for i, p := range r.products {
-		if p.ID == id {
-			r.products = append(r.products[:i], r.products[i+1:]...)
-			if r.cache != nil {
-				r.cache.InvalidatePrefix(ctx, "match:products:")
-			}
-			return nil
-		}
-	}
-	return domain.ErrNotFound
 }
 
 // -------------------------------------------------------------

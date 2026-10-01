@@ -75,8 +75,10 @@ Following the existing entity pattern in `reference_handler.go`
   `p.is_active` filtering, minus the `'Skincare'` / `'Gel'` fallbacks: an
   unknown category or texture is returned empty. `is_active` comes from the
   row, not `TRUE`.
-- The in-memory `CreateProduct` / `UpdateProduct` / `DeleteProduct` and their
-  service methods are deleted. Products are written through reference-service.
+- `UpdateProduct` / `DeleteProduct` and the three service methods are deleted.
+  `CreateProduct` becomes `AddInMemoryProduct`, which the match tests use to
+  load products into the in-memory repo, and which refuses to run with a
+  database. Products are written through reference-service.
 - `ProductCatalogItem` stays as the match read model (the scorer uses it), but
   is removed from core-engine's `AutoMigrate` list. Its `TableName` goes with
   it, so nothing can write `match_product_catalog` through it again.

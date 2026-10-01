@@ -2,7 +2,8 @@ package entity
 
 import "time"
 
-// ProductCatalogItem represents a skincare/cosmetic product in the master database
+// ProductCatalogItem is match's read model of a product. It is scanned from
+// ref_products (reference-service owns that table); it has no table of its own.
 type ProductCatalogItem struct {
 	ID          string     `json:"id" gorm:"type:varchar(64);primaryKey"`
 	BrandID     string     `json:"brandId" gorm:"type:varchar(64);not null;index"`
@@ -15,10 +16,6 @@ type ProductCatalogItem struct {
 	IsActive    bool       `json:"isActive" gorm:"default:true"`
 	CreatedAt   time.Time  `json:"createdAt" gorm:"autoCreateTime"`
 	UpdatedAt   *time.Time `json:"updatedAt,omitempty" gorm:"autoUpdateTime"`
-}
-
-func (ProductCatalogItem) TableName() string {
-	return "match_product_catalog"
 }
 
 // ConflictMatrixRule prevents active ingredient collisions

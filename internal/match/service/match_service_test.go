@@ -16,7 +16,7 @@ func setupTestService(t *testing.T) (*service.MatchService, *repository.MatchRep
 
 	// Seed sample products
 	ctx := context.Background()
-	repo.CreateProduct(ctx, entity.ProductCatalogItem{
+	repo.AddInMemoryProduct(ctx, entity.ProductCatalogItem{
 		ID:          "W-GEL-CLEANSER",
 		BrandID:     "wardah",
 		Name:        "Wardah Hydra Rose Gel Cleanser",
@@ -24,7 +24,7 @@ func setupTestService(t *testing.T) (*service.MatchService, *repository.MatchRep
 		Texture:     "Water Gel",
 		Ingredients: "CENTELLA_ASIATICA, GLYCERIN",
 	})
-	repo.CreateProduct(ctx, entity.ProductCatalogItem{
+	repo.AddInMemoryProduct(ctx, entity.ProductCatalogItem{
 		ID:          "W-RETINOL-SERUM",
 		BrandID:     "wardah",
 		Name:        "Wardah Renew You Retinol Serum",
@@ -32,7 +32,7 @@ func setupTestService(t *testing.T) (*service.MatchService, *repository.MatchRep
 		Texture:     "Fluid",
 		Ingredients: "RETINOL, PEPTIDES",
 	})
-	repo.CreateProduct(ctx, entity.ProductCatalogItem{
+	repo.AddInMemoryProduct(ctx, entity.ProductCatalogItem{
 		ID:          "W-NIACIN-SERUM",
 		BrandID:     "wardah",
 		Name:        "Wardah Lightening Serum Ampoule",
@@ -40,7 +40,7 @@ func setupTestService(t *testing.T) (*service.MatchService, *repository.MatchRep
 		Texture:     "Water Gel",
 		Ingredients: "NIACINAMIDE, ZINC_PCA",
 	})
-	repo.CreateProduct(ctx, entity.ProductCatalogItem{
+	repo.AddInMemoryProduct(ctx, entity.ProductCatalogItem{
 		ID:          "W-MOIST-GEL",
 		BrandID:     "wardah",
 		Name:        "Wardah Hydra Rose Moisture Gel",
@@ -48,7 +48,7 @@ func setupTestService(t *testing.T) (*service.MatchService, *repository.MatchRep
 		Texture:     "Water Gel",
 		Ingredients: "CERAMIDE_NP, HYALURONIC_ACID",
 	})
-	repo.CreateProduct(ctx, entity.ProductCatalogItem{
+	repo.AddInMemoryProduct(ctx, entity.ProductCatalogItem{
 		ID:          "W-UV-SHIELD",
 		BrandID:     "wardah",
 		Name:        "Wardah UV Shield SPF 50",
@@ -58,7 +58,7 @@ func setupTestService(t *testing.T) (*service.MatchService, *repository.MatchRep
 	})
 
 	// Make Over products
-	repo.CreateProduct(ctx, entity.ProductCatalogItem{
+	repo.AddInMemoryProduct(ctx, entity.ProductCatalogItem{
 		ID:          "MO-PRIMER-SERUM",
 		BrandID:     "makeover",
 		Name:        "Make Over Powerstay Primer Serum",
@@ -66,7 +66,7 @@ func setupTestService(t *testing.T) (*service.MatchService, *repository.MatchRep
 		Texture:     "Fluid",
 		Ingredients: "HYALURONIC_ACID, NIACINAMIDE",
 	})
-	repo.CreateProduct(ctx, entity.ProductCatalogItem{
+	repo.AddInMemoryProduct(ctx, entity.ProductCatalogItem{
 		ID:          "MO-CUSHION",
 		BrandID:     "makeover",
 		Name:        "Make Over Hydrastay Cushion",
@@ -74,7 +74,7 @@ func setupTestService(t *testing.T) (*service.MatchService, *repository.MatchRep
 		Texture:     "Cushion",
 		Ingredients: "GLYCERIN, TITANIUM_DIOXIDE",
 	})
-	repo.CreateProduct(ctx, entity.ProductCatalogItem{
+	repo.AddInMemoryProduct(ctx, entity.ProductCatalogItem{
 		ID:          "MO-CLEANSE-OIL",
 		BrandID:     "makeover",
 		Name:        "Make Over Deep Cleansing Oil",
