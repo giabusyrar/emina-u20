@@ -18,7 +18,7 @@ type DBOptions struct {
 }
 
 // OpenPostgres opens and pings Postgres, and returns an error if either
-// fails. There is no degraded mode: a service that cannot reach its database
+// fails or if the database is Seagull-gateway's (see refuseGatewayDatabase). There is no degraded mode: a service that cannot reach its database
 // must not start and report itself healthy.
 func OpenPostgres(ctx context.Context, url string, o DBOptions) (*gorm.DB, error) {
 	if url == "" {
@@ -41,6 +41,10 @@ func OpenPostgres(ctx context.Context, url string, o DBOptions) (*gorm.DB, error
 	if err := sqlDB.PingContext(pingCtx); err != nil {
 		_ = sqlDB.Close()
 		return nil, fmt.Errorf("ping postgres: %w", err)
+	}
+	if err := refuseGatewayDatabase(pingCtx, sqlTableExists(sqlDB)); err != nil {
+		_ = sqlDB.Close()
+		return nil, err
 	}
 	return db, nil
 }
