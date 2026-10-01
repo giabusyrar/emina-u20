@@ -43,6 +43,10 @@ repository reads any of these tables.
   re-running its statement list on every process start cannot re-run that
   backfill and silently re-bind a capability an operator deliberately
   unbound.
+- **`model_assets`**, **`model_asset_active`**, **`model_asset_activation_log`** —
+  owned by the model server. Versions of files workers download and run
+  themselves (FaceLandmarker), the active version per name, and the history of
+  switches. Not read by capability dispatch. `docs/MODEL-REGISTRY.md`, "Model assets".
 
 ### The dropped uniqueness constraint
 

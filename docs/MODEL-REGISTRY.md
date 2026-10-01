@@ -562,3 +562,35 @@ Any Seagull-web code that treated the response as an array directly (e.g.
 3. **History** — `GET /api/v1/models/capabilities/{code}/history`, rendering
    the append-only activation log so "why did scores shift" is answerable per
    capability.
+
+## Model assets
+
+Files a worker downloads and runs itself (today: MediaPipe FaceLandmarker,
+asset `face_landmarker`, used by skin, face and colour). worker-models stores
+and versions them; it never runs them, and capability dispatch never sees them.
+
+| Route | Does |
+|---|---|
+| `POST /api/v1/assets/{name}` | multipart `file`, optional `label`, optional `activate` (`true`/`1`/`yes` or `false`/`0`/`no`/empty, case-insensitive; anything else is 400); stored in S3 at `assets/<name>/<timestamp>_<file>`, cached by SHA-256 |
+| `GET /api/v1/assets` | every version, with `active` |
+| `GET /api/v1/assets/{name}/history` | activation log, newest first |
+| `PUT /api/v1/assets/{name}/active` | `{"assetId": "<uuid>"}` of a version of that name |
+| `DELETE /api/v1/assets/{name}/active` | deactivate |
+| `GET /api/v1/assets/{name}` | the active file; `X-Content-SHA256`, `ETag`, `X-Asset-Id`; `If-None-Match` gives 304; 404 nothing active; 503 not cached and S3 unreachable |
+
+Names: `^[a-z0-9_]{1,64}$`. Size: `MODEL_ASSET_MAX_FILE_BYTES` (default 200 MB).
+Asset files share the model disk cache (`MODEL_CACHE_DIR`, `<sha256>.onnx`).
+Active assets' files are never evicted from it; `/health` lists
+`asset:<name>` as `cached` / `not cached` (informational).
+
+Workers run `python -m worker_common.model_assets fetch <worker>` before
+uvicorn (Dockerfiles, `npm run dev:<worker>`). Each worker's `asset_needs()`
+names the asset and the path its loader reads (skin: `SKIN_LANDMARKER_PATH`,
+set by its image to `/app/data/models/face_landmarker/face_landmarker.task`);
+face pins the builds it has facegeom manifests for. A hash or pin mismatch
+leaves no file (the worker reports the model unavailable); an unreachable
+worker-models leaves an existing file in use, unchecked. `MODEL_SERVER_URL`
+points workers at worker-models (compose: `http://worker-models:8096`).
+
+Seeding a file already in the bucket:
+`python -m worker_models.import_asset face_landmarker model-mirror/assets/face_landmarker/face_landmarker.task --label "float16 v1"`.
