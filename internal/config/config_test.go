@@ -18,7 +18,7 @@ var tunables = []string{"FORM_CACHE_TTL", "SCORE_CACHE_TTL", "MATCH_CACHE_TTL", 
 	"DB_SLOW_QUERY_THRESHOLD", "DEPENDENCY_PING_TIMEOUT",
 	// core-engine's own port and downstream service URLs.
 	"CORE_ENGINE_PORT", "PORT", "REFERENCE_SERVICE_URL", "VISION_AI_WORKER_URL", "SKIN_WORKER_URL", "FACE_WORKER_URL",
-	"PARADEV_GATEWAY_URL", "PARADEV_GATEWAY_API_KEY",
+	"MODEL_SERVER_URL", "PARADEV_GATEWAY_URL", "PARADEV_GATEWAY_API_KEY",
 	// Colour engine.
 	"COLOUR_WORKER_URL", "WCPA_CONFIG_PATH", "COLOUR_WORKER_TIMEOUT", "COLOUR_MAX_IMAGE_BYTES",
 	"COLOUR_DEBUG_ENABLED",
@@ -215,5 +215,20 @@ func TestFromEnv_RemovedVisionWorkerURLIsAnError(t *testing.T) {
 	_, err := config.FromEnv()
 	if err == nil || !strings.Contains(err.Error(), "SKIN_WORKER_URL") || !strings.Contains(err.Error(), "FACE_WORKER_URL") {
 		t.Fatalf("err = %v, want one naming SKIN_WORKER_URL and FACE_WORKER_URL", err)
+	}
+}
+
+func TestFromEnv_ModelServerURL(t *testing.T) {
+	setBaseEnv(t)
+	cfg, err := config.FromEnv()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.ModelServerURL != "http://127.0.0.1:8096" {
+		t.Fatalf("ModelServerURL = %q", cfg.ModelServerURL)
+	}
+	t.Setenv("MODEL_SERVER_URL", "http://worker-models:8096")
+	if cfg, err = config.FromEnv(); err != nil || cfg.ModelServerURL != "http://worker-models:8096" {
+		t.Fatalf("override: %v %q", err, cfg.ModelServerURL)
 	}
 }
