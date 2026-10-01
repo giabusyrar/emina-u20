@@ -68,26 +68,41 @@ deleted once they are older than an hour.
 
 The hash lives in a new `vision_models.sha256` column (additive, see
 `docs/SHARED-DATABASE.md`). New uploads record it; a legacy row without one
-gets it on first fetch.
+gets it the first time it is loaded (at preload, at bind, or at dispatch).
 
 ### Preload, load-on-bind, and failure
 
 - **Preload.** Every bound model is loaded at start (`worker_models/preload.py`),
-  before `/health` is ready, so no request waits on a download or a session
-  build. The in-memory session cache is bounded by `MODEL_CACHE_MAX_BYTES`.
+  before `/health` is ready, so — as long as the bound models fit
+  `MODEL_CACHE_MAX_BYTES` — no request waits on a download or a session
+  build. The in-memory session cache is bounded by `MODEL_CACHE_MAX_BYTES`;
+  when the bound models' total size exceeds it, preload logs a warning naming
+  both numbers, and the evicted ones are reloaded on request.
+- **Preload time bound.** Each startup load is bounded by
+  `MODEL_PRELOAD_TIMEOUT_SECONDS` (default 60, policy) so a slow or
+  unreachable S3 cannot keep the port closed. A model that times out is
+  marked `unavailable` with a reason naming the timeout and is retried by the
+  normal backoff (below). The compose healthcheck for `worker-models` sets
+  `start_period: 120s` (policy): the first start downloads every bound model.
 - **Bind loads first.** `PUT /capabilities/{code}/binding` loads the model
   before moving the pointer. If it cannot load, the answer is 503 and the
-  binding is unchanged.
+  binding is unchanged. Upload with `activate=` does the same per
+  capability: a model that cannot load binds nothing, the upload still
+  succeeds, and the reason is returned in the response's `warnings`; any
+  existing binding and its status are left untouched.
 - **`/health`.** Besides `database`, it lists one informational
   `model:<capability>` entry per bound capability: `up`, or
   `unavailable: <reason>`. An unloadable model degrades its capability, not
   the service.
-- **Dispatch.** A capability whose model cannot be loaded is reported per
-  capability in `unsupportedCapabilities` (dispatch-zones, per zone) and in
-  the optional response field `unavailableCapabilities` (`{capability:
-  reason}`, on dispatch-zones and dispatch-capabilities); the other
-  requested capabilities still score. The answer is 503 only when nothing
-  requested can be served. It is never scored as zero.
+- **Dispatch.** A capability whose model cannot be loaded — or whose model
+  raises while scoring — is reported per capability in
+  `unsupportedCapabilities` (dispatch-zones only; request-level, not per
+  zone) and in the optional response field `unavailableCapabilities`
+  (`{capability: reason}`, on dispatch-zones and dispatch-capabilities); the
+  other requested capabilities still score. The answer is 503 only when
+  nothing requested can be served. It is never scored as zero. core-engine
+  turns an `unavailableCapabilities` entry into a `CAPABILITY_UNAVAILABLE`
+  warning (not the "no model is uploaded" one).
 - **Retry.** A failed model is retried on later requests no more often than
   every `MODEL_RETRY_INTERVAL_SECONDS` (default 30).
 
@@ -338,9 +353,10 @@ and this registry does not change that contract.
 
 The same absent-not-zero rule applies if a bound model fails at run time (the
 adapter raises, or the model file is missing from storage): that model's
-capabilities are absent from the zone's telemetry for that request and a
-warning names the model, but other models still run, and the row itself is
-not deleted — a transient storage failure is not a deregistration.
+requested capabilities are absent from the telemetry and reported in
+`unavailableCapabilities` with the reason (see *Dispatch* above), other models
+still run, and the row itself is not deleted — a transient storage failure is
+not a deregistration. The capability is retried on the normal backoff.
 
 ## The four limits
 
