@@ -6,19 +6,26 @@ package facearch
 // gateway contracts generator. testdata/head_report.json is shared with the
 // worker's test (apps/workers/face/tests/test_head_report.py).
 type HeadReport struct {
-	Kind             string             `json:"kind"`
-	Model            HeadModelRef       `json:"model"`
-	Correspondence   HeadCorrespondence `json:"correspondence"`
-	Camera           HeadCamera         `json:"camera"`
-	Views            []HeadView         `json:"views"`
-	NMELimit         float64            `json:"nmeLimit"`
-	ViewConsistency  *HeadConsistency   `json:"viewConsistency"`
-	ShapeEvidence    HeadShapeEvidence  `json:"shapeEvidence"`
-	SigmaKind        string             `json:"sigmaKind"`
-	Components       HeadComponents     `json:"components"`
-	LandmarkVertices [][6]float64       `json:"landmarkVertices"`
-	ObservedBits     map[string]int     `json:"observedBits"`
-	Notice           string             `json:"notice"`
+	Kind            string             `json:"kind"`
+	Model           HeadModelRef       `json:"model"`
+	Correspondence  HeadCorrespondence `json:"correspondence"`
+	Camera          HeadCamera         `json:"camera"`
+	Views           []HeadView         `json:"views"`
+	NMELimit        float64            `json:"nmeLimit"`
+	ViewConsistency *HeadConsistency   `json:"viewConsistency"`
+	ShapeEvidence   HeadShapeEvidence  `json:"shapeEvidence"`
+	SigmaKind       string             `json:"sigmaKind"`
+	Components      HeadComponents     `json:"components"`
+	// LandmarkVertices and LandmarkPoints are dense in MediaPipe order: entry
+	// i is MediaPipe landmark i for i in 0..467, every one mapped; iris
+	// landmarks 468-477 are absent past the end. LandmarkVertices holds GNM
+	// model vertex indices + barycentric weights; LandmarkPoints holds the same
+	// points as [x, y, z] in the GLB's mesh space (metres, the POSITION frame),
+	// because the GLB renumbers vertices per primitive.
+	LandmarkVertices [][6]float64   `json:"landmarkVertices"`
+	LandmarkPoints   [][3]float64   `json:"landmarkPoints"`
+	ObservedBits     map[string]int `json:"observedBits"`
+	Notice           string         `json:"notice"`
 }
 
 type HeadModelRef struct {
