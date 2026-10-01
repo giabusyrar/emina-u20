@@ -229,8 +229,9 @@ func (c *Cache) Put(r Record) error {
 }
 
 // PutCatalogue stores the worker's catalogue body. If one is already
-// stored, the two must decode to the same catalogue: a definition change
-// without a version bump would make cached values incomparable.
+// stored, the two must decode to the same catalogue: a cache never mixes
+// catalogues, so a worker whose catalogue gained keys or changed a
+// definition needs a fresh cache.
 func (c *Cache) PutCatalogue(raw []byte) error {
 	var cat measureclient.Catalogue
 	if err := json.Unmarshal(raw, &cat); err != nil {
@@ -241,7 +242,7 @@ func (c *Cache) PutCatalogue(raw []byte) error {
 	}
 	if old, err := c.Catalogue(); err == nil {
 		if !reflect.DeepEqual(old, &cat) {
-			return fmt.Errorf("the worker's catalogue %s differs from the one cached earlier under the same version; its definitions changed without a version bump", c.catalogueVersion)
+			return fmt.Errorf("the worker's catalogue %s differs from the one this cache was made with (keys added, or definitions changed); use a fresh --cache", c.catalogueVersion)
 		}
 		return nil
 	} else if !errors.Is(err, fs.ErrNotExist) {

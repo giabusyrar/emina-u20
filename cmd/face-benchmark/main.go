@@ -67,6 +67,8 @@ var usage = `usage:
                            --target <` + strings.Join(targetChoices, "|") + `> --out <calibrated.json>
                            [--held-out-fraction F] [--dedup-max-distance N] [--min-class-count N]
                            [--ece-bins N] [--seed N] [--min-consensus-raters N]
+  face-benchmark compare-measurements --manifest <manifest.csv> --cache <dir> --model-sha256 <sha>
+                           --results <results.csv> --measure-map <measure-map.json> --out <dir>
 `
 
 // common are the flags every subcommand takes.
@@ -157,6 +159,15 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer, d deps) i
 			return 2
 		}
 		return calibrate(c, l, *target, stdout, stderr, d)
+	case "compare-measurements":
+		results := fs.String("results", "", "results.csv")
+		mapPath := fs.String("measure-map", "", "measure-map.json")
+		out := fs.String("out", "", "output directory")
+		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 || !c.ok() || *results == "" || *mapPath == "" || *out == "" {
+			fmt.Fprint(stderr, usage)
+			return 2
+		}
+		return compareMeasurements(c, *results, *mapPath, *out, stdout, stderr)
 	}
 	fmt.Fprint(stderr, usage)
 	return 2
@@ -296,6 +307,60 @@ func evaluate(c common, l labelled, stdout, stderr io.Writer) int {
 	}
 	fmt.Fprintf(stdout, "wrote %s and %s in %s (%d images, %d source x attribute rows)\n",
 		benchmark.ReportJSONName, benchmark.ReportMarkdownName, l.out, rep.Images, len(rep.Agreement))
+	return 0
+}
+
+// compareMeasurements reads only the cache (no network): our measurements
+// against the hand-recorded numbers of the map's source.
+func compareMeasurements(c common, resultsPath, mapPath, out string, stdout, stderr io.Writer) int {
+	fail := func(err error) int {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	rows, err := benchmark.ReadManifest(c.manifest)
+	if err != nil {
+		return fail(err)
+	}
+	mm, err := benchmark.ReadMeasureMap(mapPath)
+	if err != nil {
+		return fail(err)
+	}
+	cache, err := benchmark.NewCache(c.cache, c.model, mm.CatalogueVersion)
+	if err != nil {
+		return fail(err)
+	}
+	cat, err := cache.Catalogue()
+	if errors.Is(err, os.ErrNotExist) {
+		return fail(fmt.Errorf("no measurements cached for model %s and catalogue %s; run measure first", c.model, mm.CatalogueVersion))
+	}
+	if err != nil {
+		return fail(err)
+	}
+	if err := mm.CheckShapes(cat); err != nil {
+		return fail(err)
+	}
+	results, err := benchmark.ReadResults(resultsPath, rows)
+	if err != nil {
+		return fail(err)
+	}
+	items, err := benchmark.LoadItems(rows, cache)
+	if err != nil {
+		return fail(err)
+	}
+	rep := benchmark.CompareMeasurements(benchmark.CompareInput{
+		Items: items, Results: results, Map: mm, Catalogue: cat, ModelSHA256: cache.ModelSHA256(),
+	})
+	if err := benchmark.WriteMeasureReport(out, rep); err != nil {
+		return fail(err)
+	}
+	pairs := 0
+	for _, cr := range rep.Comparisons {
+		for _, a := range cr.Components {
+			pairs += a.N
+		}
+	}
+	fmt.Fprintf(stdout, "wrote %s and %s in %s (%d comparisons, %d value pairs; statistics only, no pass/fail)\n",
+		benchmark.MeasureReportJSONName, benchmark.MeasureReportMarkdownName, out, len(rep.Comparisons), pairs)
 	return 0
 }
 

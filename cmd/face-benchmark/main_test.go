@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -85,6 +86,15 @@ type files struct {
 	w                                                *worker
 }
 
+// subjectWLR is subject i's width_length_ratio, shared by setup (the worker's
+// reply) and TestCompareMeasurements (the vendor numbers derived from it).
+func subjectWLR(i int) float64 {
+	if i%2 == 1 {
+		return 0.88 + float64(i%4)/100
+	}
+	return 0.58 + float64(i%4)/100
+}
+
 // setup writes 20 subjects' images (placeholder bytes), their labels and a
 // worker that knows all of them.
 func setup(t *testing.T) files {
@@ -97,9 +107,9 @@ func setup(t *testing.T) files {
 		id := fmt.Sprintf("img-%02d", i)
 		content := "bytes of " + id
 		require.NoError(t, os.WriteFile(filepath.Join(dir, id+".jpg"), []byte(content), 0o600))
-		shape, wlr := "Oblong", 0.58+float64(i%4)/100
+		shape, wlr := "Oblong", subjectWLR(i)
 		if i%2 == 1 {
-			shape, wlr = "Round", 0.88+float64(i%4)/100
+			shape = "Round"
 		}
 		nose, alar := "Average", 0.9+float64(i%5)/100
 		if i%3 == 0 {
@@ -414,4 +424,70 @@ func TestPrintHeldOutCountsAndWarnings(t *testing.T) {
 	h.Regressions = nil
 	printHeldOut(&out, h)
 	assert.NotContains(t, out.String(), "WARNING")
+}
+
+// cliMeasureMap compares the cached width_length_ratio with a vendor's
+// face_aspect_ratio; the numbers are test inputs.
+const cliMeasureMap = `{
+  "catalogueVersion": "fa-measure/1", "source": "makeover", "cite": "test",
+  "comparisons": [{"name": "faceAspect", "vendor": ["face_aspect_ratio"], "components": 1,
+    "ours": ["width_length_ratio"], "transform": "inverse", "note": "test"}]
+}`
+
+func TestCompareMeasurements(t *testing.T) {
+	f := setup(t)
+	common := []string{"--manifest", f.manifest, "--cache", f.cache, "--model-sha256", model}
+	code, _, errOut := runCLI(f.deps(), append([]string{"measure"}, common...)...)
+	require.Equal(t, 0, code, errOut)
+
+	// Vendor numbers for every image: 1/wlr + 0.05, so the bias is -0.05.
+	res := []string{"image_id,source,attribute,value"}
+	for i := 0; i < 20; i++ {
+		res = append(res, fmt.Sprintf("img-%02d,makeover,ratio:face_aspect_ratio,1:%.10f", i, 1/subjectWLR(i)+0.05))
+	}
+	results := filepath.Join(f.dir, "ratios.csv")
+	require.NoError(t, os.WriteFile(results, []byte(strings.Join(res, "\n")+"\n"), 0o600))
+	mapPath := filepath.Join(f.dir, "measure-map.json")
+	require.NoError(t, os.WriteFile(mapPath, []byte(cliMeasureMap), 0o600))
+	out := filepath.Join(f.dir, "measure-report")
+
+	code, stdout, errOut := runCLI(f.deps(), append(append([]string{"compare-measurements"}, common...),
+		"--results", results, "--measure-map", mapPath, "--out", out)...)
+	require.Equal(t, 0, code, errOut)
+	assert.Contains(t, stdout, benchmark.MeasureReportJSONName)
+	raw, err := os.ReadFile(filepath.Join(out, benchmark.MeasureReportJSONName))
+	require.NoError(t, err)
+	var rep benchmark.MeasureReport
+	require.NoError(t, json.Unmarshal(raw, &rep))
+	require.Len(t, rep.Comparisons, 1)
+	a := rep.Comparisons[0].Components[0]
+	assert.Equal(t, 20, a.N)
+	assert.InDelta(t, -0.05, *a.Bias, 1e-6)
+	for _, name := range []string{benchmark.MeasureReportJSONName, benchmark.MeasureReportMarkdownName} {
+		b, err := os.ReadFile(filepath.Join(out, name))
+		require.NoError(t, err)
+		assert.NotContains(t, string(b), "img-", name)
+	}
+}
+
+func TestCompareMeasurementsUsage(t *testing.T) {
+	f := setup(t)
+	for _, args := range [][]string{
+		{"compare-measurements", "--manifest", f.manifest, "--cache", f.cache, "--model-sha256", model},
+		{"compare-measurements", "--manifest", f.manifest, "--cache", f.cache, "--model-sha256", model, "--results", f.results, "--measure-map", "m.json"},
+	} {
+		code, _, errOut := runCLI(f.deps(), args...)
+		assert.Equal(t, 2, code, args)
+		assert.Contains(t, errOut, "compare-measurements")
+	}
+}
+
+func TestCompareMeasurementsNeedsMeasurementsFirst(t *testing.T) {
+	f := setup(t)
+	mapPath := filepath.Join(f.dir, "measure-map.json")
+	require.NoError(t, os.WriteFile(mapPath, []byte(cliMeasureMap), 0o600))
+	code, _, errOut := runCLI(f.deps(), "compare-measurements", "--manifest", f.manifest, "--cache", f.cache, "--model-sha256", model,
+		"--results", f.results, "--measure-map", mapPath, "--out", filepath.Join(f.dir, "o"))
+	assert.Equal(t, 1, code)
+	assert.Contains(t, errOut, "run measure first")
 }

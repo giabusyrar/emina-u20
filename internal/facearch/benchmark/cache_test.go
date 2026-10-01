@@ -97,7 +97,11 @@ func TestPutCatalogueRefusesSilentDefinitionChange(t *testing.T) {
 	assert.Equal(t, facearchtest.Catalogue(), cat)
 
 	changed := []byte(`{"catalogueVersion": "fa-measure/1", "measurements": []}`)
-	assert.ErrorContains(t, c.PutCatalogue(changed), "changed without a version bump")
+	err = c.PutCatalogue(changed)
+	assert.ErrorContains(t, err, "differs from the one this cache was made with")
+	assert.ErrorContains(t, err, "keys added, or definitions changed")
+	assert.ErrorContains(t, err, "fresh --cache")
+	assert.NotContains(t, err.Error(), "without a version bump")
 	assert.ErrorContains(t, c.PutCatalogue([]byte(`{"catalogueVersion": "fa-measure/9", "measurements": []}`)), "cache is for fa-measure/1")
 
 	empty, err := benchmark.NewCache(t.TempDir(), testModel, "fa-measure/1")

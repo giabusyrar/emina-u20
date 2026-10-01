@@ -18,6 +18,13 @@
 //
 // Regenerate both from the ai-worker (Task 1 of Plan 2 has the command)
 // and re-run the facearch tests.
+//
+// Re-recorded 2026-10-01 from the face worker (worker_common create_app on
+// worker_face, same model, photo and settings) after
+// eye_height_to_brow_distance and nose_aspect_ratio were added after the
+// last geometry definition of fa-measure/1. Every pre-existing catalogue
+// entry and measurement was checked unchanged (see Task 1 of
+// docs/superpowers/plans/2026-10-01-face-measure-vendor-comparison.md).
 package facearchtest
 
 import (
