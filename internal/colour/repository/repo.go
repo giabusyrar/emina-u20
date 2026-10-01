@@ -10,7 +10,7 @@ import (
 	"github.com/experience-gateway/apps/core-engine/internal/colour/service"
 )
 
-// Repo reads catalog shades joined with their colorimetry.
+// Repo reads catalog shades joined with their colorimetry and their product in ref_products.
 type Repo struct {
 	db *gorm.DB
 }
@@ -41,8 +41,8 @@ func (r *Repo) query(ctx context.Context) *gorm.DB {
 		        c.category, c.lab_l, c.lab_a, c.lab_b, c.munsell_v, c.munsell_c, c.source,
 		        c.alpha, c.specular, c.mode`).
 		Joins("JOIN match_shades AS s ON s.id = c.shade_id").
-		Joins("JOIN match_product_catalog AS p ON p.id = s.product_id").
-		Where("p.is_active = ?", true)
+		Joins("JOIN ref_products AS p ON p.id = s.product_id").
+		Where("p.deleted_at IS NULL AND p.is_active")
 }
 
 // preferBest keeps one row per shade, from its best colour source: cube,
