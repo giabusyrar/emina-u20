@@ -156,7 +156,7 @@ func run() error {
 		visionWorkers.NewSegmenterWorkerWithURL(cfg.SkinWorkerURL, cfg.SegmenterTimeout),
 		visionWorkers.NewOcclusionWorker(),
 		visionCatalog.NewResolver(visionReferenceCatalog),
-		visionInference.NewHTTPCapabilityClient(cfg.SkinWorkerURL, cfg.VisionDispatchTimeout),
+		visionInference.NewHTTPCapabilityClient(cfg.ModelServerURL, cfg.VisionDispatchTimeout),
 		cfg.VisionDAGTimeout,
 	)
 	visionHandler := visionControllers.NewVisionController(visionOrch, visionReferenceCatalog)

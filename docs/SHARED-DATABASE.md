@@ -29,10 +29,10 @@ every model at once. Now they do not.
 3. If the change crosses both, land the additive migration first, deploy both,
    then land the code that depends on it.
 
-## Tables owned by the skin worker (`apps/workers/skin`)
+## Tables owned by the model server (`apps/workers/models`)
 
-These are created by raw SQL in `apps/workers/skin/worker_skin/db.py`
-(`SCHEMA_STATEMENTS`), not by GORM `AutoMigrate` — the worker is a Python
+These are created by raw SQL in `apps/workers/models/worker_models/db.py`
+(`SCHEMA_STATEMENTS`), not by GORM `AutoMigrate` — the model server is a Python
 service and has no Go models. They still live in the same shared Postgres, so
 the ownership-and-read rules above apply to them the same way. No other
 repository reads any of these tables.
@@ -40,15 +40,19 @@ repository reads any of these tables.
 - **`vision_models`** — the model library: one row per uploaded artifact.
   `capability_code` is kept for backward compatibility (a row's primary
   capability); `produces` (`TEXT[]`) is authoritative once set, since one
-  model may serve several capabilities.
-- **`vision_capability_bindings`** — owned by the skin worker. One row per
+  model may serve several capabilities. `sha256` (`TEXT`, nullable) is the
+  hash of the stored file, added by the additive
+  `ALTER TABLE vision_models ADD COLUMN IF NOT EXISTS sha256 TEXT`; rows from
+  before it get the value on first fetch (the disk cache is addressed by it,
+  `docs/MODEL-REGISTRY.md`).
+- **`vision_capability_bindings`** — owned by the model server. One row per
   capability code, naming the model currently serving it. A capability absent
   from this table is unbound (unsupported), not zero.
-- **`vision_capability_activation_log`** — owned by the skin worker.
+- **`vision_capability_activation_log`** — owned by the model server.
   Append-only history of every binding change, including deactivation
   (`model_id NULL`). Never read by the scoring path; exists to answer "why did
   scores shift on the 12th."
-- **`vision_registry_migrations`** — owned by the skin worker. A one-row-per-
+- **`vision_registry_migrations`** — owned by the model server. A one-row-per-
   migration marker table (currently just `bindings_backfill_v1`) that gates
   the one-time backfill of `produces`/bindings from legacy rows, so `init_pool`
   re-running its statement list on every process start cannot re-run that
@@ -69,9 +73,9 @@ run-once, gated by `vision_registry_migrations`) has already given every
 pre-existing capability a binding row, so there is no window in which a
 second upload could shadow a live model before bindings exist to prevent it.
 
-#### Dropping it makes the worker deploy one-way — plan the rollback as roll-forward
+#### Dropping it makes the model server deploy one-way — plan the rollback as roll-forward
 
-**Once this migration has run, rolling the skin worker back to the previous
+**Once this migration has run, rolling the model server back to the previous
 release breaks every model upload.** The previous release's `upsert_model`
 inserted with `INSERT ... ON CONFLICT (capability_code)`, and that clause
 needs a unique or exclusion constraint on `capability_code` to exist. With
@@ -92,15 +96,15 @@ Notes for whoever is holding the deploy:
   its second upload — it cannot be recreated at all, and recreating it on a
   library that has no duplicates *yet* only moves the breakage to the next
   upload.
-- The schema change is shared-database state, so it outlives the worker
+- The schema change is shared-database state, so it outlives the server
   version: redeploying the old image does not undo it.
 
-The same warning, from the worker's side, is at the top of
+The same warning, from the server's side, is at the top of
 `docs/MODEL-REGISTRY.md`.
 
 ### Advisory lock on the schema run
 
-`apply_schema` in `apps/workers/skin/worker_skin/db.py` holds
+`apply_schema` in `apps/workers/models/worker_models/db.py` holds
 `pg_advisory_lock(SCHEMA_ADVISORY_LOCK_ID)` — a fixed constant, currently
 `1581646198` — for the whole of `SCHEMA_STATEMENTS`, because
 `CREATE TABLE IF NOT EXISTS` and `ADD COLUMN IF NOT EXISTS` are not race-free
@@ -112,7 +116,7 @@ and a deadlock risk if both sides ever take two locks.
 
 ### Advisory locks in use
 
-- skin worker schema run: single-key `pg_advisory_lock(1581646198)`.
+- model server schema run: single-key `pg_advisory_lock(1581646198)`.
 - core-engine face-architecture upsert: two-key class `1581646199`
   (`pg_advisory_xact_lock(1581646199, hashtext(brand|app))`), whose key space does not
   overlap single-key locks.

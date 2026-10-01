@@ -11,11 +11,14 @@ import (
 const (
 	warningUnsupportedCapability = "UNSUPPORTED_CAPABILITY"
 	warningNoApplicableZone      = "NO_APPLICABLE_ZONE"
+	warningCapabilityUnavailable = "CAPABILITY_UNAVAILABLE"
 )
 
 // capabilityWarnings explains every planned capability that produced no score:
-// either no model is uploaded for it, or none of its zones yielded a score.
-func capabilityWarnings(plan *catalog.Plan, unsupported []string, scored map[string]bool) []domain.WarningItem {
+// its bound model could not be loaded, no model is uploaded for it, or none of
+// its zones yielded a score. An unloadable capability is also listed as
+// unsupported by the model server; it gets only the unavailable warning.
+func capabilityWarnings(plan *catalog.Plan, unsupported []string, unavailable map[string]string, scored map[string]bool) []domain.WarningItem {
 	unsupportedSet := make(map[string]bool, len(unsupported))
 	for _, capability := range unsupported {
 		unsupportedSet[capability] = true
@@ -24,6 +27,13 @@ func capabilityWarnings(plan *catalog.Plan, unsupported []string, scored map[str
 	var warnings []domain.WarningItem
 	for _, capability := range plan.Capabilities {
 		if scored[capability] {
+			continue
+		}
+		if reason, ok := unavailable[capability]; ok {
+			warnings = append(warnings, domain.WarningItem{
+				Code:    warningCapabilityUnavailable,
+				Message: fmt.Sprintf("Model for capability %q could not be loaded: %s", capability, reason),
+			})
 			continue
 		}
 		affected := strings.Join(conditionsUsing(plan, capability), ", ")

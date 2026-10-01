@@ -35,6 +35,8 @@ const (
 	// DefaultFaceWorkerURL is the face worker's port in docs/PORTS.md.
 	DefaultFaceWorkerURL     = "http://127.0.0.1:8094"
 	DefaultParadevGatewayURL = "http://127.0.0.1:9080/paradev/scoring"
+	// DefaultModelServerURL is the model server's port in docs/PORTS.md.
+	DefaultModelServerURL = "http://127.0.0.1:8096"
 )
 
 // DefaultFaceMeasureTimeout bounds one synchronous ai-worker face-measure
@@ -82,10 +84,12 @@ type Config struct {
 
 	Port                string
 	ReferenceServiceURL string
-	// SkinWorkerURL is apps/workers/skin (segment-and-pose, model dispatch);
+	// SkinWorkerURL is apps/workers/skin (segment-and-pose);
+	// ModelServerURL is apps/workers/models (model registry, capability dispatch);
 	// FaceWorkerURL is apps/workers/face (face-measure, face architecture).
-	SkinWorkerURL string
-	FaceWorkerURL string
+	SkinWorkerURL  string
+	ModelServerURL string
+	FaceWorkerURL  string
 	// ParadevGatewayURL/APIKey reach the Paradev Skin Analyzer vendor call
 	// through our own gateway (its route already injects the vendor's own
 	// secret). core-engine only needs its own gateway collection key, never
@@ -148,6 +152,7 @@ func FromEnv() (*Config, error) {
 		Port:                 goplatform.Port("CORE_ENGINE_PORT", "PORT", DefaultPort),
 		ReferenceServiceURL:  firstOr("REFERENCE_SERVICE_URL", DefaultReferenceServiceURL),
 		SkinWorkerURL:        firstOr("SKIN_WORKER_URL", DefaultSkinWorkerURL),
+		ModelServerURL:       firstOr("MODEL_SERVER_URL", DefaultModelServerURL),
 		FaceWorkerURL:        firstOr("FACE_WORKER_URL", DefaultFaceWorkerURL),
 		ParadevGatewayURL:    firstOr("PARADEV_GATEWAY_URL", DefaultParadevGatewayURL),
 		ParadevGatewayAPIKey: goplatform.First("PARADEV_GATEWAY_API_KEY"),
