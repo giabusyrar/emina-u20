@@ -80,10 +80,12 @@ type ClinicalConflictReport struct {
 }
 
 // ProfileSummary diagnoses skin condition
+// ProfileSummary describes the evaluated skin. It used to carry an
+// overall_suitability_score, but that was the constant 94.5 for every
+// request; nothing computes one, so the field is gone.
 type ProfileSummary struct {
-	SkinType                string   `json:"skin_type"`
-	PrimaryConcerns         []string `json:"primary_concerns"`
-	OverallSuitabilityScore float64  `json:"overall_suitability_score"`
+	SkinType        string   `json:"skin_type"`
+	PrimaryConcerns []string `json:"primary_concerns"`
 }
 
 // MatchResponse is the output recommendation result

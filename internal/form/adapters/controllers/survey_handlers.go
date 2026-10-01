@@ -72,7 +72,7 @@ func (h *SurveyHandler) Get(c echo.Context) error {
 		if errors.Is(err, domain.ErrNotFound) {
 			return goplatform.JSONError(c, http.StatusNotFound, "survey not found")
 		}
-		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
+		return goplatform.JSONError(c, fallbackStatus(err), err.Error())
 	}
 
 	return c.JSON(http.StatusOK, model)
@@ -84,7 +84,7 @@ func (h *SurveyHandler) List(c echo.Context) error {
 
 	surveys, err := h.surveyService.ListSurveys(c.Request().Context(), brandID, appID)
 	if err != nil {
-		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
+		return goplatform.JSONError(c, fallbackStatus(err), err.Error())
 	}
 
 	return c.JSON(http.StatusOK, surveys)
@@ -141,7 +141,7 @@ func (h *SurveyHandler) Evaluate(c echo.Context) error {
 		if errors.As(err, &verrs) {
 			return goplatform.JSONValidationError(c, http.StatusBadRequest, verrs.Errors)
 		}
-		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
+		return goplatform.JSONError(c, fallbackStatus(err), err.Error())
 	}
 
 	h.record(c.Request().Context(), out, req.VisionSignals, started)
@@ -202,7 +202,7 @@ func (h *SurveyHandler) EvaluateWithPhotos(c echo.Context) error {
 		if errors.As(err, &verrs) {
 			return goplatform.JSONValidationError(c, http.StatusBadRequest, verrs.Errors)
 		}
-		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
+		return goplatform.JSONError(c, fallbackStatus(err), err.Error())
 	}
 
 	h.record(c.Request().Context(), out.EvaluationOutput, out.VisionSignalsUsed, started)

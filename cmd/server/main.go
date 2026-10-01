@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 
+	"github.com/experience-gateway/apps/core-engine/internal/brand"
 	"github.com/experience-gateway/apps/core-engine/internal/config"
 	"github.com/experience-gateway/packages/goplatform"
 
@@ -112,7 +113,9 @@ func run() error {
 	// Score Engine
 	scoreC := scoreCache.NewScoreCache(rdb, cfg.ScoreCacheTTL)
 	sRepo := scoreRepo.NewRulesetRepo(db, scoreC)
-	sService := scoreService.NewScoreService(sRepo)
+	// One brand resolver (ref_brands id or code) for score, form and match.
+	brands := brand.NewResolver(db)
+	sService := scoreService.NewScoreService(sRepo).WithBrands(brands)
 	scoreHandler := scoreControllers.NewScoreHandler(sService)
 
 	// Form Engine -- calls the Score Engine above in-process.
@@ -120,7 +123,7 @@ func run() error {
 	fRepo := formRepo.NewSurveyRepo(db)
 	scoreEngine := formScoreEngine.New(sService, cfg.ScoreClientTimeout)
 	paradevClient := formVisionClient.New(cfg.ParadevGatewayURL, cfg.ParadevGatewayAPIKey, cfg.ParadevTimeout)
-	fService := formService.NewSurveyService(fRepo, formC, scoreEngine, paradevClient)
+	fService := formService.NewSurveyService(fRepo, formC, scoreEngine, paradevClient).WithBrands(brands)
 	// Every successful survey evaluation is stored as a customer assessment.
 	assessmentStore := assessment.NewGormStore(db)
 	formHandler := formControllers.NewSurveyHandler(fService).WithRecorder(assessment.NewRecorder(assessmentStore))
@@ -136,7 +139,7 @@ func run() error {
 	// Match Engine
 	matchC := matchCache.NewMatchCache(rdb, cfg.MatchCacheTTL)
 	mRepo := matchRepo.NewMatchRepo(db, matchC)
-	mService := matchService.NewMatchService(mRepo, cfg.TryonEngineURL)
+	mService := matchService.NewMatchService(mRepo, cfg.TryonEngineURL).WithBrands(brands)
 	presigner, err := matchObjectStore.New(matchObjectStore.Config{
 		Endpoint:        cfg.S3Endpoint,
 		Bucket:          cfg.S3Bucket,

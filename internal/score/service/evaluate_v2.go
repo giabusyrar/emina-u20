@@ -475,8 +475,14 @@ func (s *ScoreService) EvaluateV2(ctx context.Context, in EvaluateV2Input) (*dom
 	if verrs.HasErrors() {
 		return nil, verrs
 	}
+	// Rulesets and surveys are keyed by brand code; the assessment record
+	// below keeps the brand exactly as the caller sent it.
+	lookupBrand, err := s.rulesetBrand(ctx, in.BrandID)
+	if err != nil {
+		return nil, err
+	}
 
-	ruleset, err := s.repo.GetActiveRuleset(ctx, in.BrandID, in.ApplicationID, in.RulesetCode)
+	ruleset, err := s.repo.GetActiveRuleset(ctx, lookupBrand, in.ApplicationID, in.RulesetCode)
 	if err != nil || ruleset == nil {
 		return nil, fmt.Errorf("active scoring ruleset not found for code %q: %w", in.RulesetCode, err)
 	}
@@ -495,7 +501,7 @@ func (s *ScoreService) EvaluateV2(ctx context.Context, in EvaluateV2Input) (*dom
 			verrs.Add("this ruleset has no linked questionnaire (form_survey_code) — form answers cannot be interpreted")
 			return nil, verrs
 		}
-		survey, err := s.surveySvc.GetSurvey(ctx, in.BrandID, in.ApplicationID, meta.FormSurveyCode)
+		survey, err := s.surveySvc.GetSurvey(ctx, lookupBrand, in.ApplicationID, meta.FormSurveyCode)
 		if err != nil {
 			return nil, fmt.Errorf("loading linked survey %q: %w", meta.FormSurveyCode, err)
 		}

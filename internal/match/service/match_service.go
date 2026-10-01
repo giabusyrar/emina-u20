@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/experience-gateway/apps/core-engine/internal/brand"
 	"github.com/experience-gateway/apps/core-engine/internal/match/domain"
 	"github.com/experience-gateway/apps/core-engine/internal/match/engine/conflict"
 	"github.com/experience-gateway/apps/core-engine/internal/match/engine/decision"
@@ -23,7 +25,25 @@ type MatchService struct {
 	hybridMatcher     *retrieval.HybridMatcher
 	conflictValidator *conflict.ConflictValidator
 	tryonEngineURL    string
+	brands            BrandResolver
 }
+
+// BrandResolver turns the brand a request names (ref_brands id or code)
+// into the brand row; internal/brand implements it.
+type BrandResolver interface {
+	Resolve(ctx context.Context, ref string) (brand.Brand, error)
+}
+
+// WithBrands sets the brand resolver Evaluate needs. Without one, Evaluate
+// refuses to run rather than guess the brand.
+func (s *MatchService) WithBrands(r BrandResolver) *MatchService {
+	s.brands = r
+	return s
+}
+
+// ErrNoProducts: the brand has no live products to recommend from. Match
+// does not borrow another brand's products.
+var ErrNoProducts = errors.New("brand has no products")
 
 func NewMatchService(repo *repository.MatchRepo, tryonEngineURL string) *MatchService {
 	return &MatchService{
@@ -36,14 +56,32 @@ func NewMatchService(repo *repository.MatchRepo, tryonEngineURL string) *MatchSe
 }
 
 // Evaluate runs the 2-Tier Hybrid Clinical Recommendation Pipeline
+//
+// Every input it diagnoses from must be in the request: brand, application
+// and dimension scores are required, and a missing one is a validation
+// error (domain.ValidationErrors), never a default. The brand may be its
+// ref_brands id or its code.
 func (s *MatchService) Evaluate(ctx context.Context, req domain.MatchRequest) (*domain.MatchResponse, error) {
-	brandID := strings.ToLower(strings.TrimSpace(req.BrandID))
-	if brandID == "" {
-		brandID = "wardah"
-	}
 	appID := strings.TrimSpace(req.ApplicationID)
+	var verrs domain.ValidationErrors
+	if strings.TrimSpace(req.BrandID) == "" {
+		verrs.Add("brand_id is required")
+	}
 	if appID == "" {
-		appID = "skin-analyzer-pro"
+		verrs.Add("application_id is required")
+	}
+	if len(req.DimensionScores) == 0 {
+		verrs.Add("dimension_scores is required: match diagnoses from them and has no defaults")
+	}
+	if verrs.HasErrors() {
+		return nil, &verrs
+	}
+	if s.brands == nil {
+		return nil, fmt.Errorf("match service: no brand resolver configured")
+	}
+	b, err := s.brands.Resolve(ctx, req.BrandID)
+	if err != nil {
+		return nil, err
 	}
 
 	// 1. Ingest Customer Conditions & Dimension Scores
@@ -60,39 +98,34 @@ func (s *MatchService) Evaluate(ctx context.Context, req domain.MatchRequest) (*
 	}
 
 	dimScores := req.DimensionScores
-	if dimScores == nil || len(dimScores) == 0 {
-		dimScores = map[string]float64{
-			"sebum":        75.0,
-			"hydration":    40.0,
-			"sensitivity":  65.0,
-			"pigmentation": 30.0,
-		}
-	}
 
-	// 2. Fetch Reference Product Catalog
-	products, err := s.repo.ListProducts(ctx, brandID)
-	if err != nil || len(products) == 0 {
-		// Fallback: fetch all brand products
-		products, _ = s.repo.ListProducts(ctx, "*")
+	// 2. Fetch the brand's products (ref_products is keyed by brand id).
+	products, err := s.repo.ListProducts(ctx, b.ID)
+	if err != nil {
+		return nil, fmt.Errorf("listing products of brand %s: %w", b.ID, err)
+	}
+	if len(products) == 0 {
+		return nil, fmt.Errorf("%w: %s", ErrNoProducts, b.ID)
 	}
 
 	// 2b. Campaign Product Group Restriction: if the brand has one or more
 	// active product groups, narrow the candidate pool to only the
 	// products/categories curated for their campaign(s). Brands with no
 	// active groups keep the full catalog (backward compatible).
-	if restricted := s.applyProductGroupRestriction(ctx, brandID, appID, products); restricted != nil {
+	if restricted := s.applyProductGroupRestriction(ctx, b.ID, appID, products); restricted != nil {
 		products = restricted
 	}
 
-	// 3. Stage 1: Tier 1 Clinical Decision & Safety Engine Evaluation
+	// 3. Stage 1: Tier 1 Clinical Decision & Safety Engine Evaluation.
+	// Routine blueprints are keyed by brand code.
 	decInput := decision.DecisionInput{
-		BrandID:         brandID,
+		BrandID:         b.Code,
 		DimensionScores: dimScores,
 		Conditions:      conditions,
 	}
 	decResult, err := s.decisionEngine.Evaluate(ctx, decInput)
 	if err != nil {
-		return nil, fmt.Errorf("decision engine error: %w", err)
+		return nil, fmt.Errorf("decision engine: %w", err)
 	}
 
 	// 4. Stage 2: Tier 2 Hybrid Matcher - Evaluate dynamic routine blueprint phases
@@ -184,31 +217,16 @@ func (s *MatchService) Evaluate(ctx context.Context, req domain.MatchRequest) (*
 		pmRoutine = pm
 	}
 
-	// Skin type summary description
-	skinTypeDesc := "Normal Balanced Skin"
-	if dimScores["sebum"] >= 66.0 {
-		skinTypeDesc = "Seborrheic Oily"
-	} else if dimScores["sebum"] <= 35.0 && dimScores["sebum"] > 0 {
-		skinTypeDesc = "Alipic Dry"
-	}
-	if dimScores["hydration"] <= 40.0 {
-		skinTypeDesc += " & Dehydrated"
-	}
-	if conditions["is_sensitive"] || dimScores["sensitivity"] >= 65.0 {
-		skinTypeDesc += " & Reactive Barrier"
-	}
-
 	matchID := fmt.Sprintf("match-%d", time.Now().UnixNano())
 
 	return &domain.MatchResponse{
 		Success:       true,
 		MatchID:       matchID,
-		BrandID:       brandID,
+		BrandID:       b.ID,
 		ApplicationID: appID,
 		ProfileSummary: domain.ProfileSummary{
-			SkinType:                skinTypeDesc,
-			PrimaryConcerns:         decResult.DiagnosedConcerns,
-			OverallSuitabilityScore: 94.5,
+			SkinType:        skinTypeSummary(dimScores, conditions),
+			PrimaryConcerns: decResult.DiagnosedConcerns,
 		},
 		Regimens: domain.RegimenCollection{
 			AMRoutine: amRoutine,
@@ -224,6 +242,31 @@ func (s *MatchService) Evaluate(ctx context.Context, req domain.MatchRequest) (*
 // union of members across the brand's active product groups (by explicit
 // product ID or by category tag). Returns nil when the brand has no active
 // groups, signaling the caller to keep the unrestricted catalog.
+// skinTypeSummary describes the skin from the dimensions the request scored.
+// A dimension the request did not send says nothing: before, a missing
+// hydration read as 0 and produced "Dehydrated". With no describing
+// dimension at all the summary is empty rather than "Normal Balanced Skin".
+func skinTypeSummary(dims map[string]float64, conditions map[string]bool) string {
+	var parts []string
+	if v, ok := dims["sebum"]; ok {
+		switch {
+		case v >= 66.0:
+			parts = append(parts, "Seborrheic Oily")
+		case v <= 35.0:
+			parts = append(parts, "Alipic Dry")
+		default:
+			parts = append(parts, "Balanced Sebum")
+		}
+	}
+	if v, ok := dims["hydration"]; ok && v <= 40.0 {
+		parts = append(parts, "Dehydrated")
+	}
+	if v, ok := dims["sensitivity"]; (ok && v >= 65.0) || conditions["is_sensitive"] {
+		parts = append(parts, "Reactive Barrier")
+	}
+	return strings.Join(parts, " & ")
+}
+
 func (s *MatchService) applyProductGroupRestriction(ctx context.Context, brandID, appID string, products []entity.ProductCatalogItem) []entity.ProductCatalogItem {
 	groups, err := s.repo.ListProductGroups(ctx, brandID, appID)
 	if err != nil || len(groups) == 0 {
@@ -262,7 +305,16 @@ func (s *MatchService) applyProductGroupRestriction(ctx context.Context, brandID
 // Reference CRUD Delegations for Admin / API Controllers
 // -------------------------------------------------------------
 
+// ListProducts lists products, of one brand when brandID names one (its
+// ref_brands id or code); "" or "*" lists every brand's.
 func (s *MatchService) ListProducts(ctx context.Context, brandID string) ([]entity.ProductCatalogItem, error) {
+	if brandID != "" && brandID != "*" && s.brands != nil {
+		b, err := s.brands.Resolve(ctx, brandID)
+		if err != nil {
+			return nil, err
+		}
+		brandID = b.ID
+	}
 	return s.repo.ListProducts(ctx, brandID)
 }
 

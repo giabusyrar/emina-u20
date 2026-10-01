@@ -13,7 +13,7 @@ import (
 
 func BenchmarkMatchService_Evaluate(b *testing.B) {
 	repo := repository.NewMatchRepo(nil)
-	svc := service.NewMatchService(repo, "")
+	svc := service.NewMatchService(repo, "").WithBrands(testBrands)
 
 	// Seed 500 products across various categories
 	ctx := context.Background()
@@ -40,7 +40,7 @@ func BenchmarkMatchService_Evaluate(b *testing.B) {
 	}
 
 	req := domain.MatchRequest{
-		BrandID: "wardah",
+		BrandID: "wardah", ApplicationID: "test-app",
 		DimensionScores: map[string]float64{
 			"sebum":        82.0,
 			"hydration":    35.0,

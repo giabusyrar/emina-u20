@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/experience-gateway/apps/core-engine/internal/brand"
 	"github.com/experience-gateway/apps/core-engine/internal/score/domain"
 	"github.com/experience-gateway/apps/core-engine/internal/score/entity"
 	"github.com/experience-gateway/apps/core-engine/internal/score/jdm"
@@ -160,6 +161,34 @@ type ScoreService struct {
 	repo           repository.RulesetRepository
 	surveySvc      surveyProvider
 	visionRegistry *domain.VisionProviderRegistry
+	brands         BrandResolver
+}
+
+// BrandResolver turns the brand a request names (ref_brands id or code)
+// into the brand row; internal/brand implements it.
+type BrandResolver interface {
+	Resolve(ctx context.Context, ref string) (brand.Brand, error)
+}
+
+// WithBrands sets the resolver that lets callers name a brand by its
+// ref_brands id as well as its code. Rulesets are keyed by brand code.
+func (s *ScoreService) WithBrands(r BrandResolver) *ScoreService {
+	s.brands = r
+	return s
+}
+
+// rulesetBrand is the key rulesets and surveys are stored under for the
+// brand the request named: its lower-case code. "" and "*" (every brand)
+// pass through, as does everything when no resolver is configured.
+func (s *ScoreService) rulesetBrand(ctx context.Context, ref string) (string, error) {
+	if ref == "" || ref == "*" || s.brands == nil {
+		return ref, nil
+	}
+	b, err := s.brands.Resolve(ctx, ref)
+	if err != nil {
+		return "", err
+	}
+	return b.Code, nil
 }
 
 func NewScoreService(repo repository.RulesetRepository) *ScoreService {
@@ -180,8 +209,21 @@ func (s *ScoreService) WithEvaluateV2Deps(surveySvc surveyProvider, visionRegist
 }
 
 // Evaluate processes questionnaire answers, fuses multi-modal signals, and runs JDM Decision Tables
+//
+// It needs something to score: dimensions, an answer list or vision signals.
+// With none of them the total used to be 0, which the default bands read as
+// "Sangat Parah" — a diagnosis made from nothing. That is now a validation
+// error.
 func (s *ScoreService) Evaluate(ctx context.Context, req domain.ScoreModuleRequest) (*domain.ScoreModuleResponse, error) {
-	brandID := req.BrandID
+	if len(req.Dimensions) == 0 && len(req.AnswerList) == 0 && len(req.VisionSignals) == 0 {
+		verrs := &domain.ValidationErrors{}
+		verrs.Add("nothing to score: send dimensions, answer_list or vision_signals")
+		return nil, verrs
+	}
+	brandID, err := s.rulesetBrand(ctx, req.BrandID)
+	if err != nil {
+		return nil, err
+	}
 	if brandID == "" {
 		brandID = "*"
 	}
@@ -621,6 +663,10 @@ func (s *ScoreService) Evaluate(ctx context.Context, req domain.ScoreModuleReque
 // Ruleset Management CRUD
 
 func (s *ScoreService) ListRulesets(ctx context.Context, brandID, appID string) ([]entity.ScoreRuleset, error) {
+	brandID, err := s.rulesetBrand(ctx, brandID)
+	if err != nil {
+		return nil, err
+	}
 	return s.repo.ListRulesets(ctx, brandID, appID)
 }
 
@@ -629,6 +675,10 @@ func (s *ScoreService) ListRulesets(ctx context.Context, brandID, appID string) 
 // photo-evaluate orchestration) that need the ruleset's field_mapping before
 // they can build a vision_signals payload to send to Evaluate.
 func (s *ScoreService) GetActiveRuleset(ctx context.Context, brandID, appID, code string) (*entity.ScoreRuleset, error) {
+	brandID, err := s.rulesetBrand(ctx, brandID)
+	if err != nil {
+		return nil, err
+	}
 	return s.repo.GetActiveRuleset(ctx, brandID, appID, code)
 }
 

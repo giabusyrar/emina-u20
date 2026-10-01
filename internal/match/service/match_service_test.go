@@ -12,7 +12,7 @@ import (
 
 func setupTestService(t *testing.T) (*service.MatchService, *repository.MatchRepo) {
 	repo := repository.NewMatchRepo(nil)
-	svc := service.NewMatchService(repo, "")
+	svc := service.NewMatchService(repo, "").WithBrands(testBrands)
 
 	// Seed sample products
 	ctx := context.Background()
@@ -90,7 +90,7 @@ func TestMatchService_Evaluate_WardahPregnancySafety(t *testing.T) {
 	svc, _ := setupTestService(t)
 
 	req := domain.MatchRequest{
-		BrandID: "wardah",
+		BrandID: "wardah", ApplicationID: "test-app",
 		DimensionScores: map[string]float64{
 			"sebum":       85.0,
 			"hydration":   35.0,
@@ -135,7 +135,7 @@ func TestMatchService_Evaluate_MakeOverCustomParadigm(t *testing.T) {
 	svc, _ := setupTestService(t)
 
 	req := domain.MatchRequest{
-		BrandID: "makeover",
+		BrandID: "makeover", ApplicationID: "test-app",
 		DimensionScores: map[string]float64{
 			"sebum":     50.0,
 			"hydration": 40.0,

@@ -28,7 +28,7 @@ func (h *ScoreHandler) Evaluate(c echo.Context) error {
 
 	resp, err := h.svc.Evaluate(c.Request().Context(), req)
 	if err != nil {
-		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
+		return goplatform.JSONError(c, requestStatus(err), err.Error())
 	}
 
 	return c.JSON(http.StatusOK, resp)
@@ -50,7 +50,7 @@ func (h *ScoreHandler) ListRulesets(c echo.Context) error {
 
 	rulesets, err := h.svc.ListRulesets(c.Request().Context(), brandID, appID)
 	if err != nil {
-		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
+		return goplatform.JSONError(c, requestStatus(err), err.Error())
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{

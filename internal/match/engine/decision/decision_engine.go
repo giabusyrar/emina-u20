@@ -2,11 +2,17 @@ package decision
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"strings"
 	"sync"
 
 	"github.com/experience-gateway/apps/core-engine/internal/match/domain"
 )
+
+// ErrNoBlueprint: the brand has no routine blueprint. Evaluate refuses
+// rather than use another brand's routine.
+var ErrNoBlueprint = errors.New("brand has no routine blueprint")
 
 // DecisionInput is the input payload for Tier 1 evaluation
 type DecisionInput struct {
@@ -74,8 +80,8 @@ func (e *ClinicalDecisionEngine) Evaluate(ctx context.Context, input DecisionInp
 	defer e.mu.RUnlock()
 
 	brandID := strings.ToLower(strings.TrimSpace(input.BrandID))
-	if brandID == "" {
-		brandID = "wardah"
+	if brandID == "" && (input.RoutineOverride == nil || len(input.RoutineOverride.Phases) == 0) {
+		return nil, fmt.Errorf("%w: no brand given", ErrNoBlueprint)
 	}
 
 	scores := input.DimensionScores
@@ -169,7 +175,7 @@ func (e *ClinicalDecisionEngine) Evaluate(ctx context.Context, input DecisionInp
 	} else if bp, ok := e.brandBlueprints[brandID]; ok {
 		resolvedBlueprint = bp
 	} else {
-		resolvedBlueprint = e.brandBlueprints["wardah"]
+		return nil, fmt.Errorf("%w: %s", ErrNoBlueprint, brandID)
 	}
 
 	var prohibitedList []string

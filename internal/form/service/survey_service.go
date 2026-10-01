@@ -6,6 +6,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/experience-gateway/apps/core-engine/internal/brand"
 	"github.com/experience-gateway/apps/core-engine/internal/form/adapters/cache"
 	"github.com/experience-gateway/apps/core-engine/internal/form/adapters/scoreengine"
 	"github.com/experience-gateway/apps/core-engine/internal/form/adapters/visionclient"
@@ -28,6 +29,34 @@ type SurveyService struct {
 	cache        *cache.SurveyCache
 	scoreClient  ScoreEngine
 	visionClient *visionclient.Client
+	brands       BrandResolver
+}
+
+// BrandResolver turns the brand a request names (ref_brands id or code)
+// into the brand row; internal/brand implements it.
+type BrandResolver interface {
+	Resolve(ctx context.Context, ref string) (brand.Brand, error)
+}
+
+// WithBrands lets callers name a brand by its ref_brands id as well as its
+// code. Surveys are stored under the brand code.
+func (s *SurveyService) WithBrands(r BrandResolver) *SurveyService {
+	s.brands = r
+	return s
+}
+
+// surveyBrand is the key surveys are stored under for the brand the caller
+// named: its lower-case code. "" and "*" pass through, as does everything
+// when no resolver is configured.
+func (s *SurveyService) surveyBrand(ctx context.Context, ref string) (string, error) {
+	if ref == "" || ref == "*" || s.brands == nil {
+		return ref, nil
+	}
+	b, err := s.brands.Resolve(ctx, ref)
+	if err != nil {
+		return "", err
+	}
+	return b.Code, nil
 }
 
 func NewSurveyService(repo *repository.SurveyRepo, cache *cache.SurveyCache, scoreClient ScoreEngine, visionClient *visionclient.Client) *SurveyService {
@@ -40,6 +69,10 @@ func NewSurveyService(repo *repository.SurveyRepo, cache *cache.SurveyCache, sco
 }
 
 func (s *SurveyService) GetSurvey(ctx context.Context, brandID, applicationID, code string) (*domain.SurveyModel, error) {
+	brandID, err := s.surveyBrand(ctx, brandID)
+	if err != nil {
+		return nil, err
+	}
 	if s.cache != nil {
 		if cached, ok := s.cache.Get(ctx, brandID, applicationID, code); ok {
 			return cached, nil
@@ -81,6 +114,10 @@ func (s *SurveyService) SaveSurvey(ctx context.Context, brandID, applicationID, 
 	if s.repo == nil {
 		return fmt.Errorf("survey repository is not configured")
 	}
+	brandID, err := s.surveyBrand(ctx, brandID)
+	if err != nil {
+		return err
+	}
 
 	model, err := domain.ParseSurveySchema([]byte(schemaJSON))
 	if err != nil {
@@ -116,6 +153,10 @@ func (s *SurveyService) SaveSurvey(ctx context.Context, brandID, applicationID, 
 func (s *SurveyService) ListSurveys(ctx context.Context, brandID, applicationID string) ([]entity.SurveyDefinition, error) {
 	if s.repo == nil {
 		return nil, nil
+	}
+	brandID, err := s.surveyBrand(ctx, brandID)
+	if err != nil {
+		return nil, err
 	}
 	return s.repo.List(ctx, brandID, applicationID)
 }

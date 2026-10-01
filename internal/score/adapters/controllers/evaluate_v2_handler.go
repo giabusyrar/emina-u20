@@ -72,6 +72,9 @@ func (h *EvaluateV2Handler) Evaluate(c echo.Context) error {
 		if errors.As(err, &verrs) {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{"errors": verrs.Errors})
 		}
+		if requestStatus(err) == http.StatusBadRequest {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{"errors": []string{err.Error()}})
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 

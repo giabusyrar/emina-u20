@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"log"
 	"log/slog"
 	"net/http"
@@ -8,8 +9,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/experience-gateway/apps/core-engine/internal/brand"
 	"github.com/experience-gateway/apps/core-engine/internal/match/adapters/objectstore"
 	"github.com/experience-gateway/apps/core-engine/internal/match/domain"
+	"github.com/experience-gateway/apps/core-engine/internal/match/engine/decision"
 	"github.com/experience-gateway/apps/core-engine/internal/match/entity"
 	"github.com/experience-gateway/apps/core-engine/internal/match/service"
 	"github.com/experience-gateway/packages/goplatform"
@@ -35,10 +38,24 @@ func (h *MatchHandler) Evaluate(c echo.Context) error {
 
 	resp, err := h.svc.Evaluate(c.Request().Context(), req)
 	if err != nil {
-		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
+		return goplatform.JSONError(c, evaluateStatus(err), err.Error())
 	}
 
 	return c.JSON(http.StatusOK, resp)
+}
+
+// evaluateStatus: a request that cannot be evaluated as sent is 400; a valid
+// request for a brand match cannot serve (no blueprint, no products) is
+// 422; anything else is the server's fault.
+func evaluateStatus(err error) int {
+	var verrs *domain.ValidationErrors
+	switch {
+	case errors.As(err, &verrs), errors.Is(err, brand.ErrRequired), errors.Is(err, brand.ErrUnknown):
+		return http.StatusBadRequest
+	case errors.Is(err, decision.ErrNoBlueprint), errors.Is(err, service.ErrNoProducts):
+		return http.StatusUnprocessableEntity
+	}
+	return http.StatusInternalServerError
 }
 
 // Product Catalog Handlers (read-only listing, used by the Product Group picker)
@@ -46,7 +63,7 @@ func (h *MatchHandler) ListProducts(c echo.Context) error {
 	brandID := c.QueryParam("brand_id")
 	items, err := h.svc.ListProducts(c.Request().Context(), brandID)
 	if err != nil {
-		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
+		return goplatform.JSONError(c, evaluateStatus(err), err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "products": items})
 }
