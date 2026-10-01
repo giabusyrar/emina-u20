@@ -427,6 +427,15 @@ content type and body **unchanged**: on success a `model/gltf-binary` GLB whose
 how to read them in `docs/FACE-HEAD.md`, "Phase 2"). It is a visualisation, not
 a measurement.
 
+GLB parts and report fields (realism A). The mesh has four primitives, each
+tagged `extras.part`, in this order: `skin`, `left_eyeball`, `right_eyeball`,
+`cornea` (the cornea is transparent and untextured; viewers should look parts
+up by name). `asset.extras` adds `segmenter` = `{name, version, sha256}`
+(the segmentation model used for the texture bake) and `parts` = a list of
+`{name, textured, observedFromPhoto}`. The worker needs `worker-models` to
+serve `head_segmenter`, otherwise it answers 503 `head_model_unavailable`;
+see `docs/FACE-HEAD.md`, "Realism A".
+
 Codes from core-engine itself:
 
 | Status | Body | When |
