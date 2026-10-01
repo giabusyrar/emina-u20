@@ -6,10 +6,32 @@ with `cmd/seed-colour-shades` (see `docs/COLOUR-LOCAL-RUN.md`).
 
 ## What is in it
 
+Every product and shade name is the brand's own, checked against the brand
+sites on 2026-09-30 (sources below). An earlier version carried the WCPA
+notebook's rows, where most shades had lost their names (`02`, `03`, …); the
+names were restored from the brand sites and each hex re-checked against them.
+
 | | rows | colour |
 |---|---:|---|
-| Make Over, from the WCPA notebook's `vto_products.csv` | 187 | `[SWATCH]`: the product's swatch hex |
-| Wardah, Make Over and OMG demo products | 48 | `[PERKIRAAN]`: **estimated**, not from the brand |
+| Brand-site swatch | 157 | `[SWATCH]`: the swatch the brand's product page shows for that shade (makeoverforall.com `__NEXT_DATA__` option `color`; wardahbeauty.com `data-color`) |
+| Estimate | 86 | `[PERKIRAAN]`: **estimated**, not from the brand |
+
+A brand-site swatch is the colour the brand's website draws for the shade, not
+a colour measured from the product. Rows are estimates where the brand
+publishes no usable colour:
+
+- both Make Over cushions: their site swatches are one colour set the site
+  reuses on other products (a contour kit, Hydrastay Lite Glow Cushion), so
+  they are not these products' own;
+- Make Over Powerstay 24H Matte Powder Foundation W12 Warm Marble: its site
+  swatch is the same dark colour as C41 Cool Sand, which a "Marble" shade is not;
+- black mascara and liner: the site's `#000000` is a generic placeholder;
+- eyeshadow pans (only a palette-level swatch is published), OMG (no colours
+  published).
+
+Left out on purpose: shades named only by resellers or reviews with no brand
+page (Glazed Lock D19–D24, Wardah Cream Blush 04–06, Wardah lip mousse
+"Color Therapy"), and palette pans beyond the ones below.
 
 Estimated rows reach the API as `colourSource: "estimate"`, and the web UI
 shows "Warna perkiraan untuk demo, belum dari data brand." next to them. The
@@ -20,13 +42,13 @@ Products per section:
 
 | Section | Products | Shades |
 |---|---|---|
-| Brow (black and brown only) | Make Over Powerstay Micro Brow Sculptor, Make Over Powerstay Brow Volumizer Mascara (swatch); Wardah EyeXpert Eyebrow Pencil, OMG Oh My Glam Precise Matic Eyebrow (estimate) | Light Brown → Black |
-| Lip | 4 Make Over (swatch, 67 shades); Wardah Colorfit Velvet Matte Lip Mousse (estimate, 8 shades) | nude → deep |
-| Complexion | 4 Make Over foundations and cushions (swatch, 95 shades) | very light → deep |
-| Blush | 3 Make Over (swatch, 17 shades); Wardah Colorfit Cream Blush, Wardah Exclusive Blush On (estimate) | |
-| Eyeliner (black and brown only) | Make Over Hyperblack Superstay Liner (swatch); Make Over Eye Liner Pencil (Black Jack, Brown Latte), Wardah EyeXpert Optimum Hi-Black Liner, Wardah EyeXpert Perfect Precision Liner (estimate) | |
-| Eyeshadow | Make Over Powerstay Eye Palette Hall Of Stars and Futurist Gleam; Wardah Colorfit Quad Eye Palette 01 Brunette Dawn, 02 Rose Aurora, 03 Sunlit Blaze (all estimate) | light → dark per palette |
-| Mascara (by type, all black) | Make Over Lash Impulse Waterproof (swatch, volumizing); OMG Oh My Glam Lashtention Waterproof (lengthening), Wardah EyeXpert Perfect Curl (natural), Wardah EyeXpert The Volume Expert (volumizing) | |
+| Brow (black, brown, grey) | Make Over Powerstay Micro Brow Sculptor, Make Over Powerstay Brow Volumizer Mascara (1.0 Light Brown, 2.0 Dark Brown, 3.5 Deep Gray; swatch), Wardah EyeXpert Eyebrow Pencil (swatch); OMG Oh My Glam Precise Matic Eyebrow (estimate) | Light Brown → Black |
+| Lip | Make Over Glassy Lip Lacquer x Hian Tjen (401–411), Powerstay Glazed Lock Lip Pigment (D01–D18), Hydrastay Smooth Lip Whip (C01–C18), Powerstay Transferproof Matte Lip Cream (20); Wardah Colorfit Velvet Matte Lip Mousse (01–14) — all swatch | nude → deep |
+| Complexion | Make Over Powerstay 24H Matte Powder Foundation (25), Weightless Liquid Foundation (20) (swatch); Hydrastay Prismatic Glass Cushion, Powerstay Sync Matte Cushion (25 each, estimate) | N00 Porcelain → N70 Ebony |
+| Blush | Make Over Powerstay Suede Blush, Hydrastay Liquid Tint Blush, Blush On Single (01–10); Wardah Colorfit Cream Blush (01–03), Wardah Exclusive Blush On — all swatch | |
+| Eyeliner (black and brown only) | Make Over Eye Liner Pencil (Black Jack, Brown Latte; swatch); Make Over Hyperblack Superstay Liner, Wardah EyeXpert Optimum Hi-Black Liner, Wardah EyeXpert Perfect Precision Liner (estimate) | |
+| Eyeshadow | Make Over Powerstay Eye Palette Hall Of Stars and Futurist Gleam (7 of 12 pans each); Wardah Colorfit Quad Eye Palette 01 Brunette Dawn, 02 Rose Aurora, 03 Sunlit Blaze (all estimate) | light → dark per palette |
+| Mascara (by type, all black) | Make Over Lash Impulse Waterproof (volumizing); OMG Oh My Glam Lashtention Waterproof (lengthening), Wardah EyeXpert Perfect Curl (natural), Wardah EyeXpert The Volume Expert (volumizing) — all estimate | |
 
 ## How the estimates were made
 
@@ -39,8 +61,9 @@ Products per section:
   grey", "medium cocoa", "brick orange", "turquoise", "pressed gold
   glitter"; Wardah's palette themes "earthy", "pink", "citrusy") where the
   brand gives them; otherwise from the pan name and palette theme. Shimmer
-  and glitter (`specular` 0.12 and 0.2) only where a pan is described or
-  named that way; the split of matte and shimmer inside the Wardah quads is
+  and glitter (`specular` 0.12 and 0.2): Make Over pans follow the finish
+  the brand publishes per pan (Matte 0, Shimmer 0.12, Foiled Metallic and
+  Glitter 0.2); the split of matte and shimmer inside the Wardah quads is
   not published and is a guess.
 - **Brow, eyeliner, mascara:** usual pencil or liner colours for the named
   shade (black, brown, dark brown, grey brown).
@@ -63,6 +86,17 @@ it in `hex`, set `sumber` to `[SWATCH]` and re-run the seeder: the swatch row
 replaces the estimate. Cube readings (`munsell_v`, `munsell_c`) outrank both.
 
 ## Sources
+
+Make Over product pages are `https://www.makeoverforall.com/product/<slug>/<id>`;
+the shade list and swatches are in the page's `__NEXT_DATA__` JSON.
+
+- Powerstay 24H Matte Powder Foundation /263; Hydrastay Prismatic Glass Cushion /270; Powerstay Sync Matte Cushion /271; Powerstay 24H Weightless Liquid Foundation /150
+- Powerstay Suede Blush /256; Hydrastay Liquid Tint Blush /236; Blush On Single /210
+- Glassy Lip Lacquer x Hian Tjen /273; Powerstay Glazed Lock Lip Pigment /264; Hydrastay Smooth Lip Whip /235; Powerstay Transferproof Matte Lip Cream /145
+- Powerstay Micro Brow Sculptor /267; Powerstay Brow Volumizer Mascara /265; Hyperblack Superstay Liner /107
+- Wardah Colorfit Velvet Matte Lip Mousse (01–14, swatches): https://www.wardahbeauty.com/id/product/make-up/colorfit-velvet-matte-lip-mousse
+- Wardah Colorfit Cream Blush (01–03): https://www.wardahbeauty.com/id/product/make-up/colorfit-cream-blush
+- Wardah Exclusive Blush On (01 Rosy Pink, 02 Coral Peach): https://www.wardahbeauty.com/en/product/make-up/exclusive-blush-on
 
 - Make Over Eye Liner Pencil shades: https://www.makeoverforall.com/product/make-over-eye-liner-pencil/96
 - Make Over Lash Impulse Waterproof Mascara ("volume 10x"): https://www.makeoverforall.com/product/make-over-lash-impulse-waterproof-mascara/238
