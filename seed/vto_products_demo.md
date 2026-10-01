@@ -2,7 +2,7 @@
 
 Try-on products for all seven sections (brow, lip, complexion, blush,
 eyeliner, eyeshadow, mascara) until the brands' RnD mapping arrives. Seeded
-with `cmd/seed-colour-shades` (see `docs/COLOUR-LOCAL-RUN.md`).
+with `cmd/seed-colour-shades` into `ref_products` (see `docs/COLOUR-LOCAL-RUN.md`).
 
 ## What is in it
 

@@ -121,6 +121,24 @@ and a deadlock risk if both sides ever take two locks.
   (`pg_advisory_xact_lock(1581646199, hashtext(brand|app))`), whose key space does not
   overlap single-key locks.
 
+## The product master
+
+`ref_products`, `ref_categories`, `ref_textures` and `ref_product_ingredients`
+are owned by reference-service (its `AutoMigrate`). core-engine reads them with
+SQL (match `ListProducts`, the try-on colour repository) and writes them only
+from two offline commands, through `apps/core-engine/internal/refcatalog`:
+`cmd/migrate-product-catalog` and `cmd/seed-colour-shades`. core-engine never
+migrates them; both commands refuse to run until the tables exist.
+
+`match_shades.product_id` and `match_product_groups.product_ids` hold
+`ref_products` ids. There are no foreign keys; reference-service validates
+references on save, and product deletes are soft (`deleted_at`).
+
+`match_product_catalog` is retired: core-engine no longer migrates or reads
+it. Its rows were copied into `ref_products` with the same ids by
+`migrate-product-catalog`. Dropping the table is a separate recorded step,
+not done yet.
+
 ## If you want this to stop being a hazard
 
 The durable fix is to take migrations away from `AutoMigrate` and give them to a
