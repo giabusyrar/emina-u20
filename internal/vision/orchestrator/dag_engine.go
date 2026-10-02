@@ -98,8 +98,17 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 				muCandidates.Unlock()
 				return nil
 			}
+			// Turn a phone photo stored sideways upright once, here, so skin
+			// and the crops below use the same upright pixel grid. An upright
+			// upload still goes to skin unchanged; a rotated one is sent as
+			// the upright pixels (raw nil: the segmenter encodes img).
+			raw := input.Data
+			if orientation := exifOrientation(input.Data); orientation != orientationUpright {
+				img = applyOrientation(img, orientation)
+				raw = nil
+			}
 
-			zones, detectedAngle, yaw, pitch, roll, err := o.segmenter.SegmentWithPose(input.Angle, img, input.Data)
+			zones, detectedAngle, yaw, pitch, roll, err := o.segmenter.SegmentWithPose(input.Angle, img, raw)
 			if errors.Is(err, workers.ErrNoFace) {
 				// This image has no measurable face; the others still count.
 				muCandidates.Lock()
