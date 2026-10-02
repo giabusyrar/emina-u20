@@ -18,7 +18,10 @@
            "maxThicknessMm": 60.0, "drapeDepthMm": 30.0,
            "fill": {"part": "hair_shell", "applied": true, "method": "mesh-diffusion",
                     "toneLinear": [0.02, 0.015, 0.012], "toneSrgbHex": "#27211d",
-                    "observedVertices": 812, "anchorVertices": 640, "totalVertices": 4310, "decayMm": 20.0}},
+                    "observedVertices": 812, "anchorVertices": 640, "totalVertices": 4310, "decayMm": 20.0},
+           "drapeFill": {"part": "hair_drape", "applied": true, "method": "mesh-diffusion",
+                         "toneLinear": [0.02, 0.015, 0.012], "toneSrgbHex": "#27211d",
+                         "observedVertices": 96, "anchorVertices": 71, "totalVertices": 1372, "decayMm": 20.0}},
   "correspondence": {"version": 1, "sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
   "camera": {"fovDeg": 52.3, "fovSdDeg": 2.4, "fovSource": "estimated", "priorDeg": 60.0, "priorLogSd": 0.3},
   "views": [

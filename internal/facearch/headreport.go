@@ -87,10 +87,14 @@ type HeadFill struct {
 }
 
 // HeadHair: Reason is "no_head_top_pixels" (no view has hair or covering
-// pixels, or they resolved no shell triangle at least one outline march step
-// thick) or "not_converged" (the shell thickness diffusion did not converge);
-// either way no hair_* parts are in the GLB and the rest of the head is unchanged.
-// Source is "hair", "covering" or "both".
+// pixels), "no_shell" (head-top pixels, but no shell triangle reached the
+// minimum thickness of one outline march step) or "not_converged" (the shell
+// thickness diffusion did not converge); in each case no hair_* parts are in
+// the GLB and the rest of the head is unchanged. Source ("hair", "covering" or
+// "both") is present whenever head-top pixels were seen: when Built, and with
+// "no_shell" or "not_converged". Fill is the shell atlas's colour fill;
+// DrapeFill the drape + cards atlas's, present only when that atlas was baked.
+// Both are gated by an absolute anchor count (FACE_HEAD_HAIR_FILL_MIN_ANCHORS).
 type HeadHair struct {
 	Built                 bool          `json:"built"`
 	Reason                string        `json:"reason,omitempty"`
@@ -102,6 +106,7 @@ type HeadHair struct {
 	MaxThicknessMm        float64       `json:"maxThicknessMm"`
 	DrapeDepthMm          float64       `json:"drapeDepthMm"`
 	Fill                  *HeadFill     `json:"fill,omitempty"`
+	DrapeFill             *HeadFill     `json:"drapeFill,omitempty"`
 }
 
 // HeadHairDrape: DepthSource is "views" (side photos constrained it) or
