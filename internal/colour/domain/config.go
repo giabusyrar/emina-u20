@@ -75,6 +75,15 @@ type Config struct {
 		Categories []string `json:"categories"`
 	} `json:"recommendation"`
 
+	// SkinMatch: categories whose shades are meant to match the skin
+	// (foundation), so their CIEDE2000 difference from the measured skin is
+	// reported. An empty list reports it for none. MaxDeltaE00 is the brand's
+	// match tolerance (policy); nil reports the difference without a verdict.
+	SkinMatch struct {
+		Categories  []string `json:"categories"`
+		MaxDeltaE00 *float64 `json:"maxDeltaE00"`
+	} `json:"skinMatch"`
+
 	Flags struct {
 		UnevenSkinToneLRange float64 `json:"unevenSkinToneLRange"`
 	} `json:"flags"`
@@ -141,6 +150,9 @@ func (c *Config) validate() error {
 	if c.Recommendation.PerCategory <= 0 {
 		return fmt.Errorf("recommendation.perCategory must be positive")
 	}
+	if m := c.SkinMatch.MaxDeltaE00; m != nil && *m <= 0 {
+		return fmt.Errorf("skinMatch.maxDeltaE00 must be positive when set")
+	}
 	if _, err := ISCCNBSCentroids(); err != nil {
 		return err
 	}
@@ -150,6 +162,17 @@ func (c *Config) validate() error {
 // Rates reports whether the quadrant rules rate shades of this category.
 func (c *Config) Rates(category string) bool {
 	return listed(c.Recommendation.Categories, category)
+}
+
+// MatchesSkin reports whether shades of this category are compared with the
+// skin by ΔE00. Unlike Rates, an empty list means none.
+func (c *Config) MatchesSkin(category string) bool {
+	for _, k := range c.SkinMatch.Categories {
+		if k == category {
+			return true
+		}
+	}
+	return false
 }
 
 // NamesHue reports whether shades of this category get a hue name.
