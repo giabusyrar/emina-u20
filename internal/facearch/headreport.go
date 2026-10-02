@@ -57,11 +57,17 @@ type HeadPart struct {
 }
 
 // HeadFill: Reason is set only when Applied is false ("too_few_observed" or
-// "not_converged"); ToneLinear/ToneSrgbHex only when some vertex was seen.
-// The tone is an estimate derived from this request's photos.
-// AnchorVertices are the observed vertices the fill is anchored to (seen
-// frontally enough in some single view); the minimum-fraction gate behind
-// "too_few_observed" counts AnchorVertices, not ObservedVertices.
+// "not_converged"); ToneLinear/ToneSrgbHex are present when the fill was
+// attempted (anchors cleared the gate): applied, or not_converged; absent for
+// too_few_observed. The tone is an estimate derived from this request's photos.
+//
+// The three counts are over the part's welded GNM model vertices. The GLB
+// primitive is unwelded by UV, so counts taken from the GLB can differ by seam
+// copies. ObservedVertices: _OBSERVED > 0 with non-zero photo weight.
+// AnchorVertices: the subset the fill is anchored to (seen frontally enough in
+// some single view); the minimum-fraction gate behind "too_few_observed"
+// counts AnchorVertices, not ObservedVertices. TotalVertices: all of the
+// part's welded vertices.
 type HeadFill struct {
 	Part             string      `json:"part"`
 	Applied          bool        `json:"applied"`
