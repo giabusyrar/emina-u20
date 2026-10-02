@@ -86,6 +86,11 @@ type HeadFill struct {
 	DecayMm          float64     `json:"decayMm"`
 }
 
+// HeadHair: Reason is "no_head_top_pixels" (no view has hair or covering
+// pixels, or they resolved no shell triangle at least one outline march step
+// thick) or "not_converged" (the shell thickness diffusion did not converge);
+// either way no hair_* parts are in the GLB and the rest of the head is unchanged.
+// Source is "hair", "covering" or "both".
 type HeadHair struct {
 	Built                 bool          `json:"built"`
 	Reason                string        `json:"reason,omitempty"`
