@@ -23,7 +23,12 @@ type HeadReport struct {
 	// Fill says, per filled part, whether its unseen region carries an
 	// estimated colour (diffused from the seen vertices toward the part's
 	// median tone) or stays grey, and why. Filled vertices keep _OBSERVED 0.
-	Fill            []HeadFill         `json:"fill"`
+	Fill []HeadFill `json:"fill"`
+	// Hair is the hair / head-covering geometry (parts hair_shell, hair_drape,
+	// hair_cards): fitted to the photos' head-top outlines, estimated where
+	// _OBSERVED is 0, without _SIGMA_MM, and never used for measurement.
+	// Reason is set only when Built is false; Source and Fill only when true.
+	Hair            HeadHair           `json:"hair"`
 	Correspondence  HeadCorrespondence `json:"correspondence"`
 	Camera          HeadCamera         `json:"camera"`
 	Views           []HeadView         `json:"views"`
@@ -79,6 +84,26 @@ type HeadFill struct {
 	AnchorVertices   int         `json:"anchorVertices"`
 	TotalVertices    int         `json:"totalVertices"`
 	DecayMm          float64     `json:"decayMm"`
+}
+
+type HeadHair struct {
+	Built                 bool          `json:"built"`
+	Reason                string        `json:"reason,omitempty"`
+	Source                string        `json:"source,omitempty"`
+	Parts                 []string      `json:"parts"`
+	ShellObservedVertices int           `json:"shellObservedVertices"`
+	ShellTotalVertices    int           `json:"shellTotalVertices"`
+	Drape                 HeadHairDrape `json:"drape"`
+	MaxThicknessMm        float64       `json:"maxThicknessMm"`
+	DrapeDepthMm          float64       `json:"drapeDepthMm"`
+	Fill                  *HeadFill     `json:"fill,omitempty"`
+}
+
+// HeadHairDrape: DepthSource is "views" (side photos constrained it) or
+// "estimated" (FACE_HEAD_HAIR_DRAPE_DEPTH_MM behind the neck), set only when Built.
+type HeadHairDrape struct {
+	Built       bool   `json:"built"`
+	DepthSource string `json:"depthSource,omitempty"`
 }
 
 type HeadCorrespondence struct {

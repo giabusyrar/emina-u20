@@ -12,6 +12,13 @@
     {"part": "left_eyeball", "applied": false, "reason": "too_few_observed", "method": "mesh-diffusion",
      "observedVertices": 3, "anchorVertices": 2, "totalVertices": 385, "decayMm": 20.0}
   ],
+  "hair": {"built": true, "source": "hair", "parts": ["hair_shell", "hair_drape", "hair_cards"],
+           "shellObservedVertices": 812, "shellTotalVertices": 4310,
+           "drape": {"built": true, "depthSource": "estimated"},
+           "maxThicknessMm": 60.0, "drapeDepthMm": 30.0,
+           "fill": {"part": "hair_shell", "applied": true, "method": "mesh-diffusion",
+                    "toneLinear": [0.02, 0.015, 0.012], "toneSrgbHex": "#27211d",
+                    "observedVertices": 812, "anchorVertices": 640, "totalVertices": 4310, "decayMm": 20.0}},
   "correspondence": {"version": 1, "sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
   "camera": {"fovDeg": 52.3, "fovSdDeg": 2.4, "fovSource": "estimated", "priorDeg": 60.0, "priorLogSd": 0.3},
   "views": [
@@ -28,5 +35,5 @@
   "landmarkVertices": [[10, 11, 12, 0.2, 0.3, 0.5]],
   "landmarkPoints": [[0.012, 0.271, 0.131]],
   "observedBits": {"front": 1, "left": 2, "right": 4},
-  "notice": "Visualisation only. _OBSERVED > 0: a photo pixel of the right class (skin for skin, the eye region for eyeballs) saw the vertex; _OBSERVED = 0: no photo saw it, or one did but its pixel was hair, clothes, background or (for an eyeball) outside the eye opening, so its colour is not from a photo: it is an estimate diffused from the seen vertices (see fill), or grey where no fill applied. Photo colour appears only on triangles whose vertices are all observed. _SIGMA_MM is a model lower bound, not a confidence interval; viewConsistency compares geometry only and cannot detect look-alikes."
+  "notice": "Visualisation only. _OBSERVED > 0: a photo pixel of the right class (skin for skin, the eye region for eyeballs) saw the vertex; _OBSERVED = 0: no photo saw it, or one did but its pixel was hair, clothes, background or (for an eyeball) outside the eye opening, so its colour is not from a photo: it is an estimate diffused from the seen vertices (see fill), or grey where no fill applied. Photo colour appears only on triangles whose vertices are all observed. _SIGMA_MM is a model lower bound, not a confidence interval; viewConsistency compares geometry only and cannot detect look-alikes. Hair/covering geometry (hair_* parts) is fitted to photo outlines, estimated where _OBSERVED = 0, carries no _SIGMA_MM, and is never used for measurement."
 }
