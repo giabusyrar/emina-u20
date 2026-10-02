@@ -16,6 +16,11 @@ const (
 	DefaultScoreCacheTTL    = 15 * time.Minute // main.go, and score_cache.go's zero-value default
 	DefaultMatchCacheTTL    = 15 * time.Minute // main.go, and match_cache.go's zero-value default
 	DefaultVisionCatalogTTL = time.Minute      // main.go, NewCachedCatalog
+	// DefaultColourCatalogTTL: how long the colour engine keeps the shade list
+	// before reading it again (main.go, colourService.NewCachedStore). Policy,
+	// like the vision catalog TTL: a shade edited in the dashboard shows up in
+	// colour analysis within this long.
+	DefaultColourCatalogTTL = time.Minute
 
 	DefaultScoreClientTimeout = 5 * time.Second // was the form->score HTTP client timeout; now bounds the in-process call (form/adapters/scoreengine)
 	// main.go and visionclient. Paradev's scoring call runs a synchronous
@@ -137,6 +142,7 @@ type Config struct {
 	ScoreCacheTTL    time.Duration
 	MatchCacheTTL    time.Duration
 	VisionCatalogTTL time.Duration
+	ColourCatalogTTL time.Duration
 
 	ScoreClientTimeout     time.Duration
 	ParadevTimeout         time.Duration
@@ -195,6 +201,7 @@ func FromEnv() (*Config, error) {
 		{"SCORE_CACHE_TTL", DefaultScoreCacheTTL, &cfg.ScoreCacheTTL},
 		{"MATCH_CACHE_TTL", DefaultMatchCacheTTL, &cfg.MatchCacheTTL},
 		{"VISION_CATALOG_TTL", DefaultVisionCatalogTTL, &cfg.VisionCatalogTTL},
+		{"COLOUR_CATALOG_TTL", DefaultColourCatalogTTL, &cfg.ColourCatalogTTL},
 		{"SCORE_CLIENT_TIMEOUT", DefaultScoreClientTimeout, &cfg.ScoreClientTimeout},
 		{"PARADEV_TIMEOUT", DefaultParadevTimeout, &cfg.ParadevTimeout},
 		{"REFERENCE_CLIENT_TIMEOUT", DefaultReferenceClientTimeout, &cfg.ReferenceClientTimeout},

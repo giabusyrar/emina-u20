@@ -27,7 +27,7 @@ import (
 
 type stubSegmenter struct{}
 
-func (stubSegmenter) SegmentWithPose(declared domain.ImageAngle, img image.Image) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error) {
+func (stubSegmenter) SegmentWithPose(declared domain.ImageAngle, img image.Image, raw []byte) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error) {
 	angle := declared
 	if angle == "" {
 		angle = domain.AngleFront
@@ -260,7 +260,7 @@ func TestVisionController_GetRegistry_ReferenceDataUnavailable_HTTP503(t *testin
 
 type unavailableSegmenter struct{}
 
-func (unavailableSegmenter) SegmentWithPose(declared domain.ImageAngle, img image.Image) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error) {
+func (unavailableSegmenter) SegmentWithPose(declared domain.ImageAngle, img image.Image, raw []byte) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error) {
 	return nil, declared, 0, 0, 0, fmt.Errorf("%w: skin worker returned 503: LANDMARKER_UNAVAILABLE", workers.ErrSegmentationUnavailable)
 }
 

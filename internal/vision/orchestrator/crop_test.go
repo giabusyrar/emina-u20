@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"image"
 	"image/color"
-	"image/jpeg"
+	"image/png"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,12 +25,12 @@ func solidImage(width, height int) image.Image {
 
 func decodedSize(t *testing.T, data []byte) (int, int) {
 	t.Helper()
-	decoded, err := jpeg.Decode(bytes.NewReader(data))
+	decoded, err := png.Decode(bytes.NewReader(data))
 	require.NoError(t, err)
 	return decoded.Bounds().Dx(), decoded.Bounds().Dy()
 }
 
-func TestCropZone_EncodesBoundingBoxAsJPEG(t *testing.T) {
+func TestCropZone_EncodesBoundingBoxAsPNG(t *testing.T) {
 	data, ok := cropZone(solidImage(100, 100), domain.BoundingBox{MinX: 0.25, MinY: 0.25, MaxX: 0.75, MaxY: 0.5})
 
 	require.True(t, ok)
@@ -58,4 +58,24 @@ func TestCropZone_NilImageIsSkipped(t *testing.T) {
 	_, ok := cropZone(nil, domain.BoundingBox{MaxX: 1, MaxY: 1})
 
 	assert.False(t, ok)
+}
+
+func TestCropZone_IsLossless(t *testing.T) {
+	src := image.NewRGBA(image.Rect(0, 0, 40, 40))
+	for x := 0; x < 40; x++ {
+		for y := 0; y < 40; y++ {
+			src.Set(x, y, color.RGBA{R: uint8(x * 6), G: uint8(y * 6), B: uint8((x + y) * 3), A: 255})
+		}
+	}
+	data, ok := cropZone(src, domain.BoundingBox{MinX: 0, MinY: 0, MaxX: 1, MaxY: 1})
+	require.True(t, ok)
+	decoded, err := png.Decode(bytes.NewReader(data))
+	require.NoError(t, err)
+	for x := 0; x < 40; x++ {
+		for y := 0; y < 40; y++ {
+			r1, g1, b1, _ := src.At(x, y).RGBA()
+			r2, g2, b2, _ := decoded.At(x, y).RGBA()
+			require.Equal(t, [3]uint32{r1, g1, b1}, [3]uint32{r2, g2, b2}, "pixel %d,%d changed", x, y)
+		}
+	}
 }

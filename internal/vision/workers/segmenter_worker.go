@@ -70,15 +70,18 @@ func NewSegmenterWorkerWithURL(workerURL string, timeout time.Duration) *Segment
 }
 
 func (s *SegmenterWorker) Segment(angle domain.ImageAngle, img image.Image) ([]SegmentedZone, error) {
-	zones, _, _, _, _, err := s.SegmentWithPose(angle, img)
+	zones, _, _, _, _, err := s.SegmentWithPose(angle, img, nil)
 	return zones, err
 }
 
-func (s *SegmenterWorker) SegmentWithPose(declaredAngle domain.ImageAngle, img image.Image) ([]SegmentedZone, domain.ImageAngle, float64, float64, float64, error) {
+// raw is the upload exactly as received; when present it is sent to the skin
+// worker as is, so the photo is not decoded and re-encoded on the way. Without
+// it the decoded image is sent as PNG.
+func (s *SegmenterWorker) SegmentWithPose(declaredAngle domain.ImageAngle, img image.Image, raw []byte) ([]SegmentedZone, domain.ImageAngle, float64, float64, float64, error) {
 	if img == nil {
 		return nil, domain.AngleFront, 0, 0, 0, fmt.Errorf("image cannot be nil")
 	}
-	aiResp, err := s.callSkin(declaredAngle, img)
+	aiResp, err := s.callSkin(declaredAngle, img, raw)
 	if err != nil {
 		return nil, declaredAngle, 0, 0, 0, err
 	}
@@ -120,15 +123,17 @@ func (s *SegmenterWorker) SegmentWithPose(declaredAngle domain.ImageAngle, img i
 // callSkin posts the image to the skin worker's segment-and-pose. A 422 is
 // ErrNoFace; every other failure is ErrSegmentationUnavailable with the
 // worker's reason.
-func (s *SegmenterWorker) callSkin(declaredAngle domain.ImageAngle, img image.Image) (*pythonAISegmentResponse, error) {
+func (s *SegmenterWorker) callSkin(declaredAngle domain.ImageAngle, img image.Image, raw []byte) (*pythonAISegmentResponse, error) {
 	var imgBuf bytes.Buffer
-	if err := png.Encode(&imgBuf, img); err != nil {
+	if len(raw) > 0 {
+		imgBuf.Write(raw)
+	} else if err := png.Encode(&imgBuf, img); err != nil {
 		return nil, fmt.Errorf("encode image for segmentation: %w", err)
 	}
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile("image", "frame.png")
+	part, err := writer.CreateFormFile("image", "frame")
 	if err != nil {
 		return nil, fmt.Errorf("build segmentation request: %w", err)
 	}

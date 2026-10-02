@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/jpeg"
 	"image/png"
 	"sync"
 	"testing"
@@ -50,7 +49,7 @@ type fakeSegmenter struct {
 	errByWidth   map[int]error
 }
 
-func (f *fakeSegmenter) SegmentWithPose(declared domain.ImageAngle, img image.Image) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error) {
+func (f *fakeSegmenter) SegmentWithPose(declared domain.ImageAngle, img image.Image, raw []byte) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error) {
 	f.mu.Lock()
 	f.calls++
 	f.mu.Unlock()
@@ -134,7 +133,7 @@ func warningCodes(resp *domain.VisionAnalysisResponse) []string {
 
 func cropSize(t *testing.T, crop inference.ZoneCrop) (int, int) {
 	t.Helper()
-	decoded, err := jpeg.Decode(bytes.NewReader(crop.JPEG))
+	decoded, err := png.Decode(bytes.NewReader(crop.Image))
 	require.NoError(t, err)
 	return decoded.Bounds().Dx(), decoded.Bounds().Dy()
 }

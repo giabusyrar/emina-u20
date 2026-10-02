@@ -22,7 +22,7 @@ import (
 
 // Segmenter locates facial zones and head pose in one image.
 type Segmenter interface {
-	SegmentWithPose(declaredAngle domain.ImageAngle, img image.Image) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error)
+	SegmentWithPose(declaredAngle domain.ImageAngle, img image.Image, raw []byte) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error)
 }
 
 // PlanResolver turns requested dimension/skin-condition codes into a capability plan.
@@ -99,7 +99,7 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 				return nil
 			}
 
-			zones, detectedAngle, yaw, pitch, roll, err := o.segmenter.SegmentWithPose(input.Angle, img)
+			zones, detectedAngle, yaw, pitch, roll, err := o.segmenter.SegmentWithPose(input.Angle, img, input.Data)
 			if errors.Is(err, workers.ErrNoFace) {
 				// This image has no measurable face; the others still count.
 				muCandidates.Lock()
@@ -170,7 +170,7 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 		if !ok {
 			continue
 		}
-		crops = append(crops, inference.ZoneCrop{ZoneCode: zone.ZoneCode, SourceAngle: zone.SourceAngle, JPEG: cropped})
+		crops = append(crops, inference.ZoneCrop{ZoneCode: zone.ZoneCode, SourceAngle: zone.SourceAngle, Image: cropped})
 	}
 
 	// Phase 4: One batched capability dispatch to the vision AI worker
