@@ -6,6 +6,12 @@
             {"name": "left_eyeball", "textured": true, "observedFromPhoto": true},
             {"name": "right_eyeball", "textured": true, "observedFromPhoto": true},
             {"name": "cornea", "textured": false, "observedFromPhoto": false}],
+  "fill": [
+    {"part": "skin", "applied": true, "method": "mesh-diffusion", "toneLinear": [0.31, 0.18, 0.12],
+     "toneSrgbHex": "#977661", "observedVertices": 4477, "anchorVertices": 3608, "totalVertices": 12118, "decayMm": 20.0},
+    {"part": "left_eyeball", "applied": false, "reason": "too_few_observed", "method": "mesh-diffusion",
+     "observedVertices": 3, "anchorVertices": 2, "totalVertices": 385, "decayMm": 20.0}
+  ],
   "correspondence": {"version": 1, "sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
   "camera": {"fovDeg": 52.3, "fovSdDeg": 2.4, "fovSource": "estimated", "priorDeg": 60.0, "priorLogSd": 0.3},
   "views": [
@@ -22,5 +28,5 @@
   "landmarkVertices": [[10, 11, 12, 0.2, 0.3, 0.5]],
   "landmarkPoints": [[0.012, 0.271, 0.131]],
   "observedBits": {"front": 1, "left": 2, "right": 4},
-  "notice": "Visualisation only. _OBSERVED > 0: a photo pixel of the right class (skin for skin, the eye region for eyeballs) saw the vertex; _OBSERVED = 0: no photo saw it, or one did but its pixel was hair, clothes, background or (for an eyeball) outside the eye opening, so its colour is not from a photo. Photo colour appears only on triangles whose vertices are all observed. _SIGMA_MM is a model lower bound, not a confidence interval; viewConsistency compares geometry only and cannot detect look-alikes."
+  "notice": "Visualisation only. _OBSERVED > 0: a photo pixel of the right class (skin for skin, the eye region for eyeballs) saw the vertex; _OBSERVED = 0: no photo saw it, or one did but its pixel was hair, clothes, background or (for an eyeball) outside the eye opening, so its colour is not from a photo: it is an estimate diffused from the seen vertices (see fill), or grey where no fill applied. Photo colour appears only on triangles whose vertices are all observed. _SIGMA_MM is a model lower bound, not a confidence interval; viewConsistency compares geometry only and cannot detect look-alikes."
 }

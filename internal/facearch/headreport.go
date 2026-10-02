@@ -16,9 +16,14 @@ type HeadReport struct {
 	// vertex: a photo pixel of the right class (skin for skin, the eye region
 	// for eyeballs) saw it; 0: no photo saw it, or its pixel was hair, clothes,
 	// background or (for an eyeball) outside the eye opening. Textured parts
-	// carry photo colour only on triangles whose vertices are all observed;
-	// the cornea is geometry only (always 0).
-	Parts           []HeadPart         `json:"parts"`
+	// carry photo colour on triangles whose vertices are all observed and,
+	// where fill applied, an estimated colour elsewhere; grey only where it
+	// did not. The cornea is geometry only (always 0).
+	Parts []HeadPart `json:"parts"`
+	// Fill says, per filled part, whether its unseen region carries an
+	// estimated colour (diffused from the seen vertices toward the part's
+	// median tone) or stays grey, and why. Filled vertices keep _OBSERVED 0.
+	Fill            []HeadFill         `json:"fill"`
 	Correspondence  HeadCorrespondence `json:"correspondence"`
 	Camera          HeadCamera         `json:"camera"`
 	Views           []HeadView         `json:"views"`
@@ -49,6 +54,31 @@ type HeadPart struct {
 	Name              string `json:"name"`
 	Textured          bool   `json:"textured"`
 	ObservedFromPhoto bool   `json:"observedFromPhoto"`
+}
+
+// HeadFill: Reason is set only when Applied is false ("too_few_observed" or
+// "not_converged"); ToneLinear/ToneSrgbHex are present when the fill was
+// attempted (anchors cleared the gate): applied, or not_converged; absent for
+// too_few_observed. The tone is an estimate derived from this request's photos.
+//
+// The three counts are over the part's welded GNM model vertices. The GLB
+// primitive is unwelded by UV, so counts taken from the GLB can differ by seam
+// copies. ObservedVertices: _OBSERVED > 0 with non-zero photo weight.
+// AnchorVertices: the subset the fill is anchored to (seen frontally enough in
+// some single view); the minimum-fraction gate behind "too_few_observed"
+// counts AnchorVertices, not ObservedVertices. TotalVertices: all of the
+// part's welded vertices.
+type HeadFill struct {
+	Part             string      `json:"part"`
+	Applied          bool        `json:"applied"`
+	Reason           string      `json:"reason,omitempty"`
+	Method           string      `json:"method"`
+	ToneLinear       *[3]float64 `json:"toneLinear,omitempty"`
+	ToneSrgbHex      string      `json:"toneSrgbHex,omitempty"`
+	ObservedVertices int         `json:"observedVertices"`
+	AnchorVertices   int         `json:"anchorVertices"`
+	TotalVertices    int         `json:"totalVertices"`
+	DecayMm          float64     `json:"decayMm"`
 }
 
 type HeadCorrespondence struct {
