@@ -45,21 +45,21 @@ func TestValidateRejects(t *testing.T) {
 		mutate func(*Flow)
 		want   string
 	}{
-		"missing ids":         {func(f *Flow) { f.SurveyCode = "" }, "brand_id, application_id and survey_code are required"},
-		"bad status":          {func(f *Flow) { f.Status = "live" }, "status must be draft, active or archived"},
-		"no locale":           {func(f *Flow) { f.Locale = "" }, "locale is required"},
-		"no persona name":     {func(f *Flow) { f.Persona.Name = " " }, "persona.name is required"},
-		"score not first":     {func(f *Flow) { f.Steps = f.Steps[1:] }, `the first step must be "score"`},
-		"unknown engine":      {func(f *Flow) { f.Steps = append(f.Steps, Step{Engine: "tarot"}) }, `unknown engine "tarot"`},
-		"listed twice":        {func(f *Flow) { f.Steps = append(f.Steps, Step{Engine: EngineMatch}) }, `engine "match" is listed twice`},
-		"unexpected input":    {func(f *Flow) { f.Steps[1].Inputs = map[string]Input{"x": {}} }, `engine "match" takes no input "x"`},
+		"missing ids":          {func(f *Flow) { f.SurveyCode = "" }, "brand_id, application_id and survey_code are required"},
+		"bad status":           {func(f *Flow) { f.Status = "live" }, "status must be draft, active or archived"},
+		"no locale":            {func(f *Flow) { f.Locale = "" }, "locale is required"},
+		"no persona name":      {func(f *Flow) { f.Persona.Name = " " }, "persona.name is required"},
+		"score not first":      {func(f *Flow) { f.Steps = f.Steps[1:] }, `the first step must be "score"`},
+		"unknown engine":       {func(f *Flow) { f.Steps = append(f.Steps, Step{Engine: "tarot"}) }, `unknown engine "tarot"`},
+		"listed twice":         {func(f *Flow) { f.Steps = append(f.Steps, Step{Engine: EngineMatch}) }, `engine "match" is listed twice`},
+		"unexpected input":     {func(f *Flow) { f.Steps[1].Inputs = map[string]Input{"x": {}} }, `engine "match" takes no input "x"`},
 		"colour input missing": {func(f *Flow) { delete(f.Steps[2].Inputs, "hairVisible") }, `input "hairVisible" is required`},
 		"input both ways": {func(f *Flow) {
 			f.Steps[2].Inputs["hijab"] = Input{FromAnswer: "wears_hijab", Value: &yes}
 		}, "set exactly one of from_answer or value"},
-		"input neither way":     {func(f *Flow) { f.Steps[2].Inputs["hijab"] = Input{} }, "set exactly one of from_answer or value"},
-		"answer not in survey":  {func(f *Flow) { f.Steps[2].Inputs["hijab"] = Input{FromAnswer: "nope"} }, `question "nope" is not in the survey`},
-		"answer not boolean":    {func(f *Flow) { f.Steps[2].Inputs["hijab"] = Input{FromAnswer: "q1"} }, `question "q1" is "radiogroup", must be boolean`},
+		"input neither way":    {func(f *Flow) { f.Steps[2].Inputs["hijab"] = Input{} }, "set exactly one of from_answer or value"},
+		"answer not in survey": {func(f *Flow) { f.Steps[2].Inputs["hijab"] = Input{FromAnswer: "nope"} }, `question "nope" is not in the survey`},
+		"answer not boolean":   {func(f *Flow) { f.Steps[2].Inputs["hijab"] = Input{FromAnswer: "q1"} }, `question "q1" is "radiogroup", must be boolean`},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -24,6 +25,7 @@ import (
 	formControllers "github.com/experience-gateway/apps/core-engine/internal/form/adapters/controllers"
 	formScoreEngine "github.com/experience-gateway/apps/core-engine/internal/form/adapters/scoreengine"
 	formVisionClient "github.com/experience-gateway/apps/core-engine/internal/form/adapters/visionclient"
+	formDomain "github.com/experience-gateway/apps/core-engine/internal/form/domain"
 	formEntity "github.com/experience-gateway/apps/core-engine/internal/form/entity"
 	formRepo "github.com/experience-gateway/apps/core-engine/internal/form/repository"
 	formService "github.com/experience-gateway/apps/core-engine/internal/form/service"
@@ -65,6 +67,9 @@ import (
 	faceHead "github.com/experience-gateway/apps/core-engine/internal/facearch/headclient"
 	faceMeasure "github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
 	faceProfile "github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
+
+	// Conversation flows (read by apps/conversation-engine)
+	"github.com/experience-gateway/apps/core-engine/internal/conversationflow"
 )
 
 const serviceName = "core-engine"
@@ -106,6 +111,7 @@ func run() error {
 		&faceProfile.FaceArchitectureProfile{},
 		&colourEntity.ShadeColorimetry{},
 		&assessment.Record{},
+		&conversationflow.Flow{},
 	); err != nil {
 		deps.Log.Error("automigrate failed", "err", err)
 	}
@@ -170,15 +176,49 @@ func run() error {
 	visionHandler := visionControllers.NewVisionController(visionOrch, visionReferenceCatalog)
 
 	// Face Architecture (measurements from the face worker, per-brand profile)
+	faceProfiles := faceProfile.NewGormStore(db)
 	faceArchHandler := facearch.NewHandler(
 		faceMeasure.New(cfg.FaceWorkerURL, cfg.FaceMeasureTimeout),
-		faceProfile.NewGormStore(db),
+		faceProfiles,
 	)
 	faceHeadHandler := facearch.NewHeadHandler(
 		faceHead.New(cfg.FaceWorkerURL, cfg.FaceHeadTimeout),
-		faceProfile.NewGormStore(db),
+		faceProfiles,
 		cfg.FaceHeadMaxUploadBytes,
 	)
+	// Conversation flows: which engines apps/conversation-engine runs after a
+	// survey. Read by it over HTTP; nothing here executes a flow.
+	flowHandler := conversationflow.NewHandler(conversationflow.NewService(
+		conversationflow.NewGormStore(db),
+		func(ctx context.Context, brandID, appID, code string) (conversationflow.QuestionTypes, error) {
+			m, err := fService.GetSurvey(ctx, brandID, appID, code)
+			if errors.Is(err, formDomain.ErrNotFound) {
+				return nil, conversationflow.ErrSurveyNotFound
+			}
+			if err != nil {
+				return nil, err
+			}
+			types := conversationflow.QuestionTypes{}
+			for _, q := range m.GetAllQuestions() {
+				types[q.Name] = q.Type
+			}
+			return types, nil
+		},
+		func(ctx context.Context, brandID, appID string) (bool, error) {
+			_, err := faceProfiles.Active(ctx, brandID, appID)
+			if errors.Is(err, faceProfile.ErrNoActiveProfile) {
+				return false, nil
+			}
+			return err == nil, err
+		},
+		func(ctx context.Context, ref string) (string, error) {
+			b, err := brands.Resolve(ctx, ref)
+			if errors.Is(err, brand.ErrUnknown) || errors.Is(err, brand.ErrRequired) {
+				return "", fmt.Errorf("%w: %v", conversationflow.ErrUnknownBrand, err)
+			}
+			return b.ID, err
+		},
+	))
 
 	// Colour Engine. A missing or invalid WCPA config disables only these
 	// routes (503 with the reason), not the whole service.
@@ -301,6 +341,10 @@ func run() error {
 	assessmentHandler := assessment.NewHandler(assessmentStore, int(cfg.AssessmentListMaxLimit))
 	assessmentHandler.Mount(e.Group("/core/assessments"))
 	assessmentHandler.Mount(e.Group("/api/assessments"))
+
+	// Conversation flows
+	flowHandler.Mount(e.Group("/core/conversation-flows"))
+	flowHandler.Mount(e.Group("/api/conversation-flows"))
 
 	return goplatform.Run(ctx, e, ":"+cfg.Port, cfg.ShutdownTimeout)
 }
