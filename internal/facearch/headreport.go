@@ -59,6 +59,9 @@ type HeadPart struct {
 // HeadFill: Reason is set only when Applied is false ("too_few_observed" or
 // "not_converged"); ToneLinear/ToneSrgbHex only when some vertex was seen.
 // The tone is an estimate derived from this request's photos.
+// AnchorVertices are the observed vertices the fill is anchored to (seen
+// frontally enough in some single view); the minimum-fraction gate behind
+// "too_few_observed" counts AnchorVertices, not ObservedVertices.
 type HeadFill struct {
 	Part             string      `json:"part"`
 	Applied          bool        `json:"applied"`
@@ -67,6 +70,7 @@ type HeadFill struct {
 	ToneLinear       *[3]float64 `json:"toneLinear,omitempty"`
 	ToneSrgbHex      string      `json:"toneSrgbHex,omitempty"`
 	ObservedVertices int         `json:"observedVertices"`
+	AnchorVertices   int         `json:"anchorVertices"`
 	TotalVertices    int         `json:"totalVertices"`
 	DecayMm          float64     `json:"decayMm"`
 }
