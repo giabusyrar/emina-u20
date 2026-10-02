@@ -7,11 +7,12 @@ import (
 	"gorm.io/gorm"
 )
 
-// Store persists flows. Get and Active return nil, nil when nothing matches.
+// Store persists flows. Get, Active and Version return nil, nil when nothing matches.
 type Store interface {
 	Get(ctx context.Context, id string) (*Flow, error)
 	List(ctx context.Context, brandID, applicationID string) ([]Flow, error)
 	Active(ctx context.Context, brandID, applicationID, surveyCode string) (*Flow, error)
+	Version(ctx context.Context, brandID, applicationID, surveyCode string, version int) (*Flow, error)
 	Create(ctx context.Context, f *Flow) error
 	Update(ctx context.Context, f *Flow) error
 }
@@ -49,6 +50,11 @@ func (s *GormStore) Active(ctx context.Context, brandID, applicationID, surveyCo
 	return s.first(s.db.WithContext(ctx).
 		Where("brand_id = ? AND application_id = ? AND survey_code = ? AND status = ?", brandID, applicationID, surveyCode, StatusActive).
 		Order("version desc"))
+}
+
+func (s *GormStore) Version(ctx context.Context, brandID, applicationID, surveyCode string, version int) (*Flow, error) {
+	return s.first(s.db.WithContext(ctx).
+		Where("brand_id = ? AND application_id = ? AND survey_code = ? AND version = ?", brandID, applicationID, surveyCode, version))
 }
 
 func (s *GormStore) Create(ctx context.Context, f *Flow) error {

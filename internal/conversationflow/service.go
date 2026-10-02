@@ -5,13 +5,32 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"gorm.io/gorm"
 )
 
 var (
 	ErrNotFound       = errors.New("conversation flow not found")
 	ErrSurveyNotFound = errors.New("survey not found")
 	ErrUnknownBrand   = errors.New("unknown brand")
+	// ErrDuplicateVersion is a unique-index violation on (brand, application,
+	// survey, version) that the pre-save check did not catch (a concurrent save).
+	ErrDuplicateVersion = errors.New("a flow with this brand, application, survey and version already exists")
 )
+
+// sqlUniqueViolation is Postgres SQLSTATE unique_violation.
+const sqlUniqueViolation = "23505"
+
+// isUniqueViolation reports a duplicate-key error. goplatform.OpenPostgres does
+// not enable GORM's TranslateError, so the pgx error (*pgconn.PgError, which has
+// SQLState) arrives as is; gorm.ErrDuplicatedKey covers a translating config.
+func isUniqueViolation(err error) bool {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return true
+	}
+	var state interface{ SQLState() string }
+	return errors.As(err, &state) && state.SQLState() == sqlUniqueViolation
+}
 
 // SurveyLookup returns the question types of the active survey, or an error
 // wrapping ErrSurveyNotFound.
@@ -118,6 +137,15 @@ func (s *Service) save(ctx context.Context, f *Flow) ([]string, error) {
 			errs = append(errs, fmt.Sprintf("flow %s is already active for this survey: archive it first", cur.ID))
 		}
 	}
+	if f.BrandID != "" && f.ApplicationID != "" && f.SurveyCode != "" {
+		same, err := s.store.Version(ctx, f.BrandID, f.ApplicationID, f.SurveyCode, f.Version)
+		if err != nil {
+			return nil, err
+		}
+		if same != nil && same.ID != f.ID {
+			errs = append(errs, fmt.Sprintf("version %d of this flow already exists: use PUT /%s to change it, or save a new version", f.Version, same.ID))
+		}
+	}
 	if len(errs) > 0 {
 		return nil, &ValidationError{Errors: errs}
 	}
@@ -137,6 +165,9 @@ func (s *Service) save(ctx context.Context, f *Flow) ([]string, error) {
 		err = s.store.Create(ctx, f)
 	} else {
 		err = s.store.Update(ctx, f)
+	}
+	if isUniqueViolation(err) {
+		return nil, ErrDuplicateVersion
 	}
 	return warnings, err
 }

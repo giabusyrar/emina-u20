@@ -90,6 +90,8 @@ func fail(c echo.Context, err error) error {
 		return goplatform.JSONError(c, http.StatusNotFound, err.Error())
 	case errors.Is(err, ErrUnknownBrand):
 		return goplatform.JSONError(c, http.StatusBadRequest, err.Error())
+	case errors.Is(err, ErrDuplicateVersion):
+		return goplatform.JSONError(c, http.StatusConflict, err.Error())
 	}
 	return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 }

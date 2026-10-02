@@ -48,6 +48,16 @@ func (m *memStore) Active(_ context.Context, brandID, appID, code string) (*Flow
 	return nil, nil
 }
 
+func (m *memStore) Version(_ context.Context, brandID, appID, code string, version int) (*Flow, error) {
+	for _, f := range m.flows {
+		if f.BrandID == brandID && f.ApplicationID == appID && f.SurveyCode == code && f.Version == version {
+			c := *f
+			return &c, nil
+		}
+	}
+	return nil, nil
+}
+
 func (m *memStore) Create(_ context.Context, f *Flow) error {
 	m.n++
 	f.ID = fmt.Sprintf("00000000-0000-0000-0000-%012d", m.n)
@@ -212,5 +222,53 @@ func TestListRequiresScope(t *testing.T) {
 	rec := do(e, http.MethodGet, "/core/conversation-flows?brand_id=wardah&application_id=skinverse", "")
 	if rec.Code != http.StatusOK || len(decode(t, rec).Flows) != 1 {
 		t.Fatalf("list = %d %s", rec.Code, rec.Body)
+	}
+}
+
+func TestRepostingTheSameVersionIs400WithGuidance(t *testing.T) {
+	e := newTestServer(newMemStore(), true)
+	draft := strings.Replace(flowJSON, `"status":"active"`, `"status":"draft"`, 1)
+	if rec := do(e, http.MethodPost, "/core/conversation-flows", draft); rec.Code != http.StatusCreated {
+		t.Fatalf("first = %d %s", rec.Code, rec.Body)
+	}
+	rec := do(e, http.MethodPost, "/core/conversation-flows", draft)
+	if rec.Code != http.StatusBadRequest || !anyContains(decode(t, rec).Errors, "version 1 of this flow already exists: use PUT /") {
+		t.Fatalf("second = %d %s", rec.Code, rec.Body)
+	}
+}
+
+func TestUpdateOntoAnExistingVersionIs400(t *testing.T) {
+	e := newTestServer(newMemStore(), true)
+	draft := strings.Replace(flowJSON, `"status":"active"`, `"status":"draft"`, 1)
+	do(e, http.MethodPost, "/core/conversation-flows", draft)
+	v2 := strings.Replace(draft, `"status":"draft"`, `"status":"draft","version":2`, 1)
+	id := decode(t, do(e, http.MethodPost, "/core/conversation-flows", v2)).Flow.ID
+	rec := do(e, http.MethodPut, "/core/conversation-flows/"+id, draft)
+	if rec.Code != http.StatusBadRequest || !anyContains(decode(t, rec).Errors, "version 1 of this flow already exists") {
+		t.Fatalf("collide = %d %s", rec.Code, rec.Body)
+	}
+	if rec := do(e, http.MethodPut, "/core/conversation-flows/"+id, v2); rec.Code != http.StatusOK {
+		t.Fatalf("same version = %d %s", rec.Code, rec.Body)
+	}
+}
+
+// pgUniqueViolation stands in for *pgconn.PgError, which exposes SQLState.
+type pgUniqueViolation struct{}
+
+func (pgUniqueViolation) Error() string {
+	return `ERROR: duplicate key value violates unique constraint "idx_conversation_flow_version" (SQLSTATE 23505)`
+}
+func (pgUniqueViolation) SQLState() string { return "23505" }
+
+type racingStore struct{ *memStore }
+
+func (racingStore) Create(context.Context, *Flow) error {
+	return fmt.Errorf("insert: %w", pgUniqueViolation{})
+}
+
+func TestResidualUniqueViolationIs409WithoutSQL(t *testing.T) {
+	rec := do(newTestServer(racingStore{newMemStore()}, true), http.MethodPost, "/core/conversation-flows", flowJSON)
+	if rec.Code != http.StatusConflict || strings.Contains(rec.Body.String(), "SQLSTATE") || strings.Contains(rec.Body.String(), "idx_") {
+		t.Fatalf("got %d %s", rec.Code, rec.Body)
 	}
 }
