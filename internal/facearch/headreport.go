@@ -12,22 +12,26 @@ type HeadReport struct {
 	// pixels may texture skin and the eyeballs, and so which vertices count as
 	// observed.
 	Segmenter HeadModelRef `json:"segmenter"`
-	// Parts lists the GLB primitives and what each claims. _OBSERVED > 0 at a
-	// vertex: a photo pixel of the right class (skin for skin, the eye region
-	// for eyeballs) saw it; 0: no photo saw it, or its pixel was hair, clothes,
-	// background or (for an eyeball) outside the eye opening. Textured parts
-	// carry photo colour on triangles whose vertices are all observed and,
-	// where fill applied, an estimated colour elsewhere; grey only where it
-	// did not. The cornea is geometry only (always 0).
+	// Parts lists the GLB primitives and what each claims. On skin and
+	// eyeball parts, _OBSERVED > 0 at a vertex: a photo pixel of the right
+	// class (skin for skin, the eye region for eyeballs) saw it; 0: no photo
+	// saw it, or its pixel was hair, clothes, background or (for an eyeball)
+	// outside the eye opening. On hair_* parts, _OBSERVED > 0 where a photo's
+	// hair/covering pixel saw the vertex. Textured parts carry photo colour on
+	// triangles whose vertices are all observed and, where fill applied, an
+	// estimated colour elsewhere; where it did not, grey (skin, eyeballs) or
+	// transparent (hair_*). The cornea is geometry only (always 0).
 	Parts []HeadPart `json:"parts"`
 	// Fill says, per filled part, whether its unseen region carries an
 	// estimated colour (diffused from the seen vertices toward the part's
 	// median tone) or stays grey, and why. Filled vertices keep _OBSERVED 0.
 	Fill []HeadFill `json:"fill"`
-	// Hair is the hair / head-covering geometry (parts hair_shell, hair_drape,
-	// hair_cards): fitted to the photos' head-top outlines, estimated where
-	// _OBSERVED is 0, without _SIGMA_MM, and never used for measurement.
-	// Reason is set only when Built is false; Source and Fill only when true.
+	// Hair is the hair / head-covering geometry (parts hair_shell, hair_drape
+	// when the drape is built, hair_cards): fitted to the photos' head-top
+	// outlines, estimated where _OBSERVED is 0, without _SIGMA_MM, and never
+	// used for measurement. Reason is set only when Built is false; Fill and
+	// StripsFill only when Built is true; Source whenever head-top pixels were
+	// seen (Built, or Reason "no_shell" / "not_converged").
 	Hair            HeadHair           `json:"hair"`
 	Correspondence  HeadCorrespondence `json:"correspondence"`
 	Camera          HeadCamera         `json:"camera"`
@@ -73,6 +77,12 @@ type HeadPart struct {
 // some single view); the minimum-fraction gate behind "too_few_observed"
 // counts AnchorVertices, not ObservedVertices. TotalVertices: all of the
 // part's welded vertices.
+//
+// Hair fills (HeadHair.Fill, HeadHair.StripsFill) differ: their counts are
+// over their own part's vertices (the shell's; the drape's and cards'), only
+// mask-interior seen vertices anchor them, and "too_few_observed" means fewer
+// than an absolute FACE_HEAD_HAIR_FILL_MIN_ANCHORS anchor vertices, not a
+// fraction of the part.
 type HeadFill struct {
 	Part             string      `json:"part"`
 	Applied          bool        `json:"applied"`
@@ -93,8 +103,10 @@ type HeadFill struct {
 // the GLB and the rest of the head is unchanged. Source ("hair", "covering" or
 // "both") is present whenever head-top pixels were seen: when Built, and with
 // "no_shell" or "not_converged". Fill is the shell atlas's colour fill;
-// DrapeFill the drape + cards atlas's, present only when that atlas was baked.
-// Both are gated by an absolute anchor count (FACE_HEAD_HAIR_FILL_MIN_ANCHORS).
+// StripsFill (part "hair_strips") the second atlas's, which holds the drape
+// when built and the cards, present only when that atlas was baked. Both are
+// gated by an absolute anchor count (FACE_HEAD_HAIR_FILL_MIN_ANCHORS).
+// DrapeDepthMm is present only when the drape was built.
 type HeadHair struct {
 	Built                 bool          `json:"built"`
 	Reason                string        `json:"reason,omitempty"`
@@ -104,9 +116,9 @@ type HeadHair struct {
 	ShellTotalVertices    int           `json:"shellTotalVertices"`
 	Drape                 HeadHairDrape `json:"drape"`
 	MaxThicknessMm        float64       `json:"maxThicknessMm"`
-	DrapeDepthMm          float64       `json:"drapeDepthMm"`
+	DrapeDepthMm          *float64      `json:"drapeDepthMm,omitempty"`
 	Fill                  *HeadFill     `json:"fill,omitempty"`
-	DrapeFill             *HeadFill     `json:"drapeFill,omitempty"`
+	StripsFill            *HeadFill     `json:"stripsFill,omitempty"`
 }
 
 // HeadHairDrape: DepthSource is "views" (side photos constrained it) or
