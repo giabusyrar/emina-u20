@@ -1,25 +1,39 @@
-package conversationflow
+package domain
 
 import (
 	"fmt"
 	"slices"
 	"sort"
 	"strings"
+
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/conversationflow/entity"
 )
+
+// engineInputs lists, per engine, the inputs a survey answer does not give it.
+// Colour's are the required form fields of POST /core/colour-engine/analyze.
+// Match takes none: it resolves its routine blueprint by brand code and its
+// strategy_id field is unused.
+var engineInputs = map[string][]string{
+	entity.EngineScore:            nil,
+	entity.EngineMatch:            nil,
+	entity.EngineVision:           nil,
+	entity.EngineFaceArchitecture: nil,
+	entity.EngineColour:           {"hijab", "hairVisible"},
+}
 
 // QuestionTypes maps each question name of a survey to its SurveyJS type.
 type QuestionTypes map[string]string
 
 // Normalize trims identifiers and canonicalises status (lowercase, default
 // draft) and version (default 1) before validation.
-func Normalize(f *Flow) {
+func Normalize(f *entity.Flow) {
 	f.BrandID = strings.TrimSpace(f.BrandID)
 	f.ApplicationID = strings.TrimSpace(f.ApplicationID)
 	f.SurveyCode = strings.TrimSpace(f.SurveyCode)
 	f.Locale = strings.TrimSpace(f.Locale)
 	f.Status = strings.ToLower(strings.TrimSpace(f.Status))
 	if f.Status == "" {
-		f.Status = StatusDraft
+		f.Status = entity.StatusDraft
 	}
 	if f.Version <= 0 {
 		f.Version = 1
@@ -28,14 +42,14 @@ func Normalize(f *Flow) {
 
 // Validate returns every reason f cannot be saved against a survey whose
 // questions are questions. It does no I/O.
-func Validate(f *Flow, questions QuestionTypes) []string {
+func Validate(f *entity.Flow, questions QuestionTypes) []string {
 	var errs []string
 	add := func(format string, args ...any) { errs = append(errs, fmt.Sprintf(format, args...)) }
 
 	if f.BrandID == "" || f.ApplicationID == "" || f.SurveyCode == "" {
 		add("brand_id, application_id and survey_code are required")
 	}
-	if !slices.Contains([]string{StatusDraft, StatusActive, StatusArchived}, f.Status) {
+	if !slices.Contains([]string{entity.StatusDraft, entity.StatusActive, entity.StatusArchived}, f.Status) {
 		add("status must be draft, active or archived, got %q", f.Status)
 	}
 	if f.Locale == "" {
@@ -44,8 +58,8 @@ func Validate(f *Flow, questions QuestionTypes) []string {
 	if strings.TrimSpace(f.Persona.Name) == "" {
 		add("persona.name is required")
 	}
-	if len(f.Steps) == 0 || f.Steps[0].Engine != EngineScore {
-		add("the first step must be %q", EngineScore)
+	if len(f.Steps) == 0 || f.Steps[0].Engine != entity.EngineScore {
+		add("the first step must be %q", entity.EngineScore)
 	}
 
 	seen := map[string]bool{}
@@ -83,7 +97,7 @@ func Validate(f *Flow, questions QuestionTypes) []string {
 	return errs
 }
 
-func validateInput(path string, in Input, questions QuestionTypes) []string {
+func validateInput(path string, in entity.Input, questions QuestionTypes) []string {
 	hasAnswer, hasValue := in.FromAnswer != "", in.Value != nil
 	if hasAnswer == hasValue {
 		return []string{path + ": set exactly one of from_answer or value"}

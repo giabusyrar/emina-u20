@@ -70,7 +70,11 @@ import (
 	faceProfile "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/profile"
 
 	// Conversation flows (read by apps/conversation-engine)
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/conversationflow"
+	flowControllers "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/conversationflow/adapters/controllers"
+	flowDomain "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/conversationflow/domain"
+	flowEntity "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/conversationflow/entity"
+	flowRepo "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/conversationflow/repository"
+	flowService "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/conversationflow/service"
 )
 
 const serviceName = "core-engine"
@@ -112,7 +116,7 @@ func run() error {
 		&faceProfile.FaceArchitectureProfile{},
 		&colourEntity.ShadeColorimetry{},
 		&assessment.Record{},
-		&conversationflow.Flow{},
+		&flowEntity.Flow{},
 	); err != nil {
 		deps.Log.Error("automigrate failed", "err", err)
 	}
@@ -197,17 +201,17 @@ func run() error {
 	)
 	// Conversation flows: which engines apps/conversation-engine runs after a
 	// survey. Read by it over HTTP; nothing here executes a flow.
-	flowHandler := conversationflow.NewHandler(conversationflow.NewService(
-		conversationflow.NewGormStore(db),
-		func(ctx context.Context, brandID, appID, code string) (conversationflow.QuestionTypes, error) {
+	flowHandler := flowControllers.NewHandler(flowService.NewService(
+		flowRepo.NewGormStore(db),
+		func(ctx context.Context, brandID, appID, code string) (flowDomain.QuestionTypes, error) {
 			m, err := fService.GetSurvey(ctx, brandID, appID, code)
 			if errors.Is(err, formDomain.ErrNotFound) {
-				return nil, conversationflow.ErrSurveyNotFound
+				return nil, flowService.ErrSurveyNotFound
 			}
 			if err != nil {
 				return nil, err
 			}
-			types := conversationflow.QuestionTypes{}
+			types := flowDomain.QuestionTypes{}
 			for _, q := range m.GetAllQuestions() {
 				types[q.Name] = q.Type
 			}
@@ -223,7 +227,7 @@ func run() error {
 		func(ctx context.Context, ref string) (string, error) {
 			b, err := brands.Resolve(ctx, ref)
 			if errors.Is(err, brand.ErrUnknown) || errors.Is(err, brand.ErrRequired) {
-				return "", fmt.Errorf("%w: %v", conversationflow.ErrUnknownBrand, err)
+				return "", fmt.Errorf("%w: %v", flowService.ErrUnknownBrand, err)
 			}
 			return b.ID, err
 		},

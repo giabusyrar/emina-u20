@@ -1,4 +1,4 @@
-package conversationflow
+package controllers
 
 import (
 	"errors"
@@ -8,11 +8,14 @@ import (
 	"github.com/labstack/echo/v4"
 
 	goplatform "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/platform"
+
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/conversationflow/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/conversationflow/service"
 )
 
-type Handler struct{ svc *Service }
+type Handler struct{ svc *service.Service }
 
-func NewHandler(svc *Service) *Handler { return &Handler{svc: svc} }
+func NewHandler(svc *service.Service) *Handler { return &Handler{svc: svc} }
 
 // Mount registers the flow routes on g.
 func (h *Handler) Mount(g *echo.Group) {
@@ -33,7 +36,7 @@ func (h *Handler) List(c echo.Context) error {
 		return fail(c, err)
 	}
 	if flows == nil {
-		flows = []Flow{}
+		flows = []entity.Flow{}
 	}
 	return c.JSON(http.StatusOK, map[string]any{"flows": flows})
 }
@@ -53,7 +56,7 @@ func (h *Handler) Active(c echo.Context) error {
 
 // Create handles POST with a Flow body.
 func (h *Handler) Create(c echo.Context) error {
-	var f Flow
+	var f entity.Flow
 	if err := c.Bind(&f); err != nil {
 		return goplatform.JSONError(c, http.StatusBadRequest, "invalid JSON: "+err.Error())
 	}
@@ -70,7 +73,7 @@ func (h *Handler) Update(c echo.Context) error {
 	if _, err := uuid.Parse(id); err != nil {
 		return goplatform.JSONError(c, http.StatusBadRequest, "id must be a UUID")
 	}
-	var f Flow
+	var f entity.Flow
 	if err := c.Bind(&f); err != nil {
 		return goplatform.JSONError(c, http.StatusBadRequest, "invalid JSON: "+err.Error())
 	}
@@ -82,15 +85,15 @@ func (h *Handler) Update(c echo.Context) error {
 }
 
 func fail(c echo.Context, err error) error {
-	var verr *ValidationError
+	var verr *service.ValidationError
 	switch {
 	case errors.As(err, &verr):
 		return goplatform.JSONValidationError(c, http.StatusBadRequest, verr.Errors)
-	case errors.Is(err, ErrNotFound):
+	case errors.Is(err, service.ErrNotFound):
 		return goplatform.JSONError(c, http.StatusNotFound, err.Error())
-	case errors.Is(err, ErrUnknownBrand):
+	case errors.Is(err, service.ErrUnknownBrand):
 		return goplatform.JSONError(c, http.StatusBadRequest, err.Error())
-	case errors.Is(err, ErrDuplicateVersion):
+	case errors.Is(err, service.ErrDuplicateVersion):
 		return goplatform.JSONError(c, http.StatusConflict, err.Error())
 	}
 	return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())

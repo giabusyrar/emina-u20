@@ -1,4 +1,4 @@
-package conversationflow
+package controllers
 
 import (
 	"context"
@@ -10,16 +10,20 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/conversationflow/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/conversationflow/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/conversationflow/service"
 )
 
 type memStore struct {
-	flows map[string]*Flow
+	flows map[string]*entity.Flow
 	n     int
 }
 
-func newMemStore() *memStore { return &memStore{flows: map[string]*Flow{}} }
+func newMemStore() *memStore { return &memStore{flows: map[string]*entity.Flow{}} }
 
-func (m *memStore) Get(_ context.Context, id string) (*Flow, error) {
+func (m *memStore) Get(_ context.Context, id string) (*entity.Flow, error) {
 	f, ok := m.flows[id]
 	if !ok {
 		return nil, nil
@@ -28,8 +32,8 @@ func (m *memStore) Get(_ context.Context, id string) (*Flow, error) {
 	return &c, nil
 }
 
-func (m *memStore) List(_ context.Context, brandID, appID string) ([]Flow, error) {
-	var out []Flow
+func (m *memStore) List(_ context.Context, brandID, appID string) ([]entity.Flow, error) {
+	var out []entity.Flow
 	for _, f := range m.flows {
 		if f.BrandID == brandID && f.ApplicationID == appID {
 			out = append(out, *f)
@@ -38,9 +42,9 @@ func (m *memStore) List(_ context.Context, brandID, appID string) ([]Flow, error
 	return out, nil
 }
 
-func (m *memStore) Active(_ context.Context, brandID, appID, code string) (*Flow, error) {
+func (m *memStore) Active(_ context.Context, brandID, appID, code string) (*entity.Flow, error) {
 	for _, f := range m.flows {
-		if f.BrandID == brandID && f.ApplicationID == appID && f.SurveyCode == code && f.Status == StatusActive {
+		if f.BrandID == brandID && f.ApplicationID == appID && f.SurveyCode == code && f.Status == entity.StatusActive {
 			c := *f
 			return &c, nil
 		}
@@ -48,7 +52,7 @@ func (m *memStore) Active(_ context.Context, brandID, appID, code string) (*Flow
 	return nil, nil
 }
 
-func (m *memStore) Version(_ context.Context, brandID, appID, code string, version int) (*Flow, error) {
+func (m *memStore) Version(_ context.Context, brandID, appID, code string, version int) (*entity.Flow, error) {
 	for _, f := range m.flows {
 		if f.BrandID == brandID && f.ApplicationID == appID && f.SurveyCode == code && f.Version == version {
 			c := *f
@@ -58,7 +62,7 @@ func (m *memStore) Version(_ context.Context, brandID, appID, code string, versi
 	return nil, nil
 }
 
-func (m *memStore) Create(_ context.Context, f *Flow) error {
+func (m *memStore) Create(_ context.Context, f *entity.Flow) error {
 	m.n++
 	f.ID = fmt.Sprintf("00000000-0000-0000-0000-%012d", m.n)
 	c := *f
@@ -66,26 +70,26 @@ func (m *memStore) Create(_ context.Context, f *Flow) error {
 	return nil
 }
 
-func (m *memStore) Update(_ context.Context, f *Flow) error {
+func (m *memStore) Update(_ context.Context, f *entity.Flow) error {
 	c := *f
 	m.flows[f.ID] = &c
 	return nil
 }
 
-func newTestServer(store Store, hasFaceProfile bool) *echo.Echo {
-	svc := NewService(store,
-		func(_ context.Context, _, _, code string) (QuestionTypes, error) {
+func newTestServer(store service.Store, hasFaceProfile bool) *echo.Echo {
+	svc := service.NewService(store,
+		func(_ context.Context, _, _, code string) (domain.QuestionTypes, error) {
 			if code != "skinverse_q1_q6" {
-				return nil, ErrSurveyNotFound
+				return nil, service.ErrSurveyNotFound
 			}
-			return QuestionTypes{"wears_hijab": "boolean"}, nil
+			return domain.QuestionTypes{"wears_hijab": "boolean"}, nil
 		},
 		func(context.Context, string, string) (bool, error) { return hasFaceProfile, nil },
 		func(_ context.Context, ref string) (string, error) {
 			if ref == "wardah" || ref == "brand-uuid-wardah" {
 				return "brand-uuid-wardah", nil
 			}
-			return "", fmt.Errorf("%w: %q", ErrUnknownBrand, ref)
+			return "", fmt.Errorf("%w: %q", service.ErrUnknownBrand, ref)
 		},
 	)
 	e := echo.New()
@@ -108,11 +112,11 @@ func do(e *echo.Echo, method, path, body string) *httptest.ResponseRecorder {
 }
 
 type reply struct {
-	Flow     Flow     `json:"flow"`
-	Flows    []Flow   `json:"flows"`
-	Warnings []string `json:"warnings"`
-	Errors   []string `json:"errors"`
-	Error    string   `json:"error"`
+	Flow     entity.Flow   `json:"flow"`
+	Flows    []entity.Flow `json:"flows"`
+	Warnings []string      `json:"warnings"`
+	Errors   []string      `json:"errors"`
+	Error    string        `json:"error"`
 }
 
 func decode(t *testing.T, rec *httptest.ResponseRecorder) reply {
@@ -142,7 +146,7 @@ func TestCreateWarnsWithoutFaceProfileAndServesActive(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("active = %d %s", rec.Code, rec.Body)
 	}
-	var f Flow
+	var f entity.Flow
 	if err := json.Unmarshal(rec.Body.Bytes(), &f); err != nil {
 		t.Fatal(err)
 	}
@@ -205,7 +209,7 @@ func TestUpdate(t *testing.T) {
 	}
 	archived := strings.Replace(flowJSON, `"status":"active"`, `"status":"archived"`, 1)
 	rec := do(e, http.MethodPut, "/core/conversation-flows/"+id, archived)
-	if rec.Code != http.StatusOK || decode(t, rec).Flow.Status != StatusArchived {
+	if rec.Code != http.StatusOK || decode(t, rec).Flow.Status != entity.StatusArchived {
 		t.Fatalf("archive = %d %s", rec.Code, rec.Body)
 	}
 	if rec := do(e, http.MethodGet, activePath, ""); rec.Code != http.StatusNotFound {
@@ -252,18 +256,12 @@ func TestUpdateOntoAnExistingVersionIs400(t *testing.T) {
 	}
 }
 
-// pgUniqueViolation stands in for *pgconn.PgError, which exposes SQLState.
-type pgUniqueViolation struct{}
-
-func (pgUniqueViolation) Error() string {
-	return `ERROR: duplicate key value violates unique constraint "idx_conversation_flow_version" (SQLSTATE 23505)`
-}
-func (pgUniqueViolation) SQLState() string { return "23505" }
-
+// racingStore loses a concurrent save: its Create reports what
+// repository.GormStore reports for a unique-index violation.
 type racingStore struct{ *memStore }
 
-func (racingStore) Create(context.Context, *Flow) error {
-	return fmt.Errorf("insert: %w", pgUniqueViolation{})
+func (racingStore) Create(context.Context, *entity.Flow) error {
+	return service.ErrDuplicateVersion
 }
 
 func TestResidualUniqueViolationIs409WithoutSQL(t *testing.T) {
@@ -271,4 +269,13 @@ func TestResidualUniqueViolationIs409WithoutSQL(t *testing.T) {
 	if rec.Code != http.StatusConflict || strings.Contains(rec.Body.String(), "SQLSTATE") || strings.Contains(rec.Body.String(), "idx_") {
 		t.Fatalf("got %d %s", rec.Code, rec.Body)
 	}
+}
+
+func anyContains(errs []string, want string) bool {
+	for _, e := range errs {
+		if strings.Contains(e, want) {
+			return true
+		}
+	}
+	return false
 }

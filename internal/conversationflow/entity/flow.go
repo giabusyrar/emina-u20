@@ -1,8 +1,8 @@
-// Package conversationflow stores which core engines a live conversation runs
+// Package entity holds the conversation flow model. Conversation flows store which core engines a live conversation runs
 // after a survey is completed, and how the advisor presents itself. The
 // conversation engine (apps/conversation-engine) reads the active flow over
 // HTTP; nothing in core-engine executes a flow.
-package conversationflow
+package entity
 
 import "time"
 
@@ -22,18 +22,6 @@ const (
 	EngineFaceArchitecture = "face_architecture"
 	EngineColour           = "colour"
 )
-
-// engineInputs lists, per engine, the inputs a survey answer does not give it.
-// Colour's are the required form fields of POST /core/colour-engine/analyze.
-// Match takes none: it resolves its routine blueprint by brand code and its
-// strategy_id field is unused.
-var engineInputs = map[string][]string{
-	EngineScore:            nil,
-	EngineMatch:            nil,
-	EngineVision:           nil,
-	EngineFaceArchitecture: nil,
-	EngineColour:           {"hijab", "hairVisible"},
-}
 
 // Input supplies one engine input: from a boolean survey answer, or a fixed value.
 type Input struct {
