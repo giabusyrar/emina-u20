@@ -11,8 +11,8 @@
 //
 // From the repository root (npm run seed:colour is the same command):
 //
-//	go run ./apps/core-engine/cmd/seed-colour-shades -csv path/to/vto_products.csv -brand <brandId>
-//	go run ./apps/core-engine/cmd/seed-colour-shades -csv apps/core-engine/seed/vto_products_demo.csv \
+//	go run ./cmd/seed-colour-shades -csv path/to/vto_products.csv -brand <brandId>
+//	go run ./cmd/seed-colour-shades -csv seed/vto_products_demo.csv \
 //	    -brand-map "Make Over=<brandId>,Wardah=<brandId>,OMG=<brandId>"
 //
 // CSV columns: kategori, produk, shade, hex, alpha, specular, mode, sumber;
@@ -46,13 +46,13 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/experience-gateway/apps/core-engine/internal/colour/adapters/workerclient"
-	colourDomain "github.com/experience-gateway/apps/core-engine/internal/colour/domain"
-	colourEntity "github.com/experience-gateway/apps/core-engine/internal/colour/entity"
-	"github.com/experience-gateway/apps/core-engine/internal/config"
-	matchEntity "github.com/experience-gateway/apps/core-engine/internal/match/entity"
-	"github.com/experience-gateway/apps/core-engine/internal/refcatalog"
-	"github.com/experience-gateway/packages/goplatform"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/adapters/workerclient"
+	colourDomain "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/domain"
+	colourEntity "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/config"
+	matchEntity "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
+	goplatform "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/platform"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/refcatalog"
 )
 
 // Shade.Region is lip | eye | cheek | skin (match domain + LiveTryOnCanvas).

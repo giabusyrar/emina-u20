@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/measureclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/profile"
 )
 
 // RunID derives a run id from everything that shapes a calibrated profile,

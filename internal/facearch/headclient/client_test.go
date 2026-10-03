@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/headclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/headclient"
 )
 
 func TestHead_SendsPartsAndReturnsBytesVerbatim(t *testing.T) {

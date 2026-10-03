@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/classify"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/guidance"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/traits"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/classify"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/guidance"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/measureclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/profile"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/traits"
 )
 
 // ProfileRef identifies the profile that produced a response.

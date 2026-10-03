@@ -9,9 +9,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/experience-gateway/apps/core-engine/internal/match/adapters/controllers"
-	"github.com/experience-gateway/apps/core-engine/internal/match/repository"
-	"github.com/experience-gateway/apps/core-engine/internal/match/service"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/controllers"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/repository"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/service"
 )
 
 func TestMatchEvaluateBadJSONKeepsEnvelope(t *testing.T) {

@@ -9,8 +9,8 @@ import (
 	"math"
 	"sort"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/measureclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/profile"
 )
 
 // Result statuses.

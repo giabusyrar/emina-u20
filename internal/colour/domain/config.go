@@ -17,7 +17,7 @@ const (
 	StatusDerived        = "derived"
 )
 
-// Config is apps/core-engine/config/wcpa.json. Every number the WCPA rules use
+// Config is config/wcpa.json. Every number the WCPA rules use
 // lives there, with the provenance tag it had in the notebook.
 type Config struct {
 	Version   string `json:"version"`

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/experience-gateway/apps/core-engine/internal/colour/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/domain"
 )
 
 // skinMatchSvc: the fake worker measures skin Lab {74.8, 8.55, 11.31}

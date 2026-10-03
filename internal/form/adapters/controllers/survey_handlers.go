@@ -11,10 +11,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/experience-gateway/apps/core-engine/internal/form/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/form/entity"
-	"github.com/experience-gateway/apps/core-engine/internal/form/service"
-	"github.com/experience-gateway/packages/goplatform"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/service"
+	goplatform "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/platform"
 )
 
 // AssessmentRecorder stores a successful evaluation as a customer assessment

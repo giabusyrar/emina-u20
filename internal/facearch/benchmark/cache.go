@@ -14,7 +14,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/measureclient"
 )
 
 // Outcomes of one image, from its cache record.

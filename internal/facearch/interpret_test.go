@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/classify"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/facearchtest"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/traits"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/classify"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/facearchtest"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/measureclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/profile"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/traits"
 )
 
 // testDoc's numbers are test inputs, not proposed values.

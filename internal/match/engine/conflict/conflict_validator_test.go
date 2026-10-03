@@ -3,9 +3,9 @@ package conflict_test
 import (
 	"testing"
 
-	"github.com/experience-gateway/apps/core-engine/internal/match/engine/conflict"
-	"github.com/experience-gateway/apps/core-engine/internal/match/engine/retrieval"
-	"github.com/experience-gateway/apps/core-engine/internal/match/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/engine/conflict"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/engine/retrieval"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
 )
 
 func TestConflictValidator_DetectsActiveCollisions(t *testing.T) {

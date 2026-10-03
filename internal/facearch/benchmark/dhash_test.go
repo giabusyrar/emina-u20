@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/benchmark"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/benchmark"
 )
 
 // gradient is w x h grey, brightness rising left to right (or falling when

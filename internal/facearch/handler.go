@@ -11,8 +11,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/measureclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/profile"
 )
 
 // Measurer is the ai-worker face-measure call (measureclient.Client).

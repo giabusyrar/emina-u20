@@ -9,13 +9,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/experience-gateway/apps/core-engine/internal/brand"
-	"github.com/experience-gateway/apps/core-engine/internal/match/adapters/objectstore"
-	"github.com/experience-gateway/apps/core-engine/internal/match/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/match/engine/decision"
-	"github.com/experience-gateway/apps/core-engine/internal/match/entity"
-	"github.com/experience-gateway/apps/core-engine/internal/match/service"
-	"github.com/experience-gateway/packages/goplatform"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/brand"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/objectstore"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/engine/decision"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/service"
+	goplatform "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/platform"
 )
 
 type MatchHandler struct {

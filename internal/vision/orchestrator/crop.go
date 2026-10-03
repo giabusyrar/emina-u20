@@ -7,7 +7,7 @@ import (
 	"image/png"
 	"math"
 
-	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/domain"
 )
 
 // minCropPixels: a crop narrower or shorter than this is not scored.

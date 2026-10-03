@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/experience-gateway/apps/core-engine/internal/brand"
-	"github.com/experience-gateway/apps/core-engine/internal/score/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/brand"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/domain"
 )
 
 // requestStatus is 400 for a request that cannot be served as sent (failed

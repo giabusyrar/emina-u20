@@ -3,7 +3,7 @@ package service
 import (
 	"regexp"
 
-	"github.com/experience-gateway/apps/core-engine/internal/form/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/domain"
 )
 
 var codePattern = regexp.MustCompile(`^[A-Za-z0-9]{1,10}$`)

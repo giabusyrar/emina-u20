@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/experience-gateway/apps/core-engine/internal/colour/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/domain"
 )
 
 func analyzeWith(t *testing.T, qc []string, enforce bool) (*AnalyzeResponse, error) {

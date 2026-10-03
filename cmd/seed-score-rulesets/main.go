@@ -1,5 +1,5 @@
 // One-time (idempotent) seeder that upserts the Skinverse Skin Character
-// ruleset from its checked-in JSON file (apps/core-engine/seed/) into
+// ruleset from its checked-in JSON file (seed/) into
 // score_rulesets — so this ruleset, including its hand-authored custom
 // decisionTableNodes (pore-band, sensitivity-subtype), exists somewhere
 // besides one developer's local Postgres. Safe to re-run: upserts by
@@ -17,9 +17,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/experience-gateway/apps/core-engine/internal/config"
-	"github.com/experience-gateway/apps/core-engine/internal/score/entity"
-	"github.com/experience-gateway/packages/goplatform"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/config"
+	goplatform "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/platform"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/entity"
 	"gorm.io/gorm"
 )
 
@@ -34,7 +34,7 @@ type rulesetSeed struct {
 }
 
 func main() {
-	seedPath := "apps/core-engine/seed/skinverse_skin_character.json"
+	seedPath := "seed/skinverse_skin_character.json"
 	if len(os.Args) > 1 {
 		seedPath = os.Args[1]
 	}

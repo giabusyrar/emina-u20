@@ -18,10 +18,10 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"github.com/experience-gateway/apps/core-engine/internal/match/adapters/objectstore"
-	"github.com/experience-gateway/apps/core-engine/internal/match/entity"
-	"github.com/experience-gateway/apps/core-engine/internal/match/repository"
-	"github.com/experience-gateway/apps/core-engine/internal/match/service"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/objectstore"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/repository"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/service"
 )
 
 type fakePresigner struct{ err error }

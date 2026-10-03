@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/experience-gateway/apps/core-engine/internal/score/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/score/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/entity"
 
-	formdomain "github.com/experience-gateway/apps/core-engine/internal/form/domain"
+	formdomain "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/domain"
 )
 
 // stubVisionProvider returns a fixed, incomplete flattened response — used

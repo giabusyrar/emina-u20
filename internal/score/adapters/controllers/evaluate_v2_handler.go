@@ -7,8 +7,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/experience-gateway/apps/core-engine/internal/score/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/score/service"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/service"
 )
 
 // EvaluateV2Handler serves the unified evaluate endpoint — :code is a

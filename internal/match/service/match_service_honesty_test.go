@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/experience-gateway/apps/core-engine/internal/brand"
-	"github.com/experience-gateway/apps/core-engine/internal/match/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/match/engine/decision"
-	"github.com/experience-gateway/apps/core-engine/internal/match/entity"
-	"github.com/experience-gateway/apps/core-engine/internal/match/repository"
-	"github.com/experience-gateway/apps/core-engine/internal/match/service"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/brand"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/engine/decision"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/repository"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/service"
 )
 
 // A request missing what match diagnoses from is refused, never filled in.

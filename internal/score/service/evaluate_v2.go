@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/experience-gateway/apps/core-engine/internal/score/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/score/entity"
-	"github.com/experience-gateway/apps/core-engine/internal/score/jdm"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/jdm"
 
-	formdomain "github.com/experience-gateway/apps/core-engine/internal/form/domain"
+	formdomain "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/domain"
 )
 
 func round1(x float64) float64 { return math.Round(x*10.0) / 10.0 }

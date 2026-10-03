@@ -6,8 +6,8 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/experience-gateway/apps/core-engine/internal/colour/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/colour/service"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/service"
 )
 
 // Repo reads catalog shades joined with their colorimetry and their product in ref_products.

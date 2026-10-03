@@ -9,9 +9,9 @@ import (
 	"context"
 	"fmt"
 
-	scoredomain "github.com/experience-gateway/apps/core-engine/internal/score/domain"
+	scoredomain "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/domain"
 
-	"github.com/experience-gateway/apps/core-engine/internal/form/adapters/visionclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/adapters/visionclient"
 )
 
 // ParadevCode is this provider's vision_source_code — matched against a

@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/profile"
 )
 
 // What a label-map attribute is compared with.

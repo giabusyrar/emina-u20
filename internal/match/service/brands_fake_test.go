@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/experience-gateway/apps/core-engine/internal/brand"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/brand"
 )
 
 // fakeBrands resolves the brands the in-memory test catalogue uses. Their

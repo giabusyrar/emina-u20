@@ -3,7 +3,7 @@ package entity_test
 import (
 	"testing"
 
-	"github.com/experience-gateway/apps/core-engine/internal/form/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/entity"
 )
 
 func TestSurveyDefinitionTableName(t *testing.T) {

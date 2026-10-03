@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/experience-gateway/apps/core-engine/internal/form/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/form/service"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/service"
 )
 
 type mockSurveyProvider struct {

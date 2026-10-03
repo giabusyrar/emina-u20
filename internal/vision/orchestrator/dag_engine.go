@@ -14,10 +14,10 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/experience-gateway/apps/core-engine/internal/vision/catalog"
-	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/vision/inference"
-	"github.com/experience-gateway/apps/core-engine/internal/vision/workers"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/catalog"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/inference"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/workers"
 )
 
 // Segmenter locates facial zones and head pose in one image.

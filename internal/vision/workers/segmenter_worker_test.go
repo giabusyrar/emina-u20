@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/vision/workers"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/workers"
 )
 
 func createTestImage() image.Image {

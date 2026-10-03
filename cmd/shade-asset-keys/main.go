@@ -21,8 +21,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/experience-gateway/apps/core-engine/internal/config"
-	"github.com/experience-gateway/packages/goplatform"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/config"
+	goplatform "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/platform"
 )
 
 func main() {

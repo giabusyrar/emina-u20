@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/experience-gateway/packages/goplatform"
+	goplatform "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/platform"
 )
 
 // Defaults for core-engine's tunables. Each is the literal that sat at the
@@ -71,7 +71,7 @@ const (
 	DefaultColourWorkerURL = "http://127.0.0.1:8092"
 	// Relative to the repository root, where the npm scripts run core-engine;
 	// the Docker image sets WCPA_CONFIG_PATH instead (Dockerfile).
-	DefaultWCPAConfigPath = "apps/core-engine/config/wcpa.json"
+	DefaultWCPAConfigPath = "config/wcpa.json"
 	// Measurement and render run MediaPipe and numpy on the worker's CPU: a few
 	// seconds per photo, several times that on a slow laptop.
 	DefaultColourWorkerTimeout = 60 * time.Second

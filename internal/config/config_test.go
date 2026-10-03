@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/experience-gateway/apps/core-engine/internal/config"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/config"
 )
 
 var tunables = []string{"FORM_CACHE_TTL", "SCORE_CACHE_TTL", "MATCH_CACHE_TTL", "VISION_CATALOG_TTL",
@@ -95,7 +95,7 @@ func TestFromEnv_ColourDefaults(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.ColourWorkerURL != "http://127.0.0.1:8092" || cfg.WCPAConfigPath != "apps/core-engine/config/wcpa.json" {
+	if cfg.ColourWorkerURL != "http://127.0.0.1:8092" || cfg.WCPAConfigPath != "config/wcpa.json" {
 		t.Errorf("ColourWorkerURL=%q WCPAConfigPath=%q", cfg.ColourWorkerURL, cfg.WCPAConfigPath)
 	}
 	if cfg.ColourWorkerTimeout != 60*time.Second || cfg.ColourMaxImageBytes != 15<<20 || cfg.ColourDebugEnabled {
@@ -104,7 +104,7 @@ func TestFromEnv_ColourDefaults(t *testing.T) {
 	}
 	// The default config path is relative to the repository root; the file
 	// must be there.
-	if _, err := os.Stat(filepath.Join("..", "..", "..", "..", config.DefaultWCPAConfigPath)); err != nil {
+	if _, err := os.Stat(filepath.Join("..", "..", config.DefaultWCPAConfigPath)); err != nil {
 		t.Errorf("DefaultWCPAConfigPath does not name the WCPA config: %v", err)
 	}
 }

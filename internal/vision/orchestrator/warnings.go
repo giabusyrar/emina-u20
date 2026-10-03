@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/experience-gateway/apps/core-engine/internal/vision/catalog"
-	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/catalog"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/domain"
 )
 
 const (

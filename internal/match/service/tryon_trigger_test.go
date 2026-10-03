@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/experience-gateway/apps/core-engine/internal/match/entity"
-	"github.com/experience-gateway/apps/core-engine/internal/match/repository"
-	"github.com/experience-gateway/apps/core-engine/internal/match/service"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/repository"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/service"
 )
 
 func TestTriggerShadeExtractionUsesConfiguredURL(t *testing.T) {

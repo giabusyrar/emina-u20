@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/facearchtest"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/guidance"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/facearchtest"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/guidance"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/measureclient"
 )
 
 // syntheticFace puts every landmark at (400, 300) except the eye corners,
@@ -56,7 +56,7 @@ func TestFrame_KnownGeometry(t *testing.T) {
 // recorded landmarks. Expected values were printed by the worker on
 // 2026-09-29 (repository root):
 //
-//	PYTHONPATH=apps/workers/face python -c "import json, numpy as np; from worker_face.facegeom.frame import canonicalise; d = json.load(open('apps/core-engine/internal/facearch/facearchtest/testdata/measure_fixture_face.json')); f = canonicalise(np.array(d['landmarks'], float)); print(repr(f.iod_px), [f.points[i].tolist() for i in (1, 152, 234, 454, 10)])"
+//	PYTHONPATH=apps/workers/face python -c "import json, numpy as np; from worker_face.facegeom.frame import canonicalise; d = json.load(open('internal/facearch/facearchtest/testdata/measure_fixture_face.json')); f = canonicalise(np.array(d['landmarks'], float)); print(repr(f.iod_px), [f.points[i].tolist() for i in (1, 152, 234, 454, 10)])"
 func TestFrame_AgreesWithWorkerOnFixture(t *testing.T) {
 	l := facearchtest.FixtureFace().Landmarks
 	f, err := guidance.NewFrame(l)

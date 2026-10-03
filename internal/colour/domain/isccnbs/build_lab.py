@@ -8,7 +8,7 @@ Munsell -> xyY (C) -> XYZ -> Bradford adaptation C -> D65 -> CIELAB (D65).
 Run from the repository root with colour-science installed (the colour
 worker's dependency); the output is committed, so core-engine never runs it:
 
-    python apps/core-engine/internal/colour/domain/isccnbs/build_lab.py
+    python internal/colour/domain/isccnbs/build_lab.py
 """
 
 import csv

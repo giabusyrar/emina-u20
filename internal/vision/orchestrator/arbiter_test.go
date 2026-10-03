@@ -3,10 +3,10 @@ package orchestrator_test
 import (
 	"testing"
 
-	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/vision/orchestrator"
-	"github.com/experience-gateway/apps/core-engine/internal/vision/workers"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/orchestrator"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/workers"
 )
 
 func winners(candidates ...workers.SegmentedZone) map[string]workers.SegmentedZone {

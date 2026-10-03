@@ -9,8 +9,8 @@ import (
 	"math"
 	"sort"
 
-	"github.com/experience-gateway/apps/core-engine/internal/colour/adapters/workerclient"
-	"github.com/experience-gateway/apps/core-engine/internal/colour/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/adapters/workerclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/domain"
 )
 
 // Candidate is a catalog shade plus its render parameters.

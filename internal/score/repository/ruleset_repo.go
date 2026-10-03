@@ -7,8 +7,8 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/experience-gateway/apps/core-engine/internal/score/adapters/cache"
-	"github.com/experience-gateway/apps/core-engine/internal/score/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/adapters/cache"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/entity"
 )
 
 type RulesetRepository interface {

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/experience-gateway/apps/core-engine/internal/match/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/domain"
 )
 
 // ErrNoBlueprint: the brand has no routine blueprint. Evaluate refuses

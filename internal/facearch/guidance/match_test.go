@@ -5,10 +5,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/classify"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/guidance"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/traits"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/classify"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/guidance"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/profile"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/traits"
 )
 
 func shape(status, primary, secondary string) guidance.Evidence {

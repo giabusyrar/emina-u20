@@ -1,4 +1,4 @@
-module github.com/experience-gateway/apps/core-engine
+module gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine
 
 go 1.25.0
 
@@ -6,7 +6,6 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.47.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.20.6
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.113.4
-	github.com/experience-gateway/packages/goplatform v0.0.0
 	github.com/google/uuid v1.6.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/redis/go-redis/v9 v9.7.1
@@ -50,5 +49,3 @@ require (
 	golang.org/x/time v0.11.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/experience-gateway/packages/goplatform => ../../packages/goplatform

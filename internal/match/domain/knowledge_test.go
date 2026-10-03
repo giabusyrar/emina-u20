@@ -3,7 +3,7 @@ package domain_test
 import (
 	"testing"
 
-	"github.com/experience-gateway/apps/core-engine/internal/match/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/domain"
 )
 
 func TestRelationalKnowledgeTypes(t *testing.T) {

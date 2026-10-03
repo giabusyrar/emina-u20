@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/classify"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/traits"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/classify"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/traits"
 )
 
 // Slices every coverage and agreement figure is split by.

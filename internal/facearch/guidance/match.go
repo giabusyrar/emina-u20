@@ -1,9 +1,9 @@
 package guidance
 
 import (
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/classify"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/profile"
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/traits"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/classify"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/profile"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/traits"
 )
 
 // Evidence is what rules match on: the response's classifications and

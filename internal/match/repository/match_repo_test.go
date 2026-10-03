@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/experience-gateway/apps/core-engine/internal/match/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
 )
 
 func TestShadeCRUD_InMemory(t *testing.T) {

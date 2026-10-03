@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/experience-gateway/apps/core-engine/internal/match/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/match/engine/decision"
-	"github.com/experience-gateway/apps/core-engine/internal/match/engine/retrieval"
-	"github.com/experience-gateway/apps/core-engine/internal/match/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/engine/decision"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/engine/retrieval"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
 )
 
 func TestHybridMatcher_FilterContraindicationsAndRank(t *testing.T) {

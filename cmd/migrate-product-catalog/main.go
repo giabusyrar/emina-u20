@@ -6,8 +6,8 @@
 // Run once per database, after reference-service has started against it (its
 // AutoMigrate creates the ref tables), with -dry-run first:
 //
-//	go run ./apps/core-engine/cmd/migrate-product-catalog -dry-run
-//	go run ./apps/core-engine/cmd/migrate-product-catalog
+//	go run ./cmd/migrate-product-catalog -dry-run
+//	go run ./cmd/migrate-product-catalog
 //
 // Categories and textures are created from the old text columns (code = the
 // text lower-cased). Ingredient names are matched against ref_ingredients;
@@ -26,9 +26,9 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/experience-gateway/apps/core-engine/internal/config"
-	"github.com/experience-gateway/apps/core-engine/internal/refcatalog"
-	"github.com/experience-gateway/packages/goplatform"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/config"
+	goplatform "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/platform"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/refcatalog"
 )
 
 type oldProduct struct {

@@ -5,7 +5,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/measureclient"
 )
 
 // Problem is one validation failure at a document path.

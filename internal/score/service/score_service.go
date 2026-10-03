@@ -9,13 +9,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/experience-gateway/apps/core-engine/internal/brand"
-	"github.com/experience-gateway/apps/core-engine/internal/score/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/score/entity"
-	"github.com/experience-gateway/apps/core-engine/internal/score/jdm"
-	"github.com/experience-gateway/apps/core-engine/internal/score/repository"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/brand"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/jdm"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/repository"
 
-	formdomain "github.com/experience-gateway/apps/core-engine/internal/form/domain"
+	formdomain "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/domain"
 )
 
 // The 0-100 score is HEALTH-oriented: 100 = optimal, 0 = critical. Per-dimension

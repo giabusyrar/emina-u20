@@ -3,8 +3,8 @@ package domain_test
 import (
 	"testing"
 
-	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/domain"
 )
 
 func TestValidateRequest_NoImages(t *testing.T) {

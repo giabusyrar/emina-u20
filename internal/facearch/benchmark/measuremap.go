@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/measureclient"
 )
 
 // RatioPrefix marks a results.csv attribute holding a vendor's number

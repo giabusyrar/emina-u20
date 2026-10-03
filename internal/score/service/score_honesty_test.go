@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/experience-gateway/apps/core-engine/internal/brand"
-	"github.com/experience-gateway/apps/core-engine/internal/score/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/score/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/brand"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/entity"
 )
 
 // An empty request used to score 0 and come back "Sangat Parah" /

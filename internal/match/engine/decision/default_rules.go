@@ -1,6 +1,6 @@
 package decision
 
-import "github.com/experience-gateway/apps/core-engine/internal/match/domain"
+import "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/domain"
 
 // DefaultIngredientConditions contains clinical contraindications and recommendations
 var DefaultIngredientConditions = []domain.IngredientConditionRelation{

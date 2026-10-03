@@ -6,13 +6,13 @@ import (
 	"io"
 	"time"
 
-	"github.com/experience-gateway/apps/core-engine/internal/brand"
-	"github.com/experience-gateway/apps/core-engine/internal/form/adapters/cache"
-	"github.com/experience-gateway/apps/core-engine/internal/form/adapters/scoreengine"
-	"github.com/experience-gateway/apps/core-engine/internal/form/adapters/visionclient"
-	"github.com/experience-gateway/apps/core-engine/internal/form/domain"
-	"github.com/experience-gateway/apps/core-engine/internal/form/entity"
-	"github.com/experience-gateway/apps/core-engine/internal/form/repository"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/brand"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/adapters/cache"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/adapters/scoreengine"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/adapters/visionclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/repository"
 )
 
 // ScoreEngine is what the Form Engine needs from the Score Module: resolve a

@@ -31,7 +31,7 @@ import (
 	_ "embed"
 	"encoding/json"
 
-	"github.com/experience-gateway/apps/core-engine/internal/facearch/measureclient"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/measureclient"
 )
 
 //go:embed testdata/catalogue_fa-measure-1.json
