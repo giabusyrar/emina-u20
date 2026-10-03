@@ -6,9 +6,9 @@
 #   docker compose up -d --build
 #
 # Other services are reached by their service names on that network
-# (core-engine:8082, worker-models:8096, … — seagull-core-engine docs/PORTS.md).
-# Start order across repositories is not expressed here: workers wait for
-# worker-models when fetching assets (MODEL_ASSET_FETCH_WAIT_SECONDS).
+# (core-engine:8082, worker-skin:8088, … — seagull-core-engine docs/PORTS.md).
+# Start order across repositories is not expressed here; each worker's models
+# are part of its image.
 
 services:
   core-engine:
