@@ -1,0 +1,126 @@
+# Split seagull-core into one repository per service — design (sub-project 1)
+
+Date: 2026-10-03
+Status: draft for user review
+Decided in chat: one repo per deployed service (option A), shared libraries as
+their own repos published as versioned packages, each repo deploys with its own
+compose file (option B), history preserved with `git filter-repo`, the user
+creates the GitLab projects and pushes. Sub-project 2 (a Next.js simulator per
+repo, built on the published web packages) follows separately.
+
+## Repositories
+
+Built as local git repositories under
+`C:/Users/GiaBusyraRabbani/Documents/Paragon/seagull-repos/`, one folder each,
+to be pushed by the user to the same GitLab group as seagull-core
+(`gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/`).
+
+| Repo | From seagull-core | Kind |
+|---|---|---|
+| `seagull-core-engine` | `apps/core-engine` | Go service :8082 |
+| `seagull-reference-service` | `apps/reference-service` | Go service :8086 |
+| `seagull-worker-skin` | `apps/workers/skin` | Python worker :8088 |
+| `seagull-worker-models` | `apps/workers/models` | Python worker :8096 (model registry + assets) |
+| `seagull-worker-face` | `apps/workers/face` | Python worker :8094 |
+| `seagull-worker-colour` | `apps/workers/colour` | Python worker :8092 |
+| `seagull-worker-tryon` | `apps/workers/tryon` | Python worker :8090 |
+| `seagull-conversation-engine` | `apps/conversation-engine` | Python service (owned by the Live agent session; split only with its owner's agreement) |
+| `seagull-goplatform` | `packages/goplatform` | Go library |
+| `seagull-worker-common` | `apps/workers/common` | Python library |
+
+Not carried over: `apps/ai-worker` (untracked leftover), `RAILWAY.md`,
+`railway.json` (Railway is no longer used), `node_modules`, `go.work*`.
+
+## History
+
+Each repo is a fresh clone of seagull-core filtered with `git filter-repo`
+(installed with `pip install git-filter-repo`): keep the service's path and the
+docs/specs that are only about it, and move the service's path to the repo
+root (`--path apps/workers/skin/ --path-rename apps/workers/skin/:`). Commits
+that touched other paths drop out; messages, authors and dates stay. The
+original seagull-core is untouched until cut-over.
+
+## Layout of a service repo
+
+```
+<repo>/
+  <service code at the root>      # Go module or Python package, tests
+  Dockerfile                      # builds from this repo only
+  docker-compose.yml              # this service, joins the external `seagull` network
+  compose.vps.example.yml         # VPS override: bind to 127.0.0.1:<port>
+  .env.example                    # only the variables this service reads
+  .gitlab-ci.yml                  # lint + tests (+ image build check)
+  AGENTS.md / CLAUDE.md           # ground rules (copied) + repo-specific notes
+  README.md                       # what it is, run, test, deploy, API summary
+  docs/                           # docs that belong to this service
+```
+
+- The `seagull` network is external and created once per host
+  (`docker network create seagull`); every repo's compose joins it, so services
+  keep reaching each other by name (`core-engine:8082`, `worker-models:8096`).
+- Cross-repo start order is not expressed in compose. Workers already wait for
+  worker-models when fetching assets (`MODEL_ASSET_FETCH_WAIT_SECONDS`).
+- Ports stay as in `docs/PORTS.md`.
+
+## Shared libraries
+
+**seagull-goplatform** — Go module
+`gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-goplatform`,
+tagged `v0.1.0`. core-engine and reference-service `require` it by version.
+- Private module access: `GOPRIVATE=gitlab.com/paragon-is/*` and a GitLab
+  token in `~/.netrc` (developers, CI, VPS build). GitLab serves `go get`
+  metadata for nested groups to authenticated clients; if that fails, the
+  module path takes a `.git` suffix — decided at implementation after a test.
+- Until the user pushes, each Go repo's `go.mod` carries a temporary
+  `replace ... => ../seagull-goplatform` so it builds locally; removed once the
+  tag exists.
+
+**seagull-worker-common** — Python package `seagull-worker-common`
+(import name stays `worker_common`), version `0.1.0`, published to the
+project's GitLab PyPI registry by CI on a tag. Workers depend on
+`seagull-worker-common>=0.1,<0.2`.
+- Docker builds and CI install it with a read-only deploy token passed as a
+  build secret (`--extra-index-url`), never baked into an image layer.
+- Until published, local development installs it editable from
+  `../seagull-worker-common`.
+
+## Documentation
+
+- Cross-cutting docs (`PORTS.md`, `SHARED-DATABASE.md`, `MODEL-REGISTRY.md`,
+  `LANES.md` protocol, `SPLIT.md`) go to `seagull-core-engine/docs/` as the
+  system reference, and every other repo's README links there. Service docs go
+  with their service (e.g. `FACE-HEAD.md` → worker-face, `TRYON.md` →
+  worker-tryon, `PCA-VTO-CONTRACT.md` → core-engine and worker-colour).
+- `AGENTS.md` ground rules are copied into each repo unchanged; the
+  repo-specific part names the repo's lane and the other repos.
+- seagull-core gets a final commit: README "archived — moved to …" with the
+  repo table; it stays read-only.
+
+## Deployment (VPS)
+
+Each repo is checked out at `~/seagull/<repo>` and deployed with its own
+`docker compose -f docker-compose.yml -f compose.vps.yml up -d --build`.
+Cut-over, once the user has pushed: create the `seagull` network if missing →
+stop the old seagull-core stack service by service, starting the new repo's
+service in its place (same container name, same port, same volumes:
+`model-cache`) → smoke tests as in previous deploys. Rollback: the old
+`~/seagull-core` stack stays on disk until the user retires it.
+
+## Order
+
+1. Libraries: goplatform, worker-common (others depend on them).
+2. Go services: core-engine, reference-service.
+3. Workers: models, skin, face, colour, tryon.
+4. conversation-engine, after its owner agrees.
+5. seagull-core archive commit.
+6. After the user pushes: tag/publish the libraries, drop the temporary
+   local `replace`/editable installs, VPS cut-over.
+
+Each repo is verified locally before hand-off: its tests pass, its Docker
+image builds, `docker compose config` is valid where Docker is available
+(otherwise on the VPS), and `git log` shows its filtered history.
+
+## Out of scope
+
+Simulators (sub-project 2); changing service code beyond import paths,
+Dockerfiles and config; seagull-web and seagull-gateway.
