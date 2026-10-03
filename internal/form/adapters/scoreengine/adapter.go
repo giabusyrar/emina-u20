@@ -26,15 +26,8 @@ type Scorer interface {
 	GetActiveRuleset(ctx context.Context, brandID, appID, code string) (*entity.ScoreRuleset, error)
 }
 
-// Ruleset is the subset of a score ruleset the Form Engine reads: enough to
-// find a survey's ruleset and read field_mapping/dimension_fusion out of its
-// Schema, without depending on score's entity package.
-type Ruleset struct {
-	ID     string
-	Code   string
-	Status string
-	Schema string
-}
+// Ruleset is the form domain's view of a score ruleset.
+type Ruleset = formdomain.Ruleset
 
 type Adapter struct {
 	scorer  Scorer

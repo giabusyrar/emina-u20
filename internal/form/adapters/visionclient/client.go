@@ -40,30 +40,12 @@ func New(gatewayURL, apiKey string, timeout time.Duration) *Client {
 	}
 }
 
-// Submission is what the caller already has in hand before it can ask
-// Paradev anything: the applicant's personal data (consent already
-// collected) and their photo(s).
-type Submission struct {
-	FullName              string
-	PhoneNumber           string
-	Email                 string
-	DateOfBirth           string // YYYY-MM-DD
-	ConsentDataProcessing bool
-	ConsentMarketing      bool
-	Image                 io.Reader
-	ImageFilename         string
-}
-
-// Result is the vendor's response, reduced to what the rest of the
-// orchestration needs: every numeric leaf value the vendor returned,
-// flattened by its full dot-path from the response root (matching how
-// field_mapping's vision codes are recorded — e.g.
-// "inference_result.results.skin_scoring.Pores"), plus a trace id for support.
-type Result struct {
-	Flattened     map[string]float64
-	TransactionID string
-	Raw           map[string]interface{}
-}
+// Submission and Result are the form domain's vision types; the aliases keep
+// this client's own vocabulary for its callers.
+type (
+	Submission = domain.VisionSubmission
+	Result     = domain.VisionResult
+)
 
 // These four fields are configured as "static" in the Paradev route's own
 // Route Settings (Seagull gateway-engine) — for a JSON body the gateway

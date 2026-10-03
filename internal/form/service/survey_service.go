@@ -7,28 +7,44 @@ import (
 	"time"
 
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/brand"
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/adapters/cache"
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/adapters/scoreengine"
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/adapters/visionclient"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/domain"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/entity"
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/repository"
 )
 
 // ScoreEngine is what the Form Engine needs from the Score Module: resolve a
 // survey's ruleset and score an assembled payload. In the running service it
 // is scoreengine.Adapter, an in-process call into score's ScoreService.
 type ScoreEngine interface {
-	ListRulesets(ctx context.Context, brandID, appID string) ([]scoreengine.Ruleset, error)
-	GetActiveRuleset(ctx context.Context, brandID, appID, code string) (*scoreengine.Ruleset, error)
+	ListRulesets(ctx context.Context, brandID, appID string) ([]domain.Ruleset, error)
+	GetActiveRuleset(ctx context.Context, brandID, appID, code string) (*domain.Ruleset, error)
 	Evaluate(ctx context.Context, req domain.ScoreModuleRequest) (*domain.ScoreModuleResponse, error)
 }
 
+// SurveyStore persists survey definitions; repository.SurveyRepo implements it.
+type SurveyStore interface {
+	GetActive(ctx context.Context, brandID, applicationID, code string) (*entity.SurveyDefinition, error)
+	List(ctx context.Context, brandID, applicationID string) ([]entity.SurveyDefinition, error)
+	Save(ctx context.Context, survey *entity.SurveyDefinition) error
+}
+
+// SurveyCache caches parsed surveys; cache.SurveyCache implements it.
+type SurveyCache interface {
+	Get(ctx context.Context, brandID, applicationID, code string) (*domain.SurveyModel, bool)
+	Set(ctx context.Context, brandID, applicationID, code string, s *domain.SurveyModel)
+	Invalidate(ctx context.Context, brandID, applicationID, code string)
+}
+
+// VisionClient submits a photo to the vision vendor; visionclient.Client
+// implements it.
+type VisionClient interface {
+	Submit(ctx context.Context, sub domain.VisionSubmission) (*domain.VisionResult, error)
+}
+
 type SurveyService struct {
-	repo         *repository.SurveyRepo
-	cache        *cache.SurveyCache
+	repo         SurveyStore
+	cache        SurveyCache
 	scoreClient  ScoreEngine
-	visionClient *visionclient.Client
+	visionClient VisionClient
 	brands       BrandResolver
 }
 
@@ -59,7 +75,10 @@ func (s *SurveyService) surveyBrand(ctx context.Context, ref string) (string, er
 	return b.Code, nil
 }
 
-func NewSurveyService(repo *repository.SurveyRepo, cache *cache.SurveyCache, scoreClient ScoreEngine, visionClient *visionclient.Client) *SurveyService {
+// NewSurveyService wires the service. A nil repo, cache or visionClient
+// disables that dependency, as it always has; pass an untyped nil, not a nil
+// pointer, since a typed nil pointer makes a non-nil interface.
+func NewSurveyService(repo SurveyStore, cache SurveyCache, scoreClient ScoreEngine, visionClient VisionClient) *SurveyService {
 	return &SurveyService{
 		repo:         repo,
 		cache:        cache,
@@ -317,7 +336,7 @@ func (s *SurveyService) EvaluateWithPhotos(ctx context.Context, code string, req
 	if s.visionClient == nil {
 		return nil, fmt.Errorf("%w: vision client not configured", domain.ErrVisionUnavailable)
 	}
-	visionResult, err := s.visionClient.Submit(ctx, visionclient.Submission{
+	visionResult, err := s.visionClient.Submit(ctx, domain.VisionSubmission{
 		FullName:              req.FullName,
 		PhoneNumber:           req.PhoneNumber,
 		Email:                 req.Email,
