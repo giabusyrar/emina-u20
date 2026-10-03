@@ -14,7 +14,7 @@ services from two repos still collide on the same machine.
 | 8090 | worker-tryon | Seagull-core |
 | 8092 | worker-colour | Seagull-core |
 | 8094 | worker-face | Seagull-core |
-| 8096 | worker-models | Seagull-core |
+| 8096 | **retired 2026-10-03 (model registry removed)**  worker-models | Seagull-core |
 | 8098 | conversation-engine | Seagull-core |
 | 9080 | APISIX (data plane) | Seagull-gateway |
 | 9180 | APISIX (Admin API) | Seagull-gateway |

@@ -40,8 +40,6 @@ const (
 	// DefaultFaceWorkerURL is the face worker's port in docs/PORTS.md.
 	DefaultFaceWorkerURL     = "http://127.0.0.1:8094"
 	DefaultParadevGatewayURL = "http://127.0.0.1:9080/paradev/scoring"
-	// DefaultModelServerURL is the model server's port in docs/PORTS.md.
-	DefaultModelServerURL = "http://127.0.0.1:8096"
 )
 
 // DefaultFaceMeasureTimeout bounds one synchronous ai-worker face-measure
@@ -106,11 +104,14 @@ type Config struct {
 	Port                string
 	ReferenceServiceURL string
 	// SkinWorkerURL is apps/workers/skin (segment-and-pose);
-	// ModelServerURL is apps/workers/models (model registry, capability dispatch);
+	// VisionCapabilityURL is the worker that scores skin conditions on zone
+	// crops (POST /api/v1/models/dispatch-zones). Empty means none: the model
+	// registry (worker-models) was removed and no worker serves a capability
+	// yet, so every planned capability is reported unscored, never invented.
 	// FaceWorkerURL is apps/workers/face (face-measure, face architecture).
-	SkinWorkerURL  string
-	ModelServerURL string
-	FaceWorkerURL  string
+	SkinWorkerURL       string
+	VisionCapabilityURL string
+	FaceWorkerURL       string
 	// ParadevGatewayURL/APIKey reach the Paradev Skin Analyzer vendor call
 	// through our own gateway (its route already injects the vendor's own
 	// secret). core-engine only needs its own gateway collection key, never
@@ -165,6 +166,9 @@ func Load() (*Config, error) {
 
 // FromEnv reads the process environment only.
 func FromEnv() (*Config, error) {
+	if goplatform.First("MODEL_SERVER_URL") != "" {
+		return nil, errors.New("MODEL_SERVER_URL was removed with the model registry (worker-models): unset it; set VISION_CAPABILITY_URL only for a worker that serves dispatch-zones")
+	}
 	if goplatform.First("VISION_AI_WORKER_URL") != "" {
 		return nil, errors.New("VISION_AI_WORKER_URL was removed: set SKIN_WORKER_URL (segment-and-pose, model dispatch) and FACE_WORKER_URL (face-measure) instead")
 	}
@@ -178,7 +182,7 @@ func FromEnv() (*Config, error) {
 		Port:                 goplatform.Port("CORE_ENGINE_PORT", "PORT", DefaultPort),
 		ReferenceServiceURL:  firstOr("REFERENCE_SERVICE_URL", DefaultReferenceServiceURL),
 		SkinWorkerURL:        firstOr("SKIN_WORKER_URL", DefaultSkinWorkerURL),
-		ModelServerURL:       firstOr("MODEL_SERVER_URL", DefaultModelServerURL),
+		VisionCapabilityURL:  goplatform.First("VISION_CAPABILITY_URL"),
 		FaceWorkerURL:        firstOr("FACE_WORKER_URL", DefaultFaceWorkerURL),
 		ParadevGatewayURL:    firstOr("PARADEV_GATEWAY_URL", DefaultParadevGatewayURL),
 		ParadevGatewayAPIKey: goplatform.First("PARADEV_GATEWAY_API_KEY"),

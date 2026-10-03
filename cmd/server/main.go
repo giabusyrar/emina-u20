@@ -167,10 +167,18 @@ func run() error {
 		visionCatalog.NewReferenceClient(cfg.ReferenceServiceURL, cfg.ReferenceClientTimeout),
 		cfg.VisionCatalogTTL,
 	)
+	// No capability worker unless VISION_CAPABILITY_URL names one: every
+	// planned capability is then reported unscored (orchestrator warnings).
+	var visionCapabilities visionInference.CapabilityClient
+	if cfg.VisionCapabilityURL != "" {
+		visionCapabilities = visionInference.NewHTTPCapabilityClient(cfg.VisionCapabilityURL, cfg.VisionDispatchTimeout)
+	} else {
+		deps.Log.Warn("VISION_CAPABILITY_URL not set; skin conditions are reported unscored (no capability worker)")
+	}
 	visionOrch := visionOrchestrator.NewVisionOrchestrator(
 		visionWorkers.NewSegmenterWorkerWithURL(cfg.SkinWorkerURL, cfg.SegmenterTimeout),
 		visionCatalog.NewResolver(visionReferenceCatalog),
-		visionInference.NewHTTPCapabilityClient(cfg.ModelServerURL, cfg.VisionDispatchTimeout),
+		visionCapabilities,
 		cfg.VisionDAGTimeout,
 	)
 	visionHandler := visionControllers.NewVisionController(visionOrch, visionReferenceCatalog)

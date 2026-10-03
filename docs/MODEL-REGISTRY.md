@@ -1,3 +1,11 @@
+> **Removed 2026-10-03.** The model registry and asset store (worker-models,
+> :8096) are retired. Each worker now downloads its own models at image build,
+> pinned by SHA-256, and core-engine scores skin conditions only when
+> `VISION_CAPABILITY_URL` names a worker serving `dispatch-zones` (unset: every
+> condition is reported unscored). The `vision_*` and `model_asset*` tables
+> stay in the core database until a separate, confirmed cleanup. The text
+> below describes the retired design.
+
 # The plug-and-play model registry (model server)
 
 > ## Deploying this is one-way: do not roll the model server back

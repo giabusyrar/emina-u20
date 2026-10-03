@@ -18,7 +18,7 @@ var tunables = []string{"FORM_CACHE_TTL", "SCORE_CACHE_TTL", "MATCH_CACHE_TTL", 
 	"DB_SLOW_QUERY_THRESHOLD", "DEPENDENCY_PING_TIMEOUT",
 	// core-engine's own port and downstream service URLs.
 	"CORE_ENGINE_PORT", "PORT", "REFERENCE_SERVICE_URL", "VISION_AI_WORKER_URL", "SKIN_WORKER_URL", "FACE_WORKER_URL",
-	"MODEL_SERVER_URL", "PARADEV_GATEWAY_URL", "PARADEV_GATEWAY_API_KEY",
+	"MODEL_SERVER_URL", "VISION_CAPABILITY_URL", "PARADEV_GATEWAY_URL", "PARADEV_GATEWAY_API_KEY",
 	// Colour engine.
 	"COLOUR_WORKER_URL", "WCPA_CONFIG_PATH", "COLOUR_WORKER_TIMEOUT", "COLOUR_MAX_IMAGE_BYTES",
 	"COLOUR_DEBUG_ENABLED", "FACE_HEAD_TIMEOUT", "FACE_HEAD_MAX_UPLOAD_BYTES",
@@ -218,18 +218,27 @@ func TestFromEnv_RemovedVisionWorkerURLIsAnError(t *testing.T) {
 	}
 }
 
-func TestFromEnv_ModelServerURL(t *testing.T) {
+func TestFromEnv_VisionCapabilityURLIsOptional(t *testing.T) {
 	setBaseEnv(t)
 	cfg, err := config.FromEnv()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.ModelServerURL != "http://127.0.0.1:8096" {
-		t.Fatalf("ModelServerURL = %q", cfg.ModelServerURL)
+	if cfg.VisionCapabilityURL != "" {
+		t.Fatalf("VisionCapabilityURL = %q, want empty (no capability worker by default)", cfg.VisionCapabilityURL)
 	}
+	t.Setenv("VISION_CAPABILITY_URL", "http://worker-skin:8088")
+	if cfg, err = config.FromEnv(); err != nil || cfg.VisionCapabilityURL != "http://worker-skin:8088" {
+		t.Fatalf("override: %v %q", err, cfg.VisionCapabilityURL)
+	}
+}
+
+func TestFromEnv_RemovedModelServerURLIsRejected(t *testing.T) {
+	setBaseEnv(t)
 	t.Setenv("MODEL_SERVER_URL", "http://worker-models:8096")
-	if cfg, err = config.FromEnv(); err != nil || cfg.ModelServerURL != "http://worker-models:8096" {
-		t.Fatalf("override: %v %q", err, cfg.ModelServerURL)
+	_, err := config.FromEnv()
+	if err == nil || !strings.Contains(err.Error(), "MODEL_SERVER_URL was removed") {
+		t.Fatalf("err = %v, want MODEL_SERVER_URL rejected", err)
 	}
 }
 

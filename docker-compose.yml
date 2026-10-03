@@ -23,7 +23,6 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - REFERENCE_SERVICE_URL=${REFERENCE_SERVICE_URL:-http://reference-service:8086}
       - SKIN_WORKER_URL=${SKIN_WORKER_URL:-http://worker-skin:8088}
-      - MODEL_SERVER_URL=${MODEL_SERVER_URL:-http://worker-models:8096}
       - FACE_WORKER_URL=${FACE_WORKER_URL:-http://worker-face:8094}
       - TRYON_ENGINE_URL=${TRYON_ENGINE_URL:-http://worker-tryon:8090}
       - COLOUR_WORKER_URL=${COLOUR_WORKER_URL:-http://worker-colour:8092}

@@ -329,6 +329,33 @@ func TestExecute_UnloadableCapabilityIsReportedAsUnavailableNotUnuploaded(t *tes
 	}
 }
 
+func TestExecute_WithoutCapabilityWorkerEveryCapabilityIsReportedUnscored(t *testing.T) {
+	segmenter := &fakeSegmenter{zonesByWidth: map[int][]workers.SegmentedZone{
+		100: {{ZoneCode: domain.ZoneForehead, BoundingBox: foreheadBox, IsVisible: true}},
+	}}
+	orch := orchestrator.NewVisionOrchestrator(segmenter, fakeResolver{plan: testPlan()}, nil, 30*time.Second)
+
+	resp, err := orch.Execute(context.Background(), request(
+		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: createTestPng(100)},
+	))
+	require.NoError(t, err)
+
+	plan := testPlan()
+	var unscored []string
+	for _, warning := range resp.Warnings {
+		if warning.Code == "UNSUPPORTED_CAPABILITY" {
+			assert.Contains(t, warning.Message, "VISION_CAPABILITY_URL")
+			unscored = append(unscored, warning.Message)
+		}
+	}
+	assert.Len(t, unscored, len(plan.Capabilities), "one warning per planned capability")
+	for _, zone := range resp.ZoneBreakdown {
+		assert.Empty(t, zone.Metrics.Dimensions, "no capability worker: no metric may be reported")
+		assert.Empty(t, zone.Metrics.SkinConditions, "no capability worker: no metric may be reported")
+	}
+	assert.Nil(t, resp.GlobalAggregation.OverallSkinHealthScore, "nothing scored: overall score is null")
+}
+
 func TestExecute_SegmentationUnavailableFailsTheAnalysis(t *testing.T) {
 	segmenter := &fakeSegmenter{errByWidth: map[int]error{
 		100: fmt.Errorf("%w: skin worker returned 503", workers.ErrSegmentationUnavailable),

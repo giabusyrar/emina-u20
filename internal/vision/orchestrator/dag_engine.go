@@ -34,7 +34,7 @@ type VisionOrchestrator struct {
 	segmenter    Segmenter
 	arbiter      *ZoneArbiter
 	resolver     PlanResolver
-	capabilities inference.CapabilityClient
+	capabilities inference.CapabilityClient // nil: no capability worker configured
 	execTimeout  time.Duration
 }
 
@@ -187,7 +187,10 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 	var unsupportedCapabilities []string
 	var unavailableCapabilities map[string]string
 
-	if len(plan.Capabilities) > 0 && len(crops) > 0 {
+	if o.capabilities == nil {
+		// Nothing can score a capability: report them all, never a value.
+		warnings = append(warnings, noCapabilityWorkerWarnings(plan)...)
+	} else if len(plan.Capabilities) > 0 && len(crops) > 0 {
 		result, err := o.capabilities.DispatchZones(execCtx, plan.Capabilities, crops)
 		if err != nil {
 			return nil, err
@@ -209,7 +212,9 @@ func (o *VisionOrchestrator) Execute(ctx context.Context, req *domain.AnalyzeVis
 		}
 	}
 
-	warnings = append(warnings, capabilityWarnings(plan, unsupportedCapabilities, unavailableCapabilities, scoredCapabilities)...)
+	if o.capabilities != nil {
+		warnings = append(warnings, capabilityWarnings(plan, unsupportedCapabilities, unavailableCapabilities, scoredCapabilities)...)
+	}
 
 	// Phase 5: Aggregation Rollup
 	globalAgg := AggregateScores(zoneBreakdownItems)

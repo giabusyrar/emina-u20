@@ -34,8 +34,8 @@ type ZoneScores struct {
 type DispatchResult struct {
 	Zones                   []ZoneScores
 	UnsupportedCapabilities []string
-	// UnavailableCapabilities maps a capability whose bound model could not
-	// be loaded to the model server's reason. dispatch-zones also lists these
+	// UnavailableCapabilities maps a capability whose model could not be
+	// loaded to the capability worker's reason. dispatch-zones also lists these
 	// in UnsupportedCapabilities.
 	UnavailableCapabilities map[string]string
 }
