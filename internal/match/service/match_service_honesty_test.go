@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/brand"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/tryonclient"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/domain"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/engine/decision"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
@@ -55,7 +56,7 @@ func TestEvaluateBrandWithoutBlueprint(t *testing.T) {
 
 // A brand with no products is refused, not served another brand's products.
 func TestEvaluateBrandWithoutProducts(t *testing.T) {
-	svc := service.NewMatchService(setupEmptyRepo(), "").WithBrands(testBrands)
+	svc := service.NewMatchService(setupEmptyRepo(), tryonclient.New("")).WithBrands(testBrands)
 	_, err := svc.Evaluate(context.Background(), domain.MatchRequest{
 		BrandID: "wardah", ApplicationID: "app", DimensionScores: map[string]float64{"sebum": 50},
 	})

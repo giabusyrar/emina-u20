@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/controllers"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/tryonclient"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/repository"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/service"
 )
@@ -19,7 +20,7 @@ func TestMatchEvaluateBadJSONKeepsEnvelope(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 
-	h := controllers.NewMatchHandler(service.NewMatchService(repository.NewMatchRepo(nil), ""), nil)
+	h := controllers.NewMatchHandler(service.NewMatchService(repository.NewMatchRepo(nil), tryonclient.New("")), nil)
 	if err := h.Evaluate(echo.New().NewContext(req, rec)); err != nil {
 		t.Fatal(err)
 	}

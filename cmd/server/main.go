@@ -43,6 +43,7 @@ import (
 	matchCache "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/cache"
 	matchControllers "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/controllers"
 	matchObjectStore "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/objectstore"
+	matchTryon "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/tryonclient"
 	matchEntity "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
 	matchRepo "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/repository"
 	matchService "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/service"
@@ -145,7 +146,7 @@ func run() error {
 	// Match Engine
 	matchC := matchCache.NewMatchCache(rdb, cfg.MatchCacheTTL)
 	mRepo := matchRepo.NewMatchRepo(db, matchC)
-	mService := matchService.NewMatchService(mRepo, cfg.TryonEngineURL).WithBrands(brands)
+	mService := matchService.NewMatchService(mRepo, matchTryon.New(cfg.TryonEngineURL)).WithBrands(brands)
 	presigner, err := matchObjectStore.New(matchObjectStore.Config{
 		Endpoint:        cfg.S3Endpoint,
 		Bucket:          cfg.S3Bucket,

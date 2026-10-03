@@ -19,6 +19,7 @@ import (
 	"gorm.io/gorm/logger"
 
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/objectstore"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/tryonclient"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/repository"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/service"
@@ -35,7 +36,7 @@ func (f fakePresigner) Presign(_ context.Context, key string) (string, error) {
 
 func newTestMatchHandlerWith(p objectstore.Presigner) *MatchHandler {
 	repo := repository.NewMatchRepo(nil)
-	return NewMatchHandler(service.NewMatchService(repo, ""), p)
+	return NewMatchHandler(service.NewMatchService(repo, tryonclient.New("")), p)
 }
 
 func newTestMatchHandler() *MatchHandler { return newTestMatchHandlerWith(fakePresigner{}) }
@@ -183,7 +184,7 @@ func TestCreateShade_TriggersExtractionCall(t *testing.T) {
 	defer extractionServer.Close()
 
 	repo := repository.NewMatchRepo(nil)
-	svc := service.NewMatchService(repo, extractionServer.URL)
+	svc := service.NewMatchService(repo, tryonclient.New(extractionServer.URL))
 	h := NewMatchHandler(svc, fakePresigner{})
 	e := echo.New()
 
@@ -321,7 +322,7 @@ func TestExtractionCallback_WriteFailureIs500WithoutEcho(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := NewMatchHandler(service.NewMatchService(repository.NewMatchRepo(gdb), ""), fakePresigner{})
+	h := NewMatchHandler(service.NewMatchService(repository.NewMatchRepo(gdb), tryonclient.New("")), fakePresigner{})
 
 	for name, payload := range map[string]map[string]string{
 		"SaveShadeAsset": {"status": "ready", "colorMapKey": "shades/1/color.png", "alphaMapKey": "shades/1/alpha.png"},

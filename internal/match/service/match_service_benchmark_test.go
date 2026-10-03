@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/tryonclient"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/domain"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/repository"
@@ -13,7 +14,7 @@ import (
 
 func BenchmarkMatchService_Evaluate(b *testing.B) {
 	repo := repository.NewMatchRepo(nil)
-	svc := service.NewMatchService(repo, "").WithBrands(testBrands)
+	svc := service.NewMatchService(repo, tryonclient.New("")).WithBrands(testBrands)
 
 	// Seed 500 products across various categories
 	ctx := context.Background()

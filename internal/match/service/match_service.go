@@ -1,12 +1,9 @@
 package service
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -16,15 +13,42 @@ import (
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/engine/decision"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/engine/retrieval"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/repository"
 )
 
+// MatchStore is the persistence MatchService needs; repository.MatchRepo
+// implements it.
+type MatchStore interface {
+	ListProducts(ctx context.Context, brandID string) ([]entity.ProductCatalogItem, error)
+	ListConflictRules(ctx context.Context, brandID, appID string) ([]entity.ConflictMatrixRule, error)
+	CreateConflictRule(ctx context.Context, rule entity.ConflictMatrixRule) (*entity.ConflictMatrixRule, error)
+	UpdateConflictRule(ctx context.Context, rule entity.ConflictMatrixRule) (*entity.ConflictMatrixRule, error)
+	DeleteConflictRule(ctx context.Context, id string) error
+	ListProductGroups(ctx context.Context, brandID, appID string) ([]entity.ProductGroup, error)
+	CreateProductGroup(ctx context.Context, group entity.ProductGroup) (*entity.ProductGroup, error)
+	UpdateProductGroup(ctx context.Context, group entity.ProductGroup) (*entity.ProductGroup, error)
+	DeleteProductGroup(ctx context.Context, id string) error
+	ListShades(ctx context.Context, productID string) ([]entity.Shade, error)
+	GetShadeByID(ctx context.Context, id string) (*entity.Shade, error)
+	CreateShade(ctx context.Context, shade entity.Shade) (*entity.Shade, error)
+	UpdateShade(ctx context.Context, shade entity.Shade) (*entity.Shade, error)
+	DeleteShade(ctx context.Context, id string) error
+	SaveShadeAsset(ctx context.Context, asset entity.ShadeAsset) (*entity.ShadeAsset, error)
+	GetShadeAsset(ctx context.Context, shadeID string) (*entity.ShadeAsset, error)
+	GetShadeAssetByID(ctx context.Context, id string) (*entity.ShadeAsset, error)
+}
+
+// ShadeExtractor asks tryon-engine to generate a shade's UV texture;
+// tryonclient.Client implements it.
+type ShadeExtractor interface {
+	TriggerExtraction(ctx context.Context, shade entity.Shade) error
+}
+
 type MatchService struct {
-	repo              *repository.MatchRepo
+	repo              MatchStore
 	decisionEngine    *decision.ClinicalDecisionEngine
 	hybridMatcher     *retrieval.HybridMatcher
 	conflictValidator *conflict.ConflictValidator
-	tryonEngineURL    string
+	tryon             ShadeExtractor
 	brands            BrandResolver
 }
 
@@ -45,13 +69,13 @@ func (s *MatchService) WithBrands(r BrandResolver) *MatchService {
 // does not borrow another brand's products.
 var ErrNoProducts = errors.New("brand has no products")
 
-func NewMatchService(repo *repository.MatchRepo, tryonEngineURL string) *MatchService {
+func NewMatchService(repo MatchStore, tryon ShadeExtractor) *MatchService {
 	return &MatchService{
 		repo:              repo,
 		decisionEngine:    decision.NewClinicalDecisionEngine(),
 		hybridMatcher:     retrieval.NewHybridMatcher(),
 		conflictValidator: conflict.NewConflictValidator(),
-		tryonEngineURL:    tryonEngineURL,
+		tryon:             tryon,
 	}
 }
 
@@ -386,34 +410,8 @@ func (s *MatchService) GetShadeAssetByID(ctx context.Context, id string) (*entit
 // UV texture for a shade. tryon-engine reports back via the shade's
 // extraction-callback route (see MatchHandler.ExtractionCallback).
 func (s *MatchService) TriggerShadeExtraction(ctx context.Context, shade entity.Shade) error {
-	baseURL := s.tryonEngineURL
-	if baseURL == "" {
+	if s.tryon == nil {
 		return fmt.Errorf("TRYON_ENGINE_URL is not configured")
 	}
-
-	payload, err := json.Marshal(map[string]string{
-		"shade_id":            shade.ID,
-		"reference_photo_url": shade.ReferencePhotoURL,
-		"hex_color":           shade.HexColor,
-		"region":              shade.Region,
-	})
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL+"/extract", bytes.NewReader(payload))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusAccepted {
-		return fmt.Errorf("tryon-engine returned status %d", resp.StatusCode)
-	}
-	return nil
+	return s.tryon.TriggerExtraction(ctx, shade)
 }

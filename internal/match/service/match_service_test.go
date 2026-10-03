@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/adapters/tryonclient"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/domain"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/entity"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/match/repository"
@@ -12,7 +13,7 @@ import (
 
 func setupTestService(t *testing.T) (*service.MatchService, *repository.MatchRepo) {
 	repo := repository.NewMatchRepo(nil)
-	svc := service.NewMatchService(repo, "").WithBrands(testBrands)
+	svc := service.NewMatchService(repo, tryonclient.New("")).WithBrands(testBrands)
 
 	// Seed sample products
 	ctx := context.Background()
