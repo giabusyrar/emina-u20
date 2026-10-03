@@ -4,19 +4,21 @@ import (
 	"bytes"
 	"image"
 	"image/draw"
-	"image/jpeg"
+	"image/png"
 	"math"
 
 	"github.com/experience-gateway/apps/core-engine/internal/vision/domain"
 )
 
-const (
-	minCropPixels   = 16
-	cropJPEGQuality = 90
-)
+// minCropPixels: a crop narrower or shorter than this is not scored.
+const minCropPixels = 16
+
+// Crops are PNG, lossless, so the scoring models never see compression
+// artefacts. BestSpeed keeps the encode cheap; the crops are small.
+var cropEncoder = png.Encoder{CompressionLevel: png.BestSpeed}
 
 // cropZone cuts a zone's normalized bounding box out of its source image and
-// encodes it as JPEG. It reports false for a missing image or a crop smaller
+// encodes it as PNG. It reports false for a missing image or a crop smaller
 // than 16x16 pixels.
 func cropZone(img image.Image, box domain.BoundingBox) ([]byte, bool) {
 	if img == nil {
@@ -40,7 +42,7 @@ func cropZone(img image.Image, box domain.BoundingBox) ([]byte, bool) {
 	draw.Draw(cropped, cropped.Bounds(), img, rect.Min, draw.Src)
 
 	var buf bytes.Buffer
-	if err := jpeg.Encode(&buf, cropped, &jpeg.Options{Quality: cropJPEGQuality}); err != nil {
+	if err := cropEncoder.Encode(&buf, cropped); err != nil {
 		return nil, false
 	}
 	return buf.Bytes(), true

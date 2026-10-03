@@ -49,7 +49,7 @@ func TestHTTPCapabilityClient_SendsCropsAndDecodesScores(t *testing.T) {
 	client := inference.NewHTTPCapabilityClient(server.URL+"/", 5*time.Second)
 	result, err := client.DispatchZones(context.Background(),
 		[]string{"acne_lesion_classifier", "hyperpigmentation_net"},
-		[]inference.ZoneCrop{{ZoneCode: domain.ZoneLeftCheekOuter, SourceAngle: domain.AngleLeft, JPEG: []byte("crop-1")}},
+		[]inference.ZoneCrop{{ZoneCode: domain.ZoneLeftCheekOuter, SourceAngle: domain.AngleLeft, Image: []byte("crop-1")}},
 	)
 
 	require.NoError(t, err)

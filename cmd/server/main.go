@@ -229,7 +229,7 @@ func run() error {
 	} else {
 		colourHandler = colourControllers.NewHandler(colourService.New(
 			colourCfg,
-			colourRepo.New(db),
+			colourService.NewCachedStore(colourRepo.New(db), cfg.ColourCatalogTTL),
 			colourWorker.New(cfg.ColourWorkerURL, cfg.ColourWorkerTimeout),
 			cfg.ColourDebugEnabled,
 		), cfg.ColourMaxImageBytes)

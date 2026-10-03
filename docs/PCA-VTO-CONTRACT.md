@@ -157,6 +157,14 @@ Response `200` (classification + presentation layers; measurement stays internal
         "hexColor": "#B5476A", "hueName": "strong purplish red",
         "status": "same_quadrant", "colourSource": "swatch"
       }
+    ],
+    "complexion": [
+      {
+        "shadeId": "shd_…", "productId": "prd_…", "productName": "…", "shadeName": "…",
+        "hexColor": "#E3B9A0", "hueName": "light yellowish pink",
+        "status": "same_quadrant", "colourSource": "swatch",
+        "skinDeltaE00": 1.42, "skinDeltaEBand": "close_inspection", "withinTolerance": true
+      }
     ]
   },
   "catalog": {
@@ -192,6 +200,17 @@ Response `200` (classification + presentation layers; measurement stays internal
   RP2911) of the nearest of the 267 block centroids by CIEDE2000, e.g.
   "vivid red", "light yellowish pink". Nearest centroid approximates block
   membership near block boundaries (§8, item 6).
+- `skinDeltaE00`, `skinDeltaEBand`, `withinTolerance`: only for categories
+  meant to match the skin, config `skinMatch.categories` (complexion); absent
+  elsewhere, because a lipstick is meant to differ from skin.
+  `skinDeltaE00` is the CIEDE2000 difference between the shade and the measured
+  skin, 2 decimals. `skinDeltaEBand` says how visible that is:
+  `not_perceptible` (< 1.0), `close_inspection` (1.0–2.0), `noticeable`
+  (2.0–5.0), `at_a_glance` (≥ 5.0). These bands are properties of human vision
+  and fixed in code (`internal/colour/domain/perceptibility.go`).
+  `withinTolerance` is present only when the brand set `skinMatch.maxDeltaE00`
+  (policy): `true` when `skinDeltaE00` is at most that tolerance. The order of
+  recommendations does not change; this is extra information about each shade.
 - `colourSource`: `cube`, `swatch` or `estimate`. Swatch-derived shades are
   flagged; `estimate` is a demo colour, not from the brand, and the UI says so.
 - Raw colorimetry (the user's `skinLab`) is **never** in this response unless

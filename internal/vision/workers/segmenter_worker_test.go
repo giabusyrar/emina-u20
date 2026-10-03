@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"image"
 	"image/color"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -101,4 +102,20 @@ func TestSegmenterWorker_Skin422IsNoFace(t *testing.T) {
 	_, err := workers.NewSegmenterWorkerWithURL(server.URL, 5*time.Second).Segment(domain.AngleFront, createTestImage())
 	assert.ErrorIs(t, err, workers.ErrNoFace)
 	assert.NotErrorIs(t, err, workers.ErrSegmentationUnavailable)
+}
+
+func TestSegmenterWorker_SendsTheOriginalUploadBytes(t *testing.T) {
+	original := []byte("ÿØoriginal-jpeg-bytes")
+	var received []byte
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		file, _, err := r.FormFile("image")
+		if err == nil {
+			received, _ = io.ReadAll(file)
+		}
+		w.WriteHeader(http.StatusUnprocessableEntity)
+	}))
+	defer server.Close()
+
+	_, _, _, _, _, _ = workers.NewSegmenterWorkerWithURL(server.URL, 5*time.Second).SegmentWithPose(domain.AngleFront, createTestImage(), original)
+	assert.Equal(t, original, received, "the upload must reach skin unchanged, not re-encoded")
 }

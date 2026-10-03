@@ -74,6 +74,12 @@
     "categoriesNote": "Categories the quadrant rules rate. The notebook rated every category, including black mascara and eyeliner and brown brow products, where a skin quadrant says nothing about fit; those are offered unrated in the try-on catalog. Empty list = rate every category (notebook behaviour)."
   },
 
+  "skinMatch": {
+    "categories": ["complexion"],
+    "maxDeltaE00": null,
+    "note": "Categories whose shades should match the skin (foundation); their recommendations carry skinDeltaE00 (CIEDE2000, shade vs measured skin) and its perceptibility band. Other categories (lip, blush, ...) are meant to differ from skin, so a difference there means nothing. Empty list = report for none. maxDeltaE00 is the brand's match tolerance (policy); null reports the difference with no withinTolerance verdict. The bands themselves (1.0 / 2.0 / 5.0) are fixed in code (domain/perceptibility.go)."
+  },
+
   "flags": {
     "unevenSkinToneLRange": 6.0,
     "note": "Notebook §5: L* range across face sites above this is flagged."

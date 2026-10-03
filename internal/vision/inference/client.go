@@ -20,7 +20,7 @@ const dispatchZonesPath = "/api/v1/models/dispatch-zones"
 type ZoneCrop struct {
 	ZoneCode    string
 	SourceAngle domain.ImageAngle
-	JPEG        []byte
+	Image       []byte // PNG
 }
 
 // ZoneScores holds the severity scores (0-100, 100 = worst) the worker
@@ -89,7 +89,7 @@ func (c *HTTPCapabilityClient) DispatchZones(ctx context.Context, capabilities [
 		body.Zones[i] = dispatchZone{
 			ZoneCode:    crop.ZoneCode,
 			SourceAngle: string(crop.SourceAngle),
-			Image:       base64.StdEncoding.EncodeToString(crop.JPEG),
+			Image:       base64.StdEncoding.EncodeToString(crop.Image),
 		}
 	}
 	payload, err := json.Marshal(body)

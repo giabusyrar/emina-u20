@@ -74,6 +74,14 @@ type RecommendationOut struct {
 	HueName      string `json:"hueName"`
 	Status       string `json:"status"`
 	ColourSource string `json:"colourSource"`
+	// Skin match, only for config skinMatch.categories (foundation): the
+	// CIEDE2000 difference between this shade and the measured skin, how
+	// visible it is (not_perceptible, close_inspection, noticeable,
+	// at_a_glance) and, when the brand set skinMatch.maxDeltaE00, whether it
+	// is within that tolerance. Absent for other categories.
+	SkinDeltaE00    *float64 `json:"skinDeltaE00,omitempty"`
+	SkinDeltaEBand  string   `json:"skinDeltaEBand,omitempty"`
+	WithinTolerance *bool    `json:"withinTolerance,omitempty"`
 }
 
 // CatalogShadeOut is one shade of the try-on catalog. Status is
@@ -161,11 +169,15 @@ func (s *Service) Analyze(ctx context.Context, image []byte, filename string, hi
 	recs := map[string][]RecommendationOut{}
 	for cat, list := range byCat {
 		for _, r := range s.cfg.Recommend(code, v, c, list) {
-			recs[cat] = append(recs[cat], RecommendationOut{
+			out := RecommendationOut{
 				ShadeID: r.ShadeID, ProductID: r.ProductID, ProductName: r.ProductName,
 				ShadeName: r.ShadeName, HexColor: r.HexColor, HueName: r.HueName,
 				Status: r.Status, ColourSource: r.ColourSource,
-			})
+			}
+			if s.cfg.MatchesSkin(cat) {
+				s.addSkinMatch(&out, skin, r.Lab)
+			}
+			recs[cat] = append(recs[cat], out)
 		}
 	}
 
@@ -205,6 +217,18 @@ func (s *Service) Analyze(ctx context.Context, image []byte, filename string, hi
 		}
 	}
 	return out, nil
+}
+
+// addSkinMatch fills the skin-match fields from the CIEDE2000 difference
+// between the measured skin and the shade.
+func (s *Service) addSkinMatch(out *RecommendationOut, skin, shade domain.Lab) {
+	dE := math.Round(domain.DeltaE2000(skin, shade)*100) / 100
+	out.SkinDeltaE00 = &dE
+	out.SkinDeltaEBand = domain.PerceptibilityBand(dE)
+	if limit := s.cfg.SkinMatch.MaxDeltaE00; limit != nil {
+		within := dE <= *limit
+		out.WithinTolerance = &within
+	}
 }
 
 // Catalog lists every shade to try, without an analysis (no status).

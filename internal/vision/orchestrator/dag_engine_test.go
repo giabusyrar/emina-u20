@@ -50,7 +50,7 @@ type fakeSegmenter struct {
 	errByWidth   map[int]error
 }
 
-func (f *fakeSegmenter) SegmentWithPose(declared domain.ImageAngle, img image.Image) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error) {
+func (f *fakeSegmenter) SegmentWithPose(declared domain.ImageAngle, img image.Image, raw []byte) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error) {
 	f.mu.Lock()
 	f.calls++
 	f.mu.Unlock()
@@ -134,7 +134,7 @@ func warningCodes(resp *domain.VisionAnalysisResponse) []string {
 
 func cropSize(t *testing.T, crop inference.ZoneCrop) (int, int) {
 	t.Helper()
-	decoded, err := jpeg.Decode(bytes.NewReader(crop.JPEG))
+	decoded, err := png.Decode(bytes.NewReader(crop.Image))
 	require.NoError(t, err)
 	return decoded.Bounds().Dx(), decoded.Bounds().Dy()
 }
@@ -361,4 +361,70 @@ func TestExecute_NoFaceSkipsOnlyThatImage(t *testing.T) {
 	assert.Contains(t, warningCodes(resp), "NO_FACE_DETECTED")
 	assert.Len(t, resp.CaptureContext.ProcessedImages, 1)
 	assert.Nil(t, resp.CaptureContext.ProcessedImages[0].LandmarkConfidence)
+}
+
+// recordingSegmenter records what it was given and returns one full-frame zone.
+type recordingSegmenter struct {
+	mu   sync.Mutex
+	size image.Point
+	raw  []byte
+}
+
+func (r *recordingSegmenter) SegmentWithPose(declared domain.ImageAngle, img image.Image, raw []byte) ([]workers.SegmentedZone, domain.ImageAngle, float64, float64, float64, error) {
+	r.mu.Lock()
+	r.size, r.raw = img.Bounds().Size(), raw
+	r.mu.Unlock()
+	return []workers.SegmentedZone{{ZoneCode: domain.ZoneForehead, IsVisible: true,
+		BoundingBox: domain.BoundingBox{MinX: 0, MinY: 0, MaxX: 1, MaxY: 1}}}, declared, 0, 0, 0, nil
+}
+
+func TestExecute_SidewaysPhoneUploadIsSegmentedAndCroppedUpright(t *testing.T) {
+	// 80x40 on disk, EXIF orientation 6: an upright 40x80 portrait.
+	stored := image.NewRGBA(image.Rect(0, 0, 80, 40))
+	for y := 0; y < 40; y++ {
+		for x := 0; x < 80; x++ {
+			stored.Set(x, y, color.RGBA{R: 200, G: 180, B: 170, A: 255})
+		}
+	}
+	var buf bytes.Buffer
+	require.NoError(t, jpeg.Encode(&buf, stored, &jpeg.Options{Quality: 95}))
+	data := orientationSixJPEG(buf.Bytes())
+
+	seg := &recordingSegmenter{}
+	client := &fakeCapabilityClient{}
+	orch := orchestrator.NewVisionOrchestrator(seg, fakeResolver{plan: testPlan()}, client, 30*time.Second)
+	_, err := orch.Execute(context.Background(), request(
+		domain.RawImageInput{Angle: domain.AngleFront, FileName: "phone.jpg", Data: data},
+	))
+	require.NoError(t, err)
+
+	assert.Equal(t, image.Pt(40, 80), seg.size, "skin sees the upright portrait")
+	assert.Nil(t, seg.raw, "a rotated upload is sent as the upright pixels, not the sideways bytes")
+	require.Len(t, client.crops, 1)
+	w, h := cropSize(t, client.crops[0])
+	assert.Equal(t, 40, w)
+	assert.Equal(t, 80, h, "the crop comes from the same upright grid")
+}
+
+func TestExecute_UprightUploadStillGoesToSkinUnchanged(t *testing.T) {
+	data := createTestPng(100)
+	seg := &recordingSegmenter{}
+	orch := orchestrator.NewVisionOrchestrator(seg, fakeResolver{plan: testPlan()}, &fakeCapabilityClient{}, 30*time.Second)
+	_, err := orch.Execute(context.Background(), request(
+		domain.RawImageInput{Angle: domain.AngleFront, FileName: "front.png", Data: data},
+	))
+	require.NoError(t, err)
+	assert.Equal(t, data, seg.raw)
+}
+
+// orientationSixJPEG inserts an EXIF APP1 block (little-endian TIFF, one IFD
+// entry: orientation = 6) right after the JPEG SOI marker.
+func orientationSixJPEG(jpg []byte) []byte {
+	tiff := []byte{'I', 'I', 42, 0, 8, 0, 0, 0, 1, 0, 0x12, 0x01, 3, 0, 1, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0}
+	payload := append([]byte("Exif"+"\x00\x00"), tiff...)
+	n := len(payload) + 2
+	out := append([]byte{}, jpg[:2]...)
+	out = append(out, 0xFF, 0xE1, byte(n>>8), byte(n))
+	out = append(out, payload...)
+	return append(out, jpg[2:]...)
 }
