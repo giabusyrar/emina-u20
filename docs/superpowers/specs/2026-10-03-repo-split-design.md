@@ -24,7 +24,7 @@ to be pushed by the user to the same GitLab group as seagull-core
 | `seagull-worker-face` | `apps/workers/face` | Python worker :8094 |
 | `seagull-worker-colour` | `apps/workers/colour` | Python worker :8092 |
 | `seagull-worker-tryon` | `apps/workers/tryon` | Python worker :8090 |
-| `seagull-conversation-engine` | `apps/conversation-engine` | Python service (owned by the Live agent session; split only with its owner's agreement) |
+| `seagull-conversation-engine` | `apps/conversation-engine` | Python service :8098 (agreed with its owner, the Live agent session; no goplatform/worker_common dependency; talks to core-engine over HTTP only) |
 | `seagull-goplatform` | `packages/goplatform` | Go library |
 | `seagull-worker-common` | `apps/workers/common` | Python library |
 
@@ -111,7 +111,7 @@ service in its place (same container name, same port, same volumes:
 1. Libraries: goplatform, worker-common (others depend on them).
 2. Go services: core-engine, reference-service.
 3. Workers: models, skin, face, colour, tryon.
-4. conversation-engine, after its owner agrees.
+4. conversation-engine (owner agreed 2026-10-03; carries its spec and plan `docs/superpowers/{specs,plans}/2026-10-03-conversation-engine*`; Dockerfile becomes `COPY . /app`; its compose drops `depends_on: core-engine`; keeps container/upstream name `conversation-engine:8098` for APISIX; VPS env CONV_LIVE_MODEL, CONV_VOICE_DEFAULT, GOOGLE_API_KEY move with it).
 5. seagull-core archive commit.
 6. After the user pushes: tag/publish the libraries, drop the temporary
    local `replace`/editable installs, VPS cut-over.
