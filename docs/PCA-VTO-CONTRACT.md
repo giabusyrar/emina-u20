@@ -120,7 +120,7 @@ Mounted like the existing engines: `/core/colour-engine/*` (what the gateway
 routes to; registered in Seagull `gateway-engine/cmd/seed-routes`, folder
 "Colour Analysis (WCPA)") and `/api/colour/*`. The web app reaches it the same
 way as the other studios: `/core/...` → Next proxy → gateway-proxy → core-engine. Errors follow the sentinel pattern: `400` validation, `404` unknown
-shade, `422` no face, `503` worker unavailable. The body is the service's
+shade, `422` no face (`no_face_detected`), measurement failed (`measurement_failed`) or, when `retake.enforce` is on, photo to retake (`retake_required`, with `reasons`), `503` worker unavailable. The body is the service's
 error envelope plus `code`: `{"success": false, "error": "…", "error_code":
 "no_face_detected", "code": "no_face_detected"}` (`code` repeats `error_code`
 because seagull-web's colour client reads it). While the WCPA config cannot

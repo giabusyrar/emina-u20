@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/experience-gateway/apps/core-engine/internal/colour/adapters/workerclient"
 	"github.com/experience-gateway/apps/core-engine/internal/colour/domain"
 )
 
@@ -19,7 +18,7 @@ func analyzeWith(t *testing.T, qc []string, enforce bool) (*AnalyzeResponse, err
 }
 
 func TestRetakeReasonsAreQCFailedIntersectConfig(t *testing.T) {
-	// face_too_small is not a retake code; reasons follow config order.
+	// wajah_kecil (face too small) is not a retake code; reasons follow config order.
 	out, err := analyzeWith(t, []string{"cahaya_campuran", "wajah_kecil", "terlalu_gelap"}, false)
 	if err != nil {
 		t.Fatal(err)
@@ -60,5 +59,3 @@ func TestRetakeEnforcedRefusesWithReasons(t *testing.T) {
 		t.Fatalf("err %v", err)
 	}
 }
-
-var _ = workerclient.AnalyzeResult{}

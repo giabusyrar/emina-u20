@@ -405,7 +405,7 @@ the fraction of pixels above `threshold`, 0-1, which the adapter reports as
 NumPy reference (max abs difference 3e-6, bound 1e-4) and to scikit-image's
 `frangi` (bound 0.05 away from the border; see the test for why the border is
 excluded). The scikit-image comparison skips where scikit-image is not
-installed; it is not yet declared in the model server's `[test]` extra.
+installed; it is in the model server's `[test]` extra, so a normal test install runs it.
 
 **The crop is stretched, so densities do not compare across crops.** The
 registry's preprocess resizes every zone crop to `input` width x height with
