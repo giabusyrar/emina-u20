@@ -84,6 +84,15 @@ type Config struct {
 		MaxDeltaE00 *float64 `json:"maxDeltaE00"`
 	} `json:"skinMatch"`
 
+	// Retake: the worker's QC codes (qualityFailed) that mean the photo should
+	// be retaken. Codes are the worker's vocabulary (pipeline_03.py); a code the
+	// worker never emits is harmless. Enforce makes /analyze refuse such a photo
+	// (422) instead of returning the result with retake.required.
+	Retake struct {
+		Codes   []string `json:"codes"`
+		Enforce bool     `json:"enforce"`
+	} `json:"retake"`
+
 	Flags struct {
 		UnevenSkinToneLRange float64 `json:"unevenSkinToneLRange"`
 	} `json:"flags"`
@@ -152,6 +161,11 @@ func (c *Config) validate() error {
 	}
 	if m := c.SkinMatch.MaxDeltaE00; m != nil && *m <= 0 {
 		return fmt.Errorf("skinMatch.maxDeltaE00 must be positive when set")
+	}
+	for _, code := range c.Retake.Codes {
+		if code == "" {
+			return fmt.Errorf("retake.codes must be non-empty strings")
+		}
 	}
 	if _, err := ISCCNBSCentroids(); err != nil {
 		return err

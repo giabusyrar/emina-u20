@@ -54,3 +54,17 @@ func TestSkinMatchToleranceMustBePositive(t *testing.T) {
 		t.Fatal("a zero tolerance must be refused")
 	}
 }
+
+func TestRetakeConfig(t *testing.T) {
+	c, err := LoadConfig(filepath.Join("..", "..", "..", "config", "wcpa.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(c.Retake.Codes) != 3 || c.Retake.Enforce {
+		t.Fatalf("retake = %+v, want the three illumination codes, not enforced", c.Retake)
+	}
+	c.Retake.Codes = []string{"terlalu_gelap", ""}
+	if err := c.validate(); err == nil {
+		t.Fatal("an empty retake code must be refused")
+	}
+}

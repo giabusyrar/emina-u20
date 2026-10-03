@@ -114,6 +114,7 @@ type AnalyzeResponse struct {
 	FoundationBand string           `json:"foundationBand"`
 	Flags          []string         `json:"flags"`
 	QualityFailed  []string         `json:"qualityFailed"`
+	Retake         RetakeOut        `json:"retake"`
 	// Recommendations is the notebook's list: per rated category, the kept
 	// shades best first, at most recommendation.perCategory.
 	Recommendations map[string][]RecommendationOut `json:"recommendations"`
@@ -124,6 +125,35 @@ type AnalyzeResponse struct {
 	Debug         map[string]interface{}       `json:"debug"`
 }
 
+// retakeProvisional: the worker's QC thresholds are all [KARANGAN]
+// (apps/workers/colour/worker_colour/wcpa/cells/pipeline_03.py, L_MEDIAN_MIN,
+// CLIP_FRAC_MAX, MIXED_HUE_MAX), so a retake verdict is provisional until they
+// are calibrated. Same rule as the quadrant's provisional.
+const retakeProvisional = true
+
+// RetakeOut says whether the photo should be retaken. Reasons are the worker's
+// failed QC codes that config retake.codes lists, in config order; never null.
+type RetakeOut struct {
+	Required    bool     `json:"required"`
+	Reasons     []string `json:"reasons"`
+	Provisional bool     `json:"provisional"`
+}
+
+// retake intersects the worker's failed checks with the configured codes.
+func (s *Service) retake(qcFailed []string) RetakeOut {
+	failed := map[string]bool{}
+	for _, c := range qcFailed {
+		failed[c] = true
+	}
+	reasons := []string{}
+	for _, c := range s.cfg.Retake.Codes {
+		if failed[c] {
+			reasons = append(reasons, c)
+		}
+	}
+	return RetakeOut{Required: len(reasons) > 0, Reasons: reasons, Provisional: retakeProvisional}
+}
+
 // Analyze runs the whole WCPA flow for one photo.
 func (s *Service) Analyze(ctx context.Context, image []byte, filename string, hijab, hairVisible, debug bool) (*AnalyzeResponse, error) {
 	if len(image) == 0 {
@@ -132,6 +162,10 @@ func (s *Service) Analyze(ctx context.Context, image []byte, filename string, hi
 	m, err := s.worker.Analyze(ctx, image, filename, hijab, hairVisible)
 	if err != nil {
 		return nil, err
+	}
+	retake := s.retake(m.Quality.QCFailed)
+	if retake.Required && s.cfg.Retake.Enforce {
+		return nil, &domain.RetakeRequiredError{Reasons: retake.Reasons}
 	}
 	skin := *m.Measurement.SkinLab
 	v, c := m.Munsell.Skin.V, m.Munsell.Skin.C
@@ -200,6 +234,7 @@ func (s *Service) Analyze(ctx context.Context, image []byte, filename string, hi
 		FoundationBand:  s.cfg.FoundationBand(skin[0]),
 		Flags:           flags,
 		QualityFailed:   m.Quality.QCFailed,
+		Retake:          retake,
 		Recommendations: recs,
 		Catalog: s.catalog(shades, func(sh domain.ShadeCandidate) string {
 			_, status, _ := s.cfg.Rate(code, sh)

@@ -25,7 +25,10 @@ func (f fakeStore) GetCandidates(_ context.Context, ids []string) ([]Candidate, 
 	return out, nil
 }
 
-type fakeWorker struct{ layers []workerclient.Layer }
+type fakeWorker struct {
+	layers   []workerclient.Layer
+	qcFailed []string
+}
 
 func (f *fakeWorker) Analyze(context.Context, []byte, string, bool, bool) (*workerclient.AnalyzeResult, error) {
 	r := &workerclient.AnalyzeResult{}
@@ -33,6 +36,7 @@ func (f *fakeWorker) Analyze(context.Context, []byte, string, bool, bool) (*work
 	r.Measurement.SkinLab = &skin
 	r.Measurement.LPerSite = map[string]float64{"forehead": 77.8, "jaw_r": 87.3, "cheek_l": 60.6}
 	r.Munsell.Skin = domain.Munsell{V: 7.41, C: 2.84, ChromaSource: "approximation"}
+	r.Quality.QCFailed = f.qcFailed
 	return r, nil
 }
 func (f *fakeWorker) Render(_ context.Context, _ []byte, _ string, l []workerclient.Layer) ([]byte, error) {

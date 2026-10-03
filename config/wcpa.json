@@ -80,6 +80,12 @@
     "note": "Categories whose shades should match the skin (foundation); their recommendations carry skinDeltaE00 (CIEDE2000, shade vs measured skin) and its perceptibility band. Other categories (lip, blush, ...) are meant to differ from skin, so a difference there means nothing. Empty list = report for none. maxDeltaE00 is the brand's match tolerance (policy); null reports the difference with no withinTolerance verdict. The bands themselves (1.0 / 2.0 / 5.0) are fixed in code (domain/perceptibility.go)."
   },
 
+  "retake": {
+    "codes": ["terlalu_gelap", "terlalu_terang", "cahaya_campuran"],
+    "enforce": false,
+    "note": "Worker QC codes (qualityFailed) that mean the photo should be retaken: the illumination ones (too dark, too bright/clipped, mixed light). The codes are the colour worker's vocabulary (worker_colour/wcpa/cells/pipeline_03.py); a code the worker never emits is harmless. /analyze reports retake {required, reasons, provisional}; provisional stays true while the worker's thresholds are [KARANGAN]. enforce=false returns the result with retake filled (the UI decides); enforce=true refuses with 422 retake_required and no shade result."
+  },
+
   "flags": {
     "unevenSkinToneLRange": 6.0,
     "note": "Notebook §5: L* range across face sites above this is flagged."

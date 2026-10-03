@@ -74,7 +74,24 @@ func DisabledHealth(service string, reason error) echo.HandlerFunc {
 	}
 }
 
+// retakeBody is the 422 retake_required body: the error envelope plus
+// "message" and the failed checks.
+type retakeBody struct {
+	errorBody
+	Message string   `json:"message"`
+	Reasons []string `json:"reasons"`
+}
+
 func respondErr(c echo.Context, err error) error {
+	var re *domain.RetakeRequiredError
+	if errors.As(err, &re) {
+		const code = "retake_required"
+		msg := err.Error()
+		return c.JSON(http.StatusUnprocessableEntity, retakeBody{
+			errorBody: errorBody{ErrorBody: goplatform.ErrorBody{Error: msg, ErrorCode: code}, Code: code},
+			Message:   msg, Reasons: re.Reasons,
+		})
+	}
 	status := http.StatusInternalServerError
 	code := "internal_error"
 	switch {

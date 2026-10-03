@@ -150,6 +150,8 @@ Response `200` (classification + presentation layers; measurement stays internal
   },
   "foundationBand": "light",
   "flags": ["uneven_skin_tone"],
+  "qualityFailed": [],
+  "retake": { "required": false, "reasons": [], "provisional": true },
   "recommendations": {
     "lip": [
       {
@@ -180,6 +182,20 @@ Response `200` (classification + presentation layers; measurement stays internal
   "debug": null
 }
 ```
+- `retake`: whether the photo should be retaken. `reasons` are the worker's
+  failed QC checks (`qualityFailed`) that config `retake.codes` lists, in config
+  order (default `terlalu_gelap`, `terlalu_terang`, `cahaya_campuran`: the
+  illumination ones); `required` is `reasons` non-empty; `reasons` is `[]`,
+  never null. `provisional` is `true` while the worker's QC thresholds are
+  `[KARANGAN]` (the UI must show it as provisional). `qualityFailed` stays the
+  worker's full list. With `retake.enforce` off (default) the result is returned
+  as usual and the UI decides. With it on and `required`, `/analyze` answers
+  `422` with no shade result:
+  ```json
+  {"success": false, "error": "retake required: terlalu_gelap", "error_code": "retake_required",
+   "code": "retake_required", "message": "retake required: terlalu_gelap",
+   "reasons": ["terlalu_gelap"]}
+  ```
 - `provisional: true` while the person thresholds are placeholders
   (`[KARANGAN]` in the notebook). The UI must show it.
 - `displayName` stays `null` until the brand names the quadrants; the UI then
