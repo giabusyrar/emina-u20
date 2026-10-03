@@ -11,14 +11,6 @@ import (
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/entity"
 )
 
-type RulesetRepository interface {
-	GetActiveRuleset(ctx context.Context, brandID, appID, code string) (*entity.ScoreRuleset, error)
-	ListRulesets(ctx context.Context, brandID, appID string) ([]entity.ScoreRuleset, error)
-	GetRulesetByID(ctx context.Context, id string) (*entity.ScoreRuleset, error)
-	SaveRuleset(ctx context.Context, item *entity.ScoreRuleset) error
-	DeleteRuleset(ctx context.Context, id string) error
-}
-
 type RulesetRepo struct {
 	db    *gorm.DB
 	cache *cache.ScoreCache

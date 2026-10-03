@@ -13,7 +13,6 @@ import (
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/domain"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/entity"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/jdm"
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/score/repository"
 
 	formdomain "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/domain"
 )
@@ -157,8 +156,18 @@ type surveyProvider interface {
 	GetSurvey(ctx context.Context, brandID, applicationID, code string) (*formdomain.SurveyModel, error)
 }
 
+// RulesetRepository persists score rulesets; repository.RulesetRepo
+// implements it.
+type RulesetRepository interface {
+	GetActiveRuleset(ctx context.Context, brandID, appID, code string) (*entity.ScoreRuleset, error)
+	ListRulesets(ctx context.Context, brandID, appID string) ([]entity.ScoreRuleset, error)
+	GetRulesetByID(ctx context.Context, id string) (*entity.ScoreRuleset, error)
+	SaveRuleset(ctx context.Context, item *entity.ScoreRuleset) error
+	DeleteRuleset(ctx context.Context, id string) error
+}
+
 type ScoreService struct {
-	repo           repository.RulesetRepository
+	repo           RulesetRepository
 	surveySvc      surveyProvider
 	visionRegistry *domain.VisionProviderRegistry
 	brands         BrandResolver
@@ -191,7 +200,7 @@ func (s *ScoreService) rulesetBrand(ctx context.Context, ref string) (string, er
 	return b.Code, nil
 }
 
-func NewScoreService(repo repository.RulesetRepository) *ScoreService {
+func NewScoreService(repo RulesetRepository) *ScoreService {
 	return &ScoreService{
 		repo: repo,
 	}
