@@ -1,4 +1,4 @@
-package assessment
+package controllers
 
 import (
 	"net/http"
@@ -6,17 +6,19 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/assessment/entity"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/assessment/service"
 	goplatform "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/platform"
 )
 
 type Handler struct {
-	store    Store
+	store    service.Store
 	maxLimit int
 }
 
 // NewHandler serves stored assessments; maxLimit (ASSESSMENT_LIST_MAX_LIMIT)
 // caps one response and is the size when no limit is given.
-func NewHandler(store Store, maxLimit int) *Handler {
+func NewHandler(store service.Store, maxLimit int) *Handler {
 	return &Handler{store: store, maxLimit: maxLimit}
 }
 
@@ -38,7 +40,7 @@ func (h *Handler) History(c echo.Context) error {
 }
 
 func (h *Handler) list(c echo.Context, customerID string) error {
-	f := Filter{
+	f := service.Filter{
 		BrandID:       c.QueryParam("brand_id"),
 		ApplicationID: c.QueryParam("application_id"),
 		CustomerID:    customerID,
@@ -61,7 +63,7 @@ func (h *Handler) list(c echo.Context, customerID string) error {
 		return goplatform.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 	if items == nil {
-		items = []Record{}
+		items = []entity.Record{}
 	}
 	return c.JSON(http.StatusOK, map[string]any{"assessments": items, "limit": f.Limit})
 }

@@ -1,10 +1,5 @@
-// Package assessment stores each successful survey evaluation as a customer
-// assessment and serves them back (per customer, and as brand history).
-//
-// The table, customer_assessments, keeps the columns gateway-engine created
-// for it in the gateway database, where it lived before the databases were
-// separated (seagull-gateway/docs/REPORT-SEAGULL-CORE-DB-SEPARATION.md).
-package assessment
+// Package entity holds the customer assessment model.
+package entity
 
 import "time"
 

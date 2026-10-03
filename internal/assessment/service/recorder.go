@@ -1,4 +1,10 @@
-package assessment
+// Package service stores each successful survey evaluation as a customer
+// assessment and serves them back (per customer, and as brand history).
+//
+// The table, customer_assessments, keeps the columns gateway-engine created
+// for it in the gateway database, where it lived before the databases were
+// separated (seagull-gateway/docs/REPORT-SEAGULL-CORE-DB-SEPARATION.md).
+package service
 
 import (
 	"context"
@@ -7,8 +13,24 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/assessment/entity"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/domain"
 )
+
+// Filter selects stored assessments. BrandID and ApplicationID are always
+// required; CustomerID narrows to one customer. Newest first.
+type Filter struct {
+	BrandID       string
+	ApplicationID string
+	CustomerID    string
+	Limit         int
+}
+
+// Store persists assessments; repository.GormStore implements it.
+type Store interface {
+	Save(ctx context.Context, r *entity.Record) error
+	List(ctx context.Context, f Filter) ([]entity.Record, error)
+}
 
 // Recorder turns an evaluation into a Record and stores it. It implements the
 // form handler's AssessmentRecorder.
@@ -31,7 +53,7 @@ func (r *Recorder) Record(ctx context.Context, out *domain.EvaluationOutput, vis
 // the evaluation did not produce: recommended_products stays NULL because a
 // survey evaluation recommends no products, and skin_profile, grading tiers,
 // answers and vision metrics are NULL when absent.
-func FromEvaluation(out *domain.EvaluationOutput, visionSignals map[string]float64, elapsed time.Duration) (*Record, error) {
+func FromEvaluation(out *domain.EvaluationOutput, visionSignals map[string]float64, elapsed time.Duration) (*entity.Record, error) {
 	if out.CustomerID == "" {
 		return nil, errors.New("evaluation has no customer_id")
 	}
@@ -43,7 +65,7 @@ func FromEvaluation(out *domain.EvaluationOutput, visionSignals map[string]float
 		}
 		dims = b
 	}
-	rec := &Record{
+	rec := &entity.Record{
 		CustomerID:      out.CustomerID,
 		BrandID:         out.BrandID,
 		ApplicationID:   out.ApplicationID,

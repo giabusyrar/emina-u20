@@ -18,7 +18,10 @@ import (
 	goplatform "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/platform"
 
 	// Customer assessments
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/assessment"
+	assessmentControllers "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/assessment/adapters/controllers"
+	assessmentEntity "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/assessment/entity"
+	assessmentRepo "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/assessment/repository"
+	assessmentService "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/assessment/service"
 
 	// Form Engine
 	formCache "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/form/adapters/cache"
@@ -115,7 +118,7 @@ func run() error {
 		&matchEntity.ShadeAsset{},
 		&faceProfile.FaceArchitectureProfile{},
 		&colourEntity.ShadeColorimetry{},
-		&assessment.Record{},
+		&assessmentEntity.Record{},
 		&flowEntity.Flow{},
 	); err != nil {
 		deps.Log.Error("automigrate failed", "err", err)
@@ -136,8 +139,8 @@ func run() error {
 	paradevClient := formVisionClient.New(cfg.ParadevGatewayURL, cfg.ParadevGatewayAPIKey, cfg.ParadevTimeout)
 	fService := formService.NewSurveyService(fRepo, formC, scoreEngine, paradevClient).WithBrands(brands)
 	// Every successful survey evaluation is stored as a customer assessment.
-	assessmentStore := assessment.NewGormStore(db)
-	formHandler := formControllers.NewSurveyHandler(fService).WithRecorder(assessment.NewRecorder(assessmentStore))
+	assessmentStore := assessmentRepo.NewGormStore(db)
+	formHandler := formControllers.NewSurveyHandler(fService).WithRecorder(assessmentService.NewRecorder(assessmentStore))
 
 	// Unified evaluate (Fase 3+4): Score Engine now owns the whole evaluate
 	// pipeline, reaching into Form Engine's survey lookup and a vision
@@ -351,7 +354,7 @@ func run() error {
 	mountColourRoutes(e.Group("/api/colour"))
 
 	// Customer assessments (stored by the form evaluate routes above)
-	assessmentHandler := assessment.NewHandler(assessmentStore, int(cfg.AssessmentListMaxLimit))
+	assessmentHandler := assessmentControllers.NewHandler(assessmentStore, int(cfg.AssessmentListMaxLimit))
 	assessmentHandler.Mount(e.Group("/core/assessments"))
 	assessmentHandler.Mount(e.Group("/api/assessments"))
 
