@@ -1,4 +1,4 @@
-package facearch
+package controllers
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/measureclient"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/profile"
 )
@@ -116,7 +117,7 @@ func (h *Handler) Analyze(c echo.Context) error {
 		slog.ErrorContext(ctx, "face-measure returned no measurement and no error")
 		return c.JSON(http.StatusInternalServerError, detail(CodeFaceMeasureInvalidResponse, nil))
 	}
-	return c.JSON(http.StatusOK, Interpret(p, doc, m))
+	return c.JSON(http.StatusOK, facearch.Interpret(p, doc, m))
 }
 
 // activeProfile looks up the active profile for the request's brand and

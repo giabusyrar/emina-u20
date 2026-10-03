@@ -1,5 +1,6 @@
-// Package facearch is the face-architecture interpretation layer: it asks
-// the ai-worker for measurements and applies a brand's profile to them.
+// Package facearch is the face-architecture interpretation layer: it applies
+// a brand's profile to the ai-worker's measurements. The HTTP handlers that
+// fetch those measurements are in adapters/controllers.
 // Spec: docs/superpowers/specs/2026-09-29-face-architecture-engine-design.md.
 package facearch
 

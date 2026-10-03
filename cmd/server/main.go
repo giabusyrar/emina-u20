@@ -67,7 +67,7 @@ import (
 	visionWorkers "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/workers"
 
 	// Face Architecture
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch"
+	faceControllers "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/adapters/controllers"
 	faceHead "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/headclient"
 	faceMeasure "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/measureclient"
 	faceProfile "gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/profile"
@@ -193,11 +193,11 @@ func run() error {
 
 	// Face Architecture (measurements from the face worker, per-brand profile)
 	faceProfiles := faceProfile.NewGormStore(db)
-	faceArchHandler := facearch.NewHandler(
+	faceArchHandler := faceControllers.NewHandler(
 		faceMeasure.New(cfg.FaceWorkerURL, cfg.FaceMeasureTimeout),
 		faceProfiles,
 	)
-	faceHeadHandler := facearch.NewHeadHandler(
+	faceHeadHandler := faceControllers.NewHeadHandler(
 		faceHead.New(cfg.FaceWorkerURL, cfg.FaceHeadTimeout),
 		faceProfiles,
 		cfg.FaceHeadMaxUploadBytes,

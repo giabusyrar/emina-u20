@@ -1,4 +1,4 @@
-package facearch_test
+package controllers_test
 
 import (
 	"bytes"
@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/adapters/controllers"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/facearchtest"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/measureclient"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/facearch/profile"
@@ -42,7 +43,7 @@ func (failingFinder) Active(context.Context, string, string) (*profile.FaceArchi
 
 const route = "/api/v1/vision/face-architecture/:brandId/:applicationId"
 
-func serve(t *testing.T, h *facearch.Handler, withImage bool) *httptest.ResponseRecorder {
+func serve(t *testing.T, h *controllers.Handler, withImage bool) *httptest.ResponseRecorder {
 	t.Helper()
 	body := &bytes.Buffer{}
 	w := multipart.NewWriter(body)
@@ -82,7 +83,7 @@ func code(t *testing.T, rec *httptest.ResponseRecorder) string {
 
 func TestAnalyze_OK(t *testing.T) {
 	m := &fakeMeasurer{resp: facearchtest.FixtureFace()}
-	rec := serve(t, facearch.NewHandler(m, storeWithTestDoc(t)), true)
+	rec := serve(t, controllers.NewHandler(m, storeWithTestDoc(t)), true)
 	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
 	assert.Equal(t, []byte("jpeg-bytes"), m.got)
 
@@ -95,17 +96,17 @@ func TestAnalyze_OK(t *testing.T) {
 
 func TestAnalyze_MissingImage(t *testing.T) {
 	m := &fakeMeasurer{}
-	rec := serve(t, facearch.NewHandler(m, storeWithTestDoc(t)), false)
+	rec := serve(t, controllers.NewHandler(m, storeWithTestDoc(t)), false)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
-	assert.Equal(t, facearch.CodeMissingImage, code(t, rec))
+	assert.Equal(t, controllers.CodeMissingImage, code(t, rec))
 	assert.Zero(t, m.calls)
 }
 
 func TestAnalyze_NoActiveProfileIs409WithoutCallingWorker(t *testing.T) {
 	m := &fakeMeasurer{resp: facearchtest.FixtureFace()}
-	rec := serve(t, facearch.NewHandler(m, profile.NewMemoryStore()), true)
+	rec := serve(t, controllers.NewHandler(m, profile.NewMemoryStore()), true)
 	assert.Equal(t, http.StatusConflict, rec.Code)
-	assert.Equal(t, facearch.CodeNoActiveProfile, code(t, rec))
+	assert.Equal(t, controllers.CodeNoActiveProfile, code(t, rec))
 	assert.Contains(t, rec.Body.String(), `"brandId":"wardah"`)
 	assert.Zero(t, m.calls)
 }
@@ -114,7 +115,7 @@ func TestAnalyze_PassesWorkerErrorsThrough(t *testing.T) {
 	for _, status := range []int{http.StatusBadRequest, http.StatusUnprocessableEntity, http.StatusServiceUnavailable} {
 		body := fmt.Sprintf(`{"detail":{"code":"from_worker_%d"}}`, status)
 		m := &fakeMeasurer{err: &measureclient.UpstreamError{Status: status, Body: []byte(body)}}
-		rec := serve(t, facearch.NewHandler(m, storeWithTestDoc(t)), true)
+		rec := serve(t, controllers.NewHandler(m, storeWithTestDoc(t)), true)
 		assert.Equal(t, status, rec.Code)
 		assert.JSONEq(t, body, rec.Body.String())
 	}
@@ -122,23 +123,23 @@ func TestAnalyze_PassesWorkerErrorsThrough(t *testing.T) {
 
 func TestAnalyze_UnreachableWorkerIs503(t *testing.T) {
 	m := &fakeMeasurer{err: fmt.Errorf("%w: dial tcp: refused", measureclient.ErrUnavailable)}
-	rec := serve(t, facearch.NewHandler(m, storeWithTestDoc(t)), true)
+	rec := serve(t, controllers.NewHandler(m, storeWithTestDoc(t)), true)
 	assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
-	assert.Equal(t, facearch.CodeFaceMeasureUnreachable, code(t, rec))
+	assert.Equal(t, controllers.CodeFaceMeasureUnreachable, code(t, rec))
 }
 
 func TestAnalyze_ProfileFailures(t *testing.T) {
-	rec := serve(t, facearch.NewHandler(&fakeMeasurer{}, failingFinder{}), true)
+	rec := serve(t, controllers.NewHandler(&fakeMeasurer{}, failingFinder{}), true)
 	assert.Equal(t, http.StatusInternalServerError, rec.Code)
-	assert.Equal(t, facearch.CodeProfileLookupFailed, code(t, rec))
+	assert.Equal(t, controllers.CodeProfileLookupFailed, code(t, rec))
 	assert.NotContains(t, rec.Body.String(), "connection refused", "database errors are logged, not returned")
 
 	s := profile.NewMemoryStore()
 	s.Put(profile.FaceArchitectureProfile{BrandID: "*", ApplicationID: "*", Code: "bad", Version: 1, Status: "ACTIVE", Document: `{"schemaVersion": 9}`})
 	m := &fakeMeasurer{}
-	rec = serve(t, facearch.NewHandler(m, s), true)
+	rec = serve(t, controllers.NewHandler(m, s), true)
 	assert.Equal(t, http.StatusInternalServerError, rec.Code)
-	assert.Equal(t, facearch.CodeProfileDocumentInvalid, code(t, rec))
+	assert.Equal(t, controllers.CodeProfileDocumentInvalid, code(t, rec))
 	assert.Contains(t, rec.Body.String(), "stored profile document failed validation")
 	assert.NotContains(t, rec.Body.String(), "schemaVersion", "the raw load error is logged, not returned")
 	assert.Zero(t, m.calls)
@@ -147,7 +148,7 @@ func TestAnalyze_ProfileFailures(t *testing.T) {
 func TestAnalyze_PassesThroughDetailList422(t *testing.T) {
 	body := `{"detail":[{"loc":["body","image"],"msg":"field required","type":"missing"}]}`
 	m := &fakeMeasurer{err: &measureclient.UpstreamError{Status: http.StatusUnprocessableEntity, Body: []byte(body)}}
-	rec := serve(t, facearch.NewHandler(m, storeWithTestDoc(t)), true)
+	rec := serve(t, controllers.NewHandler(m, storeWithTestDoc(t)), true)
 	assert.Equal(t, http.StatusUnprocessableEntity, rec.Code)
 	assert.JSONEq(t, body, rec.Body.String())
 }
@@ -163,16 +164,16 @@ func TestAnalyze_NonDetailWorkerBodiesBecomeUnreachable(t *testing.T) {
 		"number detail": `{"detail":7}`,
 	} {
 		m := &fakeMeasurer{err: &measureclient.UpstreamError{Status: http.StatusServiceUnavailable, Body: []byte(body)}}
-		rec := serve(t, facearch.NewHandler(m, storeWithTestDoc(t)), true)
+		rec := serve(t, controllers.NewHandler(m, storeWithTestDoc(t)), true)
 		assert.Equal(t, http.StatusServiceUnavailable, rec.Code, name)
-		assert.Equal(t, facearch.CodeFaceMeasureUnreachable, code(t, rec), name)
+		assert.Equal(t, controllers.CodeFaceMeasureUnreachable, code(t, rec), name)
 		assert.Contains(t, rec.Header().Get(echo.HeaderContentType), "application/json", name)
 	}
 }
 
 func TestAnalyze_UnreachableDoesNotLeakInternalURL(t *testing.T) {
 	m := &fakeMeasurer{err: fmt.Errorf("%w: Post \"http://ai-worker.internal:8088/face-measure\": refused", measureclient.ErrUnavailable)}
-	rec := serve(t, facearch.NewHandler(m, storeWithTestDoc(t)), true)
+	rec := serve(t, controllers.NewHandler(m, storeWithTestDoc(t)), true)
 	assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
 	assert.NotContains(t, rec.Body.String(), "ai-worker.internal")
 	assert.NotContains(t, rec.Body.String(), "8088")
@@ -186,14 +187,14 @@ func (nilFinder) Active(context.Context, string, string) (*profile.FaceArchitect
 
 func TestAnalyze_NilProfileIs500(t *testing.T) {
 	m := &fakeMeasurer{}
-	rec := serve(t, facearch.NewHandler(m, nilFinder{}), true)
+	rec := serve(t, controllers.NewHandler(m, nilFinder{}), true)
 	assert.Equal(t, http.StatusInternalServerError, rec.Code)
-	assert.Equal(t, facearch.CodeProfileLookupFailed, code(t, rec))
+	assert.Equal(t, controllers.CodeProfileLookupFailed, code(t, rec))
 	assert.Zero(t, m.calls)
 }
 
 func TestAnalyze_NilMeasurementIs500(t *testing.T) {
-	rec := serve(t, facearch.NewHandler(&fakeMeasurer{}, storeWithTestDoc(t)), true)
+	rec := serve(t, controllers.NewHandler(&fakeMeasurer{}, storeWithTestDoc(t)), true)
 	assert.Equal(t, http.StatusInternalServerError, rec.Code)
-	assert.Equal(t, facearch.CodeFaceMeasureInvalidResponse, code(t, rec))
+	assert.Equal(t, controllers.CodeFaceMeasureInvalidResponse, code(t, rec))
 }
