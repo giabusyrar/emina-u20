@@ -9,7 +9,6 @@ import (
 	"math"
 	"sort"
 
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/adapters/workerclient"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/domain"
 )
 
@@ -26,9 +25,47 @@ type Store interface {
 	GetCandidates(ctx context.Context, shadeIDs []string) ([]Candidate, error)
 }
 
+// Worker is the colour worker: measure a photo, render shades onto it.
+// workerclient.Client implements it.
 type Worker interface {
-	Analyze(ctx context.Context, image []byte, filename string, hijab, hairVisible bool) (*workerclient.AnalyzeResult, error)
-	Render(ctx context.Context, image []byte, filename string, layers []workerclient.Layer) ([]byte, error)
+	Analyze(ctx context.Context, image []byte, filename string, hijab, hairVisible bool) (*Analysis, error)
+	Render(ctx context.Context, image []byte, filename string, layers []Layer) ([]byte, error)
+}
+
+// Analysis is the worker's measurement of one photo (contract §2). The
+// adapter's wire type has the same shape plus JSON tags and converts to it
+// directly, so the compiler catches any drift between the two.
+type Analysis struct {
+	Measurement struct {
+		SkinLab     *domain.Lab
+		LipLab      *domain.Lab
+		IrisLab     *domain.Lab
+		HairLab     *domain.Lab
+		LPerSite    map[string]float64
+		PatchesUsed []string
+		Illuminant  struct {
+			Method   string
+			Residual *float64
+		}
+	}
+	Munsell struct {
+		Skin domain.Munsell
+		Lip  domain.Munsell
+	}
+	Quality struct {
+		QCFailed []string
+		Degraded []string
+	}
+	PipelineVersion string
+}
+
+// Layer is one product layer to render.
+type Layer struct {
+	Category string
+	HexColor string
+	Alpha    float64
+	Specular float64
+	Mode     string
 }
 
 type Service struct {
@@ -337,7 +374,7 @@ func (s *Service) TryOn(ctx context.Context, image []byte, filename string, shad
 		byID[c.ShadeID] = c
 	}
 	seen := map[string]string{}
-	var layers []workerclient.Layer
+	var layers []Layer
 	for _, id := range shadeIDs {
 		c, ok := byID[id]
 		if !ok {
@@ -347,7 +384,7 @@ func (s *Service) TryOn(ctx context.Context, image []byte, filename string, shad
 			return nil, fmt.Errorf("%w: shades %s and %s are both %s", domain.ErrInvalidInput, prev, id, c.Category)
 		}
 		seen[c.Category] = id
-		layers = append(layers, workerclient.Layer{
+		layers = append(layers, Layer{
 			Category: c.Category, HexColor: c.HexColor,
 			Alpha: c.Alpha, Specular: c.Specular, Mode: c.Mode,
 		})

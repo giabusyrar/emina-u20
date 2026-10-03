@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/service"
 )
 
 type Client struct {
@@ -32,7 +33,8 @@ func New(baseURL string, timeout time.Duration) *Client {
 	return &Client{BaseURL: strings.TrimRight(baseURL, "/"), HTTP: &http.Client{Timeout: timeout}}
 }
 
-// AnalyzeResult mirrors POST /pca/analyze (contract §2).
+// AnalyzeResult mirrors POST /pca/analyze (contract §2). It must keep the
+// exact shape of service.Analysis: Analyze converts one to the other.
 type AnalyzeResult struct {
 	Measurement struct {
 		SkinLab     *domain.Lab        `json:"skinLab"`
@@ -57,7 +59,8 @@ type AnalyzeResult struct {
 	PipelineVersion string `json:"pipelineVersion"`
 }
 
-// Layer is one product layer for /vto/render.
+// Layer is one product layer for /vto/render: service.Layer with its wire
+// tags.
 type Layer struct {
 	Category string  `json:"category"`
 	HexColor string  `json:"hexColor"`
@@ -67,7 +70,7 @@ type Layer struct {
 }
 
 // Analyze sends the photo plus the two self-reported headcover answers.
-func (c *Client) Analyze(ctx context.Context, image []byte, filename string, hijab, hairVisible bool) (*AnalyzeResult, error) {
+func (c *Client) Analyze(ctx context.Context, image []byte, filename string, hijab, hairVisible bool) (*service.Analysis, error) {
 	body, ctype, err := buildMultipart(image, filename, map[string]string{
 		"hijab":       strconv.FormatBool(hijab),
 		"hairVisible": strconv.FormatBool(hairVisible),
@@ -86,12 +89,17 @@ func (c *Client) Analyze(ctx context.Context, image []byte, filename string, hij
 	if out.Measurement.SkinLab == nil {
 		return nil, fmt.Errorf("%w: analyze response has no skinLab", domain.ErrWorkerUnavailable)
 	}
-	return &out, nil
+	a := service.Analysis(out)
+	return &a, nil
 }
 
 // Render returns the PNG produced by the worker.
-func (c *Client) Render(ctx context.Context, image []byte, filename string, layers []Layer) ([]byte, error) {
-	req, err := json.Marshal(map[string]interface{}{"layers": layers})
+func (c *Client) Render(ctx context.Context, image []byte, filename string, layers []service.Layer) ([]byte, error) {
+	var wire []Layer // nil stays nil: the request body is unchanged
+	for _, l := range layers {
+		wire = append(wire, Layer(l))
+	}
+	req, err := json.Marshal(map[string]interface{}{"layers": wire})
 	if err != nil {
 		return nil, fmt.Errorf("building render request: %w", err)
 	}

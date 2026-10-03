@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/domain"
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/service"
 )
 
 func TestAnalyzeSendsFormAndDecodes(t *testing.T) {
@@ -60,7 +61,7 @@ func TestWorkerErrorsMapToSentinels(t *testing.T) {
 			w.WriteHeader(tc.status)
 			w.Write([]byte(tc.body))
 		}))
-		_, err := New(srv.URL, time.Second).Render(context.Background(), []byte("img"), "a.png", []Layer{{Category: "lip", HexColor: "#AA0000", Alpha: 0.8}})
+		_, err := New(srv.URL, time.Second).Render(context.Background(), []byte("img"), "a.png", []service.Layer{{Category: "lip", HexColor: "#AA0000", Alpha: 0.8}})
 		srv.Close()
 		if !errors.Is(err, tc.want) {
 			t.Errorf("%s: got %v want %v", name, err, tc.want)

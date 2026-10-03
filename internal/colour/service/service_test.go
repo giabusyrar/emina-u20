@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/adapters/workerclient"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/colour/domain"
 )
 
@@ -26,12 +25,12 @@ func (f fakeStore) GetCandidates(_ context.Context, ids []string) ([]Candidate, 
 }
 
 type fakeWorker struct {
-	layers   []workerclient.Layer
+	layers   []Layer
 	qcFailed []string
 }
 
-func (f *fakeWorker) Analyze(context.Context, []byte, string, bool, bool) (*workerclient.AnalyzeResult, error) {
-	r := &workerclient.AnalyzeResult{}
+func (f *fakeWorker) Analyze(context.Context, []byte, string, bool, bool) (*Analysis, error) {
+	r := &Analysis{}
 	skin := domain.Lab{74.8, 8.55, 11.31}
 	r.Measurement.SkinLab = &skin
 	r.Measurement.LPerSite = map[string]float64{"forehead": 77.8, "jaw_r": 87.3, "cheek_l": 60.6}
@@ -39,7 +38,7 @@ func (f *fakeWorker) Analyze(context.Context, []byte, string, bool, bool) (*work
 	r.Quality.QCFailed = f.qcFailed
 	return r, nil
 }
-func (f *fakeWorker) Render(_ context.Context, _ []byte, _ string, l []workerclient.Layer) ([]byte, error) {
+func (f *fakeWorker) Render(_ context.Context, _ []byte, _ string, l []Layer) ([]byte, error) {
 	f.layers = l
 	return []byte("png"), nil
 }
