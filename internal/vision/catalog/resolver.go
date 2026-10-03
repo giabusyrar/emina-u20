@@ -21,13 +21,7 @@ type Plan struct {
 }
 
 // ValidationError lists request codes that are not in Reference Data.
-type ValidationError struct {
-	Items []domain.ValidationErrorItem
-}
-
-func (e *ValidationError) Error() string {
-	return fmt.Sprintf("%d unrecognized dimension or skin condition code(s)", len(e.Items))
-}
+type ValidationError = domain.ValidationError
 
 // Resolver validates requested codes against Reference Data and builds a Plan.
 type Resolver struct {

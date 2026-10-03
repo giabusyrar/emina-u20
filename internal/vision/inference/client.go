@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -41,7 +40,8 @@ type DispatchResult struct {
 }
 
 // ErrWorkerUnavailable wraps every failure to get scores from the vision AI worker.
-var ErrWorkerUnavailable = errors.New("vision AI worker unavailable")
+// It is domain.ErrWorkerUnavailable.
+var ErrWorkerUnavailable = domain.ErrWorkerUnavailable
 
 // CapabilityClient runs capability models on zone crops.
 type CapabilityClient interface {

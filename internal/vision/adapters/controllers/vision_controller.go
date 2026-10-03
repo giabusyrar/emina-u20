@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -10,17 +11,20 @@ import (
 
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/catalog"
 	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/domain"
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/inference"
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/orchestrator"
-	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/workers"
 )
 
+// Orchestrator runs the vision pipeline; orchestrator.VisionOrchestrator
+// implements it.
+type Orchestrator interface {
+	Execute(ctx context.Context, req *domain.AnalyzeVisionRequest) (*domain.VisionAnalysisResponse, error)
+}
+
 type VisionController struct {
-	orchestrator *orchestrator.VisionOrchestrator
+	orchestrator Orchestrator
 	catalog      catalog.Catalog
 }
 
-func NewVisionController(orch *orchestrator.VisionOrchestrator, referenceCatalog catalog.Catalog) *VisionController {
+func NewVisionController(orch Orchestrator, referenceCatalog catalog.Catalog) *VisionController {
 	return &VisionController{
 		orchestrator: orch,
 		catalog:      referenceCatalog,
@@ -135,7 +139,7 @@ func (c *VisionController) AnalyzeImage(ctx echo.Context) error {
 
 // writeError maps pipeline failures to HTTP responses.
 func (c *VisionController) writeError(ctx echo.Context, err error) error {
-	var validationErr *catalog.ValidationError
+	var validationErr *domain.ValidationError
 	switch {
 	case errors.As(err, &validationErr):
 		return ctx.JSON(http.StatusBadRequest, domain.ValidationErrorResponse{
@@ -143,17 +147,17 @@ func (c *VisionController) writeError(ctx echo.Context, err error) error {
 			Message:           "Validation failed on requested parameters",
 			InvalidParameters: validationErr.Items,
 		})
-	case errors.Is(err, catalog.ErrCatalogUnavailable):
+	case errors.Is(err, domain.ErrCatalogUnavailable):
 		return ctx.JSON(http.StatusServiceUnavailable, map[string]string{
 			"error":   "REFERENCE_DATA_UNAVAILABLE",
 			"message": err.Error(),
 		})
-	case errors.Is(err, workers.ErrSegmentationUnavailable):
+	case errors.Is(err, domain.ErrSegmentationUnavailable):
 		return ctx.JSON(http.StatusServiceUnavailable, map[string]string{
 			"error":   "SEGMENTATION_UNAVAILABLE",
 			"message": err.Error(),
 		})
-	case errors.Is(err, inference.ErrWorkerUnavailable):
+	case errors.Is(err, domain.ErrWorkerUnavailable):
 		return ctx.JSON(http.StatusBadGateway, map[string]string{
 			"error":   "VISION_WORKER_UNAVAILABLE",
 			"message": err.Error(),

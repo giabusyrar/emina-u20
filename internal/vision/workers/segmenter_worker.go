@@ -3,7 +3,6 @@ package workers
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"image"
 	"image/png"
@@ -18,10 +17,12 @@ import (
 // ErrSegmentationUnavailable: the skin worker could not segment the image
 // (unreachable, no model loaded, or an unusable reply). There is no
 // substitute: callers report it instead of using template zones.
-var ErrSegmentationUnavailable = errors.New("skin segmentation unavailable")
+// It is domain.ErrSegmentationUnavailable.
+var ErrSegmentationUnavailable = domain.ErrSegmentationUnavailable
 
-// ErrNoFace: the skin worker measured the image and found no face.
-var ErrNoFace = errors.New("no face detected")
+// ErrNoFace: the skin worker measured the image and found no face. It is
+// domain.ErrNoFace.
+var ErrNoFace = domain.ErrNoFace
 
 type SegmentedZone struct {
 	ZoneCode    string

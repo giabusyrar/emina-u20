@@ -2,7 +2,8 @@ package catalog
 
 import (
 	"context"
-	"errors"
+
+	"gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine/internal/vision/domain"
 )
 
 // Condition is a vision-relevant skin condition from Reference Data: it maps
@@ -30,8 +31,8 @@ type Snapshot struct {
 }
 
 // ErrCatalogUnavailable means Reference Data could not be loaded and no
-// earlier snapshot exists to fall back on.
-var ErrCatalogUnavailable = errors.New("reference data unavailable")
+// earlier snapshot exists to fall back on. It is domain.ErrCatalogUnavailable.
+var ErrCatalogUnavailable = domain.ErrCatalogUnavailable
 
 // Catalog serves the current Reference Data snapshot.
 type Catalog interface {
