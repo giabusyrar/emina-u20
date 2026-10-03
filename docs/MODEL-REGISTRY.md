@@ -404,12 +404,31 @@ the fraction of pixels above `threshold`, 0-1, which the adapter reports as
 0-100. The module docstring has the equations; the tests pin the graph to a
 NumPy reference (max abs difference 3e-6, bound 1e-4) and to scikit-image's
 `frangi` (bound 0.05 away from the border; see the test for why the border is
-excluded).
+excluded). The scikit-image comparison skips where scikit-image is not
+installed; it is not yet declared in the model server's `[test]` extra.
+
+**The crop is stretched, so densities do not compare across crops.** The
+registry's preprocess resizes every zone crop to `input` width x height with
+a plain bilinear `cv2.resize`, not aspect-preserving. The `scales` are in
+pixels of that resized crop, not of the source photo, and the crop is
+stretched non-uniformly when its aspect ratio differs from the input's. So
+how many pixels a given skin line spans, and how strongly it responds,
+depends on the source crop's resolution and aspect ratio: the same 1 px dark
+line scored 0.39 in a 256x256 crop, 2.34 (horizontal) / 1.95 (vertical) in a
+50x25 crop, and 0.78 / 0.39 in a 400x200 crop. Densities are **not
+comparable across crop resolutions or aspect ratios**, and a small crop is
+measured at sub-pixel source scales (in a 50x25 crop, sigma 1 is about a
+fifth of a source pixel horizontally and a tenth vertically). The label says "resized,
+not aspect-preserving" and the ONNX metadata (`ridge_density.input`) says the
+same.
 
 **What it is not.** It is a ridge density, a geometric property of the image.
 It is **not a wrinkle score**, not learned, and not clinically validated:
 anything line-shaped and darker than its surroundings counts (a hair, a
-crease from the pose, a shadow edge), and Frangi also responds on the flanks
+crease from the pose, a shadow edge). Step edges count too: the dark side
+of a brow, hairline or lip boundary inside the crop curves like a valley,
+and a dark band at the crop edge is folded by the reflect padding into a
+symmetric valley that scores as a ridge. Frangi also responds on the flanks
 of a *bright* line, where the intensity curves upward on either side of it
 (on the test's synthetic patch, lines drawn 30 grey levels bright score 9.7
 under `ridge: dark`, against 7.0 for the same lines drawn dark).
@@ -419,12 +438,16 @@ never "wrinkle".
 **Parameters are policy.** `tools/ridge_density.json` holds `input` size,
 `scales` (sigmas, in pixels of the resized crop, >= 1), `beta`, `c`,
 `threshold` and `ridge` (`dark`/`bright`). They are tuning choices, not
-measurements; the file says so. The builder writes them into the ONNX
+measurements; the file says so. In particular `c` (0.015) and `threshold`
+(0.5) were chosen on synthetic patches only (flat skin tone with noise
+scores 0; thin lines 30 grey levels darker score about 7) and are **not
+calibrated on real skin**. The builder writes them into the ONNX
 metadata (`ridge_density.params`, `ridge_density.params_sha`), so the uploaded
 file's sha256 identifies them, into the registry `label`, and as a 12-hex
 hash into the output file names (`skin_ridge_density_<hash>.onnx` and
-`.runtime-spec.json`). Changing any of them, or the graph version, produces a
-differently named, differently hashed model.
+`.runtime-spec.json`). The hash also covers the graph version, the kernel
+truncation and the runtime spec (the preprocessing that feeds the graph), so
+changing any of them produces a differently named, differently hashed model.
 
 **Building and uploading.**
 
@@ -437,7 +460,9 @@ python -m tools.build_ridge_density --out build/ --upload <MODEL_SERVER_URL>
 `--upload` posts to `<url>/api/v1/models/upload` with capability
 `skin_ridge_density`, the runtime spec and the label, and **no `activate`
 field**: the model joins the library and serves nothing. There is no flag to
-activate from the builder.
+activate from the builder. It also sends no `applicableZones`, so once
+activated the model runs on **every** zone, eyes and lips included;
+restricting it to some zones is part of the user's binding decision.
 
 **Mapping it to a condition is the user's decision.** Once activated it is
 callable through dispatch, but it contributes to no score until a condition
