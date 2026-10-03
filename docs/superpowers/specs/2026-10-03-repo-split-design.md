@@ -1,11 +1,13 @@
 # Split seagull-core into one repository per service — design (sub-project 1)
 
 Date: 2026-10-03
-Status: draft for user review
+Status: approved 2026-10-03 (goplatform copied in, not a library repo)
 Decided in chat: one repo per deployed service (option A), shared libraries as
 their own repos published as versioned packages, each repo deploys with its own
 compose file (option B), history preserved with `git filter-repo`, the user
-creates the GitLab projects and pushes. Sub-project 2 (a Next.js simulator per
+creates the GitLab projects and pushes. goplatform is copied into both Go
+repos as `internal/platform` instead of becoming its own module (decided
+after approval: two consumers do not justify a private Go module). Sub-project 2 (a Next.js simulator per
 repo, built on the published web packages) follows separately.
 
 ## Repositories
@@ -25,7 +27,6 @@ to be pushed by the user to the same GitLab group as seagull-core
 | `seagull-worker-colour` | `apps/workers/colour` | Python worker :8092 |
 | `seagull-worker-tryon` | `apps/workers/tryon` | Python worker :8090 |
 | `seagull-conversation-engine` | `apps/conversation-engine` | Python service :8098 (agreed with its owner, the Live agent session; no goplatform/worker_common dependency; talks to core-engine over HTTP only) |
-| `seagull-goplatform` | `packages/goplatform` | Go library |
 | `seagull-worker-common` | `apps/workers/common` | Python library |
 
 Not carried over: `apps/ai-worker` (untracked leftover), `RAILWAY.md`,
@@ -64,16 +65,19 @@ original seagull-core is untouched until cut-over.
 
 ## Shared libraries
 
-**seagull-goplatform** — Go module
-`gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-goplatform`,
-tagged `v0.1.0`. core-engine and reference-service `require` it by version.
-- Private module access: `GOPRIVATE=gitlab.com/paragon-is/*` and a GitLab
-  token in `~/.netrc` (developers, CI, VPS build). GitLab serves `go get`
-  metadata for nested groups to authenticated clients; if that fails, the
-  module path takes a `.git` suffix — decided at implementation after a test.
-- Until the user pushes, each Go repo's `go.mod` carries a temporary
-  `replace ... => ../seagull-goplatform` so it builds locally; removed once the
-  tag exists.
+**goplatform — copied, not shared.** `packages/goplatform` (with its history,
+via `--path packages/goplatform/ --path-rename packages/goplatform/:internal/platform/`)
+goes into both seagull-core-engine and seagull-reference-service as
+`internal/platform`, package name unchanged (`goplatform`), imported as
+`<module>/internal/platform`. No private Go module, GOPRIVATE or `.netrc`.
+- Drift guard: both copies carry a `README.md` saying the package is mirrored
+  in the other repo and a change to one goes to both; each repo's CI asserts
+  that `gatewayOwnedTables` in `dbguard.go` lists exactly
+  `api_keys, collections, routes, route_groups`, so the gateway-DB guard
+  cannot silently diverge.
+- Each service keeps its own Go module path, renamed to its GitLab path
+  (`gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/seagull-core-engine`
+  and `.../seagull-reference-service`); the `replace` to `../../packages/goplatform` is removed.
 
 **seagull-worker-common** — Python package `seagull-worker-common`
 (import name stays `worker_common`), version `0.1.0`, published to the
@@ -108,13 +112,13 @@ service in its place (same container name, same port, same volumes:
 
 ## Order
 
-1. Libraries: goplatform, worker-common (others depend on them).
+1. Library: worker-common (the workers depend on it).
 2. Go services: core-engine, reference-service.
 3. Workers: models, skin, face, colour, tryon.
 4. conversation-engine (owner agreed 2026-10-03; carries its spec and plan `docs/superpowers/{specs,plans}/2026-10-03-conversation-engine*`; Dockerfile becomes `COPY . /app`; its compose drops `depends_on: core-engine`; keeps container/upstream name `conversation-engine:8098` for APISIX; VPS env CONV_LIVE_MODEL, CONV_VOICE_DEFAULT, GOOGLE_API_KEY move with it).
 5. seagull-core archive commit.
-6. After the user pushes: tag/publish the libraries, drop the temporary
-   local `replace`/editable installs, VPS cut-over.
+6. After the user pushes: tag/publish worker-common, drop the temporary
+   editable installs, VPS cut-over.
 
 Each repo is verified locally before hand-off: its tests pass, its Docker
 image builds, `docker compose config` is valid where Docker is available
