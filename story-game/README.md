@@ -8,6 +8,7 @@ way you help reveals your energy type. Six endings, an Instagram Story card, a p
 **Live (production):** https://emina-20-under-20.vercel.app (H-1, with AI scene art)
 **Claude preview of the current build:** https://claude.ai/artifact/44RHVwpwnryJ8B61TJVBPS
 **Deploy:** `python3 deploy.py` (preview) · `python3 deploy.py --prod` (production). SHA-upload, no Node needed.
+**Repo:** this game lives under `story-game/` in https://gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/emina-u20 (the repo root is the seagull-core-engine Go service). Run the commands below from `story-game/`.
 
 `index.html` is **generated**. Edit the sources, then run `python3 build/build3.py`.
 
