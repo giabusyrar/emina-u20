@@ -1,0 +1,8 @@
+# VPS override — copy to compose.vps.yml (not committed) and run:
+#   docker compose -f docker-compose.yml -f compose.vps.yml up -d --build
+# Services are reached through APISIX on the seagull network; the host port is
+# bound to loopback so it is never exposed publicly.
+services:
+  core-engine:
+    ports: !override
+      - "127.0.0.1:8082:8082"

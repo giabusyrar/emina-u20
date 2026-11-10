@@ -1,0 +1,5 @@
+.DS_Store
+*.local
+test.html
+nohup.out
+__pycache__/

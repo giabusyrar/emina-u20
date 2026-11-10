@@ -1,0 +1,40 @@
+{
+  "catalogueVersion": "fa-measure/1",
+  "source": "makeover",
+  "cite": "Perfect Corp YouCam API POST /s2s/v2.0/task/face-attr-analysis, results.facialratio (OpenAPI document perfect-corp-ai_face_analyzer.json, mirrored at github.com/api-evangelist/perfect-corp openapi/_original/); Make Over's face analysis is Perfect Corp's (Perfect Corp x Make Over, ParagonCorp Beauty Science & Technology 2026). Every [1, x] direction below is an ASSUMPTION (first quantity = 1) until checked against one real Make Over screen.",
+  "comparisons": [
+    {"name": "thirds", "vendor": ["horizontal_third"], "components": 3,
+     "ours": ["thirds_upper_proxy", "thirds_mid", "thirds_lower"], "transform": "sharePercent",
+     "note": "Percent of face height. Component order ASSUMED: upper/middle/lower. Our upper third starts at the mesh top (landmark 10), a proxy: the mesh has no hairline. Our middle third is glabella to subnasale, lower is subnasale to menton. The vendor's points are not documented."},
+    {"name": "fifths", "vendor": ["vertical_fifth"], "components": 5,
+     "ours": ["fifths"], "transform": "percent",
+     "note": "Percent of face width. Component order ASSUMED: subject's right to left. Our outer fifths end at the face-oval extremes (234/454), a proxy, not zygion. The vendor's points are not documented."},
+    {"name": "faceAspect", "vendor": ["face_aspect_ratio"], "components": 1,
+     "ours": ["width_length_ratio"], "transform": "inverse",
+     "note": "Vendor: width of the face to its height, [1, x], ASSUMED x = height / width. Ours: width_length_ratio (oval-extreme width over mesh-top-to-menton length, both proxies), inverted."},
+    {"name": "eyeAspect", "vendor": ["left_eye_aspect_ratio", "right_eye_aspect_ratio"], "components": 1,
+     "ours": ["eye_aperture_ratio"], "transform": "inverse",
+     "note": "Vendor: height of the eye to its width, [1, x], ASSUMED x = width / height; left and right averaged. Ours: eye_aperture_ratio (lid 159/145 over corner-to-corner width, mean of both eyes), inverted. Ours is 1/mean(right, left), while the vendor averages its own per-side values, mean(1/right, 1/left); by Jensen's inequality ours is less than or equal to theirs, so expect a small negative bias from the averaging alone."},
+    {"name": "browArch", "vendor": ["left_eyebrow_arch_to_eyebrow_width", "right_eyebrow_arch_to_eyebrow_width"], "components": 1,
+     "ours": ["brow_peak_position"], "transform": "inverse",
+     "note": "Vendor: brow forepart (start to arch) to total brow width, [1, x], ASSUMED x = total / forepart; left and right averaged. Ours: brow_peak_position (0 medial to 1 lateral along the brow chord, = forepart / total), inverted. Ours is 1/mean(right, left), while the vendor averages its own per-side values, mean(1/right, 1/left); by Jensen's inequality ours is less than or equal to theirs, so expect a small negative bias from the averaging alone."},
+    {"name": "eyeHeightToBrow", "vendor": ["left_eye_height_to_eyebrow_distance", "right_eye_height_to_eyebrow_distance"], "components": 1,
+     "ours": ["eye_height_to_brow_distance"], "transform": "inverse",
+     "note": "Vendor: eye height to the vertical distance from the top of the eyebrow to the bottom of the eye, [1, x], ASSUMED x = distance / eye height; left and right averaged. Ours: eye_height_to_brow_distance (vertical lid height over highest upper-brow point to lower lid, mean of both eyes), inverted. Ours is 1/mean(right, left), while the vendor averages its own per-side values, mean(1/right, 1/left); by Jensen's inequality ours is less than or equal to theirs, so expect a small negative bias from the averaging alone."},
+    {"name": "noseAspect", "vendor": ["nose_aspect_ratio"], "components": 1,
+     "ours": ["nose_aspect_ratio"], "transform": "inverse",
+     "note": "Vendor: width of the nose to its height, [1, x], ASSUMED x = height / width. Ours: nose_aspect_ratio (nostril-base width 98/327, a proxy for alare, over nasion 168 to subnasale), inverted."},
+    {"name": "noseToMouth", "vendor": ["nose_width_to_mouth_width"], "components": 1,
+     "ours": ["alar_width_to_mouth_ratio"], "transform": "inverse",
+     "note": "Vendor: nose width to mouth width, [1, x], ASSUMED x = mouth / nose. Ours: alar_width_to_mouth_ratio (nostril-base proxy over cheilion to cheilion), inverted."},
+    {"name": "noseLipChin", "vendor": ["nose_to_lip_to_chin"], "components": 1,
+     "ours": ["lower_face_split"], "transform": "inverse",
+     "note": "Vendor: nose tip to mid-lips, to mid-lips to chin, [1, x], ASSUMED x = (lips to chin) / (nose tip to lips). Ours: lower_face_split, which starts at SUBNASALE, not the nose tip, so ours is systematically shifted; inverted."},
+    {"name": "lips", "vendor": ["upper_lip_to_lower_lip"], "components": 1,
+     "ours": ["upper_lower_lip_ratio"], "transform": "inverse",
+     "note": "Vendor: upper lip height to lower lip height, [1, x], ASSUMED x = lower / upper. Ours: upper_lower_lip_ratio (upper over lower vermilion height), inverted."}
+  ],
+  "unused": {
+    "overall_eye_height_to_eyebrow_distance": "Left and right are compared, averaged; whether overall is their mean is not documented."
+  }
+}
