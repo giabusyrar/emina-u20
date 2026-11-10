@@ -1,0 +1,23 @@
+<rect width="320" height="170" fill="#EFE6FF"/>
+<rect x="18" y="8" width="66" height="112" rx="18" fill="#BFE2FF"/>
+<rect x="25" y="15" width="52" height="98" rx="13" fill="#E3F1FF"/>
+<path d="M51 15v98" fill="none" stroke="#BFE2FF" stroke-width="4" stroke-linecap="round"/>
+<path d="M25 113 77 15 158 132 52 132Z" fill="#E3F1FF" opacity=".4"/>
+<rect x="196" y="16" width="100" height="60" rx="13" fill="#FFF4F9"/>
+<path d="M208 32h40M208 46h58M208 60h24" fill="none" stroke="#FFB0D4" stroke-width="5" stroke-linecap="round"/>
+<circle cx="278" cy="32" r="7" fill="#8FE3C8"/>
+<rect y="132" width="320" height="38" fill="#CDBEF2"/>
+<g fill="#9E8FD6"><circle cx="96" cy="70" r="13"/><path d="M76 114V104a20 20 0 0 1 40 0v10z"/></g>
+<g fill="#FF9DC0"><circle cx="160" cy="68" r="14"/><path d="M139 114V103a21 21 0 0 1 42 0v11z"/></g>
+<g fill="#B79BE0"><circle cx="250" cy="70" r="13"/><path d="M230 114V104a20 20 0 0 1 40 0v10z"/></g>
+<rect x="28" y="110" width="264" height="18" rx="9" fill="#FFF3D6"/>
+<rect x="28" y="122" width="264" height="12" rx="6" fill="#FBD9B0"/>
+<g transform="rotate(-8 93 102)"><rect x="78" y="90" width="30" height="24" rx="5" fill="#FFFFFF"/><path d="M84 97h18M84 104h12" fill="none" stroke="#FF8FC0" stroke-width="3" stroke-linecap="round"/></g>
+<path d="M136 105 160 88 184 105Z" fill="#FFF4F9"/>
+<path d="M139 102 160 93 181 102" fill="none" stroke="#FFD7E9" stroke-width="3" stroke-linecap="round"/>
+<path d="M151 100h18" fill="none" stroke="#9B9BB5" stroke-width="2.5" stroke-linecap="round" opacity=".75"/>
+<rect x="138" y="104" width="44" height="22" rx="5" fill="#FFFFFF"/>
+<path d="M146 112h16M146 119h10" fill="none" stroke="#FF5BA3" stroke-width="3" stroke-linecap="round"/>
+<path d="M112 22l1.6 4.4 4.4 1.6-4.4 1.6-1.6 4.4-1.6-4.4-4.4-1.6 4.4-1.6z" fill="#FFFFFF" opacity=".85"/>
+<path d="M190 37l1.3 3.7 3.7 1.3-3.7 1.3-1.3 3.7-1.3-3.7-3.7-1.3 3.7-1.3z" fill="#FFE08A" opacity=".9"/>
+<path d="M302 143l1.3 3.7 3.7 1.3-3.7 1.3-1.3 3.7-1.3-3.7-3.7-1.3 3.7-1.3z" fill="#FFFFFF" opacity=".7"/>

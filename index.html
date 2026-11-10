@@ -1,0 +1,689 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#FF4D97">
+<title>H-1 · Emina 20 Under 20</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,400..900,0..100;1,9..144,400..900,0..100&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+:root{--tapicon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 11V5a2 2 0 0 1 4 0v6m0-2a2 2 0 0 1 4 0v3m0-1a2 2 0 0 1 4 0v4a6 6 0 0 1-6 6h-2a6 6 0 0 1-5-3l-2-4a2 2 0 0 1 3-2l1 1' fill='%23000'/%3E%3C/svg%3E");--serif:Fraunces,Georgia,'Times New Roman',serif;--sans:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;--ink:#43283A;--ink2:#6a4a5a;--pink:#FF4D97;--pink-deep:#E0357D;--cream:#FFF4F9;--panel:#FFF8FB;--line:#FFD7E9;
+  --e-out:cubic-bezier(.25,1,.5,1);--e-move:cubic-bezier(.65,0,.35,1);--e-pop:cubic-bezier(.34,1.56,.64,1)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;background:#1b1226;font-family:var(--sans);color:var(--ink);
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+button{font-family:inherit}
+#app{position:fixed;inset:0;margin:0 auto;max-width:460px;background:#1b1226;overflow:hidden}
+.screen{position:absolute;inset:0;display:none;flex-direction:column}
+.screen.on{display:flex}
+
+/* ---------- welcome ---------- */
+#welcome{background:linear-gradient(168deg,#FF8AC0 0%,#FF4D97 48%,#E0357D 100%);color:#fff;overflow:auto;
+  padding:calc(18px + env(safe-area-inset-top,0px)) 22px calc(26px + env(safe-area-inset-bottom,0px))}
+.w-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.brand{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-style:italic;font-weight:700;font-size:28px;letter-spacing:-.02em;line-height:1}
+.camp{font-family:var(--sans);font-weight:700;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;opacity:.9;text-align:right}
+.w-hero{margin:18px -4px 0;border-radius:22px;overflow:hidden;aspect-ratio:4/3;background:rgba(255,255,255,.14);position:relative;
+  box-shadow:0 18px 40px rgba(120,20,70,.28)}
+.w-hero img{width:100%;height:100%;object-fit:cover;display:block}
+.w-hero .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;
+  font-size:84px;letter-spacing:-.03em;color:rgba(255,255,255,.9);text-shadow:0 10px 30px rgba(120,20,70,.3)}
+.w-hero .ph small{position:absolute;bottom:14px;left:0;right:0;text-align:center;font:600 11px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;opacity:.85}
+#welcome h1{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(46px,14vw,64px);line-height:.92;margin:22px 0 0;letter-spacing:-.03em}
+#welcome .w-sub{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-style:italic;font-weight:500;font-size:19px;line-height:1.3;margin:8px 0 0;opacity:.96}
+#welcome .w-lead{font-family:var(--serif);font-variation-settings:'SOFT' 60;font-weight:400;font-size:16.5px;line-height:1.5;margin:16px 0 0;opacity:.97;max-width:34ch}
+.w-heart{margin:18px 0 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);font-family:var(--sans);font-weight:500;font-size:13.5px;line-height:1.5}
+.w-how{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:8px}
+.w-how li{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:10px 12px;font-size:13.5px;line-height:1.35}
+.w-how .n{flex:0 0 28px;height:28px;border-radius:50%;background:#fff;color:var(--pink-deep);display:grid;place-items:center;font:800 13px var(--sans)}
+.w-how b{font-weight:600}
+#startBtn{margin-top:22px;width:100%;border:none;border-radius:999px;padding:17px 20px;background:#fff;color:var(--pink-deep);
+  font:700 17px var(--sans);cursor:pointer;box-shadow:0 14px 30px rgba(120,20,70,.3);transition:transform .15s var(--e-pop)}
+#startBtn:active{transform:scale(.98)}
+.w-fine{text-align:center;font-size:11.5px;opacity:.85;margin:12px 0 0;letter-spacing:.02em}
+
+/* ---------- game ---------- */
+#game{background:var(--panel)}
+#stage{position:relative;flex:0 0 56%;overflow:hidden;background:var(--fb,#CDBEF2);transition:background .6s}
+@media (max-height:700px){#stage{flex-basis:50%}}
+#stage img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .75s var(--e-out)}
+#stage img.bg.on{opacity:1}
+#actorLayer{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+#chip{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:12px;padding:6px 11px;border-radius:999px;background:rgba(27,18,38,.52);color:#fff;
+  font:500 11px/1 "Plus Jakarta Sans",sans-serif;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  opacity:0;transform:translateY(-4px);transition:opacity .5s,transform .5s var(--e-out)}
+#chip.on{opacity:1;transform:none}
+#chip b{font-weight:600;color:#FFD7E9;margin-right:6px}
+#tutBadge{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;display:none;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:var(--pink);color:#fff;font:800 10.5px/1 var(--sans);letter-spacing:.14em;box-shadow:0 8px 18px rgba(224,53,125,.28)}
+#tutBadge.on{display:inline-flex;animation:tutpop .4s var(--e-pop)}
+#tutBadge .dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:blink 1.1s ease-in-out infinite}
+@keyframes tutpop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+#fade{position:absolute;inset:0;background:#1b1226;opacity:0;transition:opacity .45s;pointer-events:none}
+#fade.on{opacity:1}
+#stage::after{content:'';position:absolute;left:0;right:0;bottom:0;height:36px;background:linear-gradient(to top,var(--panel),rgba(255,248,251,0));pointer-events:none}
+#panel{flex:1;display:flex;flex-direction:column;min-height:0;padding:12px 18px calc(14px + env(safe-area-inset-bottom,0px));position:relative}
+#box{flex:0 0 auto;position:relative;padding-right:18px}
+#who{display:inline-block;font-family:var(--sans);font-weight:700;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+  padding:4px 10px 3px;border-radius:999px;color:#fff;background:var(--who,#9B9BB5);margin:0 0 7px;opacity:0;transform:translateY(4px);transition:opacity .22s,transform .22s var(--e-out)}
+#who.on{opacity:1;transform:none}
+#txt{margin:0;font-family:var(--sans);font-size:clamp(15px,4.2vw,17px);line-height:1.5;font-weight:500;min-height:4.5em;text-wrap:pretty}
+#txt.narr{font-family:var(--serif);font-variation-settings:'SOFT' 60;font-weight:400;font-size:clamp(16.5px,4.6vw,18.5px);line-height:1.48;color:var(--ink2)}
+#txt.echo{font-weight:600;color:var(--pink-deep)}
+#next{position:absolute;right:0;bottom:4px;width:12px;height:12px;opacity:0;transition:opacity .3s}
+#next.on{opacity:.8;animation:nod 1.1s ease-in-out infinite}
+#hint{position:absolute;left:0;right:0;bottom:-18px;margin:0;font-size:11px;color:#b08a9c;letter-spacing:.04em;opacity:0;transition:opacity .4s}
+#hint.on{opacity:1}
+#hint.tut{bottom:-32px;font-family:var(--sans);font-weight:700;font-size:12.5px;color:#fff;background:var(--pink);display:inline-flex;align-items:center;gap:6px;left:auto;right:0;padding:7px 12px 7px 10px;border-radius:999px;animation:nod 1.1s ease-in-out infinite;box-shadow:0 8px 18px rgba(224,53,125,.25)}
+#hint.tut::before{content:'';width:13px;height:16px;background:#fff;-webkit-mask:var(--tapicon) center/contain no-repeat;mask:var(--tapicon) center/contain no-repeat}
+#ground{position:absolute;left:0;right:0;bottom:0;height:16%;background:rgba(67,40,58,.08);pointer-events:none}
+@keyframes nod{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+#choices{margin-top:auto;display:flex;flex-direction:column;gap:7px;opacity:0;transform:translateY(10px);transition:opacity .3s,transform .3s var(--e-out);pointer-events:none;overflow:auto;padding-top:10px}
+#choices.on{opacity:1;transform:none;pointer-events:auto}
+#choices.tut #optList{border-radius:16px;animation:tutring 1.4s ease-in-out infinite}
+@keyframes tutring{0%,100%{box-shadow:0 0 0 0 rgba(255,77,151,0)}50%{box-shadow:0 0 0 4px rgba(255,77,151,.22)}}
+
+#tip{margin:0 0 8px;padding:9px 12px;border-radius:12px;background:#FFF0F6;border:1.5px solid var(--line);font:500 12.5px/1.45 var(--sans);color:var(--ink2);display:none}
+#tip.on{display:block}
+#tip b{color:var(--pink-deep);font-weight:700}
+#ask{font-family:var(--sans);font-weight:700;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--pink-deep);margin:0 0 2px}
+.opt{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:10px 12px 10px 32px;font:600 14px/1.35 var(--sans);color:var(--ink);
+  position:relative;cursor:pointer;transition:transform .15s var(--e-out),background .2s,opacity .3s,border-color .2s;opacity:0;transform:translateX(8px)}
+.opt.in{opacity:1;transform:none}
+.opt::before{content:'\203A';position:absolute;left:13px;top:6px;font:700 21px/1 var(--serif);color:var(--pink)}
+.opt:active{transform:scale(.985);background:#FFF0F6}
+.opt.pick{background:var(--pink);color:#fff;border-color:var(--pink)}
+.opt.pick::before{color:#fff}
+.opt.dim{opacity:.3}
+/* actor rig */
+#actor{transition:transform 1.1s cubic-bezier(.3,0,.22,1)}
+#lean,#squash,#actorBob,#head,.arm,.lg,.eye,#mouth,#shadow,#emote{transform-box:fill-box}
+#lean,#squash,#actorBob,#head{transform-origin:50% 100%}
+#head{transition:transform .4s var(--e-out)}
+.arm{transform-origin:50% 0;transition:transform .38s var(--e-out)}
+.lg{transform-origin:50% 0;transition:transform .3s var(--e-out)}
+#legs{transition:opacity .2s}
+#shadow{transform-origin:50% 50%}
+.eye{transform-origin:50% 50%;animation:blink 4.4s ease-in-out infinite}
+#mouth{transform-origin:50% 0}
+.prop,#sitFeet{opacity:0;transition:opacity .25s}
+#actorBob{animation:idle 3.2s ease-in-out infinite;transition:transform .4s var(--e-out)}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}}
+@keyframes idle{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.025) scaleX(.99)}}
+/* emote bubble above the head */
+#emote{opacity:0;transform-origin:30% 100%;transition:opacity .15s}
+#emote .em{display:none}
+@keyframes empop{0%{transform:scale(.4) translateY(6px);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
+/* walk: waddle with the steps, arms swing opposite, body bobs (no lean: a round body tips, it does not lean) */
+.walking #actorBob{animation:bob .42s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0) rotate(-3.5deg) scaleY(1)}to{transform:translateY(-3px) rotate(3.5deg) scaleY(1.03)}}
+.walking .lgL{animation:stepL .42s ease-in-out infinite alternate}
+.walking .lgR{animation:stepR .42s ease-in-out infinite alternate}
+@keyframes stepL{from{transform:translateY(0) rotate(0)}to{transform:translateY(-4px) rotate(-14deg)}}
+@keyframes stepR{from{transform:translateY(-4px) rotate(14deg)}to{transform:translateY(0) rotate(0)}}
+.walking #armL{animation:swingA .42s ease-in-out infinite alternate}
+.walking #armR{animation:swingB .42s ease-in-out infinite alternate}
+@keyframes swingA{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
+@keyframes swingB{from{transform:rotate(18deg)}to{transform:rotate(-18deg)}}
+/* run: faster, higher, bigger swing, shadow shrinks in the air */
+.run #actorBob{animation:bobRun .26s ease-in-out infinite alternate!important}
+@keyframes bobRun{from{transform:translateY(0) rotate(-5deg) scaleY(.97) scaleX(1.03)}to{transform:translateY(-8px) rotate(5deg) scaleY(1.06) scaleX(.96)}}
+.run .lgL,.run .lgR{animation-duration:.26s!important}
+.run #armL{animation:swingAR .26s ease-in-out infinite alternate!important}
+.run #armR{animation:swingBR .26s ease-in-out infinite alternate!important}
+@keyframes swingAR{from{transform:rotate(-40deg)}to{transform:rotate(40deg)}}
+@keyframes swingBR{from{transform:rotate(40deg)}to{transform:rotate(-40deg)}}
+.run #shadow{animation:shadowRun .26s ease-in-out infinite alternate}
+@keyframes shadowRun{from{transform:scale(1)}to{transform:scale(.78);opacity:.1}}
+/* ---- actions after arriving (class act-* on #actor) ---- */
+.act-listen #emote,.act-craft #emote,.act-tidy #emote,.act-torch #emote,.act-paint #emote,.act-write #emote,.act-phone #emote,.act-call #emote,.act-talk #emote,.act-wave #emote,.act-mic #emote,.act-look #emote,.act-breathe #emote{opacity:1;animation:empop .4s var(--e-pop) both}
+.act-breathe #actorBob{animation:breathe 2.6s ease-in-out 1 both}
+@keyframes breathe{0%{transform:scale(1)}35%{transform:scaleY(1.09) scaleX(1.04) translateY(-2px)}55%{transform:scaleY(1.09) scaleX(1.04) translateY(-2px)}100%{transform:scale(1)}}
+.act-breathe #emZ{display:block;animation:rise 2.4s ease-out infinite}
+@keyframes rise{0%{transform:translateY(4px);opacity:0}30%{opacity:1}100%{transform:translateY(-6px);opacity:0}}
+/* sit like a plush: body down on the floor, feet out in front, arms resting */
+.act-sit #actorBob,.act-listen #actorBob,.act-craft #actorBob{animation:none;transform:translateY(6px) scaleY(.88) scaleX(1.1)}
+.act-sit #legs,.act-listen #legs,.act-craft #legs{opacity:0}
+.act-sit #sitFeet,.act-listen #sitFeet,.act-craft #sitFeet{opacity:1}
+.act-sit #armL{transform:rotate(14deg)}.act-sit #armR{transform:rotate(-14deg)}
+.act-sit #head{transform:translateY(1px)}
+.act-listen #head{animation:tilt 3.4s ease-in-out infinite}
+@keyframes tilt{0%,100%{transform:rotate(0)}50%{transform:rotate(9deg)}}
+.act-listen .eye{animation-duration:2.4s}
+.act-listen #armL{transform:rotate(-44deg)}.act-listen #armR{transform:rotate(44deg)}
+.act-listen #emNote{display:block;animation:floaty 1.6s ease-in-out infinite alternate}
+@keyframes floaty{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+.act-craft #armL{animation:busyA .5s ease-in-out infinite alternate}
+.act-craft #armR{animation:busyB .5s ease-in-out infinite alternate}
+@keyframes busyA{from{transform:rotate(-50deg)}to{transform:rotate(-32deg) translateY(-1px)}}
+@keyframes busyB{from{transform:rotate(32deg) translateY(-1px)}to{transform:rotate(52deg)}}
+.act-craft #head{transform:rotate(4deg) translateY(2px)}
+.act-craft #emFlower{display:block}
+/* tidy and torch: crouch down and up, arms reaching the floor */
+.act-tidy #actorBob,.act-torch #actorBob{animation:crouch 1.3s cubic-bezier(.45,0,.3,1) infinite}
+@keyframes crouch{0%,100%{transform:translateY(0) scaleY(1) scaleX(1)}42%,58%{transform:translateY(6px) scaleY(.84) scaleX(1.1)}}
+.act-tidy #armL,.act-torch #armL{animation:reachA 1.3s cubic-bezier(.45,0,.3,1) infinite}
+.act-tidy #armR{animation:reachB 1.3s cubic-bezier(.45,0,.3,1) infinite}
+@keyframes reachA{0%,100%{transform:rotate(0)}42%,58%{transform:rotate(-46deg) translateY(3px)}}
+@keyframes reachB{0%,100%{transform:rotate(0)}42%,58%{transform:rotate(46deg) translateY(3px)}}
+.act-tidy #emSpark{display:block;animation:twinkle .9s ease-in-out infinite alternate}
+@keyframes twinkle{from{transform:scale(.8) rotate(-8deg)}to{transform:scale(1.1) rotate(8deg)}}
+.act-torch #armR{transform:rotate(34deg)}.act-torch #pTorch,.act-torch #pBeam{opacity:1}
+.act-torch #emSpark{display:block}
+.act-paint #armR{animation:sweep .7s ease-in-out infinite alternate}
+@keyframes sweep{from{transform:rotate(-156deg)}to{transform:rotate(-84deg)}}
+.act-paint #pBrush{opacity:1}
+.act-paint #actorBob{animation:sway 1.4s ease-in-out infinite alternate}
+@keyframes sway{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+.act-paint #emSpark{display:block}
+.act-write #armR{animation:scribble .34s linear infinite}
+@keyframes scribble{0%{transform:rotate(44deg)}25%{transform:rotate(48deg) translate(1px,1px)}50%{transform:rotate(44deg) translate(2px,0)}75%{transform:rotate(40deg) translate(1px,-1px)}100%{transform:rotate(44deg)}}
+.act-write #pPen{opacity:1}.act-write #head{transform:rotate(8deg) translateY(2px)}
+.act-write #emPen{display:block;animation:wiggle .5s ease-in-out infinite alternate}
+@keyframes wiggle{from{transform:translateX(-1px)}to{transform:translateX(1px)}}
+.act-phone #armR{transform:rotate(-114deg)}.act-phone #pPhone{opacity:1}
+.act-phone #head{transform:rotate(6deg) translateY(1.5px)}
+.act-phone #actorBob{animation:idleS 1.6s ease-in-out infinite}
+@keyframes idleS{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.015) translateY(-1px)}}
+.act-phone #emHeart{display:block;animation:beat .9s ease-in-out infinite}
+@keyframes beat{0%,100%{transform:scale(1)}30%{transform:scale(1.25)}}
+.act-call #armR{transform:rotate(-160deg)}.act-call #pPhone{opacity:1}
+.act-call #head{transform:rotate(-7deg)}
+.act-call #mouth,.act-talk #mouth,.act-mic #mouth{animation:talk .3s ease-in-out infinite alternate}
+@keyframes talk{from{transform:scaleY(.6)}to{transform:scaleY(1.7)}}
+.act-call #emRing{display:block;animation:floaty 1s ease-in-out infinite alternate}
+.act-talk #armL{animation:gestA .6s ease-in-out infinite alternate}
+.act-talk #armR{animation:gestB .6s ease-in-out infinite alternate}
+@keyframes gestA{from{transform:rotate(-24deg)}to{transform:rotate(-66deg)}}
+@keyframes gestB{from{transform:rotate(56deg)}to{transform:rotate(18deg)}}
+.act-talk #head{animation:nodH 1.2s ease-in-out infinite}
+@keyframes nodH{0%,100%{transform:translateY(0)}50%{transform:translateY(1.6px) rotate(2deg)}}
+.act-talk #emTalk{display:block}
+#emTalk .d1,#emTalk .d2,#emTalk .d3{transform-box:fill-box;transform-origin:50% 50%;animation:dots 1s ease-in-out infinite}
+#emTalk .d2{animation-delay:.15s}#emTalk .d3{animation-delay:.3s}
+@keyframes dots{0%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-2.5px);opacity:1}}
+.act-wave #armR{animation:wave .45s ease-in-out infinite alternate}
+@keyframes wave{from{transform:rotate(-152deg)}to{transform:rotate(-180deg)}}
+.act-wave #actorBob{animation:bobS .45s ease-in-out infinite alternate}
+@keyframes bobS{from{transform:translateY(0)}to{transform:translateY(-2.5px)}}
+.act-wave #emBang{display:block;animation:beat .6s ease-in-out infinite}
+.act-mic #armR{transform:rotate(-128deg)}.act-mic #pMic{opacity:1}
+.act-mic #actorBob{animation:none;transform:rotate(-4deg)}
+.act-mic #armL{transform:rotate(44deg)}
+.act-mic #emWave{display:block;animation:beat .5s ease-in-out infinite}
+.act-look #head{animation:scan 1.8s ease-in-out infinite}
+@keyframes scan{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+.act-look #armL{transform:rotate(-56deg)}.act-look #armR{transform:rotate(56deg)}.act-look #pItem{opacity:1}
+.act-look #emQ{display:block;animation:floaty 1.2s ease-in-out infinite alternate}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01s!important}}
+
+/* ---------- reveal ---------- */
+#reveal{position:absolute;inset:0;z-index:50;display:none;align-items:center;justify-content:center;flex-direction:column;
+  background:#1b1226;color:#FFF4F9;text-align:center;padding:24px}
+#reveal.on{display:flex}
+#flame{width:18px;height:18px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:#FFE08A;
+  box-shadow:0 0 24px 8px rgba(255,224,138,.55);transform:scale(0);transition:transform .9s var(--e-out)}
+#flame.on{transform:scale(1)}
+#flood{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,var(--c2) 0,var(--c1) 48%,#1b1226 100%);
+  opacity:0;transform:scale(.2);transition:opacity .52s,transform .52s var(--e-move)}
+#flood.on{opacity:1;transform:scale(1)}
+#rvKick{position:relative;font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:0;transition:opacity .4s}
+#rvKick.on{opacity:.8}
+#rvType{position:relative;font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(38px,11.5vw,58px);line-height:1.02;margin:8px 0 0;letter-spacing:-.01em;min-height:1.1em}
+#rvType span{opacity:0;display:inline-block;transform:translateY(10px);transition:opacity .22s,transform .22s var(--e-out)}
+#rvType span.on{opacity:1;transform:none}
+#rvEn{position:relative;font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:0;margin:8px 0 0;transition:opacity .4s .1s}
+#rvEn.on{opacity:.75}
+#rvLine{position:relative;font-family:var(--serif);font-variation-settings:'SOFT' 60;font-weight:400;font-size:clamp(16px,4.4vw,19px);line-height:1.5;max-width:30ch;margin:22px 0 0;opacity:0;transform:translateY(8px);transition:opacity .4s,transform .4s var(--e-out)}
+#rvLine.on{opacity:.92;transform:none}
+#rvGo{position:relative;margin-top:34px;border:none;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:15px;
+  padding:14px 26px;border-radius:999px;background:#FFF4F9;color:var(--pink-deep);opacity:0;transition:opacity .5s .3s}
+#rvGo.on{opacity:1}
+
+/* ---------- result + share ---------- */
+#result{position:absolute;inset:0;z-index:55;display:none;overflow:auto;background:var(--cream);color:var(--ink);
+  padding:calc(18px + env(safe-area-inset-top,0px)) 18px calc(28px + env(safe-area-inset-bottom,0px))}
+#result.on{display:block}
+.r-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.r-top .brand{color:var(--pink-deep);font-size:20px}
+.r-top .camp{color:var(--ink2)}
+.hero{border-radius:28px;padding:18px 20px 22px;text-align:center;box-shadow:0 18px 40px rgba(67,40,58,.14)}
+.hero .m{width:170px;margin:0 auto}
+.hero h1{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(28px,8vw,36px);margin:4px 0 0;line-height:1.02}
+.hero .en{font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.6;margin-top:4px}
+.hero .tag{margin:12px auto 0;max-width:30ch;font-family:var(--serif);font-variation-settings:'SOFT' 60;font-size:15.5px;line-height:1.5;font-weight:400}
+.closing{margin:16px 0 0;font-family:var(--serif);font-variation-settings:'SOFT' 60;font-weight:400;font-size:16px;line-height:1.6}
+.note{margin:14px 0 0;padding:12px 14px;border-radius:14px;background:#fff;border:1.5px solid var(--line);font-family:var(--serif);font-variation-settings:'SOFT' 60;font-style:italic;font-size:14.5px;line-height:1.5;color:var(--ink2)}
+.note b{font-style:normal;font-family:var(--sans);font-weight:700;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--pink-deep);display:block;margin-bottom:4px}
+.closing b{display:block;font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--pink-deep);margin-bottom:6px}
+.trail{display:flex;gap:6px;margin:18px 0 0;justify-content:center;flex-wrap:wrap}
+.trail img{width:54px;height:68px;object-fit:cover;border-radius:10px;background:#FFE4F0}
+.btns{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+.btn{font-family:var(--sans);font-weight:700;font-size:16px;border:none;border-radius:999px;padding:15px 20px;min-height:52px;
+  cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--pink),#FF77B0);box-shadow:0 14px 30px rgba(224,53,125,.22)}
+.btn.ghost{background:#fff;color:var(--pink-deep);border:2px solid var(--line);box-shadow:none}
+.row{display:flex;gap:10px}.row .btn{flex:1}
+.fine{text-align:center;font-size:11.5px;color:#8A6678;margin:12px 0 0}
+#modal{position:absolute;inset:0;z-index:60;display:none;background:rgba(27,18,38,.6);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:18px}
+#modal.on{display:flex}
+#modal .in{background:var(--cream);border-radius:24px;padding:16px;max-width:380px;width:100%;max-height:94vh;overflow:auto;position:relative}
+#cardImg{width:100%;border-radius:14px;display:block;aspect-ratio:9/16;background:#FFE9F3}
+.mx{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;border:none;background:#fff;cursor:pointer;color:var(--pink-deep);font-size:16px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+
+<div id="app">
+  <section id="welcome" class="screen on">
+    <div class="w-top"><span class="brand">emina</span><span class="camp" id="wKick"></span></div>
+    <div class="w-hero"><div class="ph"><span id="wPh"></span><small>pensi · besok</small></div><img id="heroImg" alt=""></div>
+    <h1 id="wTitle"></h1>
+    <p class="w-sub" id="wSub"></p>
+    <p class="w-lead" id="wLead"></p>
+    <p class="w-heart" id="wHeart"></p>
+    <button id="startBtn" type="button"></button>
+    <p class="w-fine" id="wFine"></p>
+  </section>
+
+  <section id="game" class="screen">
+    <div id="stage">
+      <div id="ground"></div><img class="bg" id="bgA" alt=""><img class="bg" id="bgB" alt="">
+      <svg id="actorLayer" viewBox="0 0 360 440" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="chip"><b id="chipT"></b><span id="chipP"></span></div>
+      <div id="tutBadge"><span class="dot"></span>TUTORIAL</div>
+      <div id="fade"></div>
+    </div>
+    <div id="panel">
+      <div id="box">
+        <span id="who"></span>
+        <p id="txt"></p>
+        <p id="hint">ketuk buat lanjut</p>
+        <svg id="next" viewBox="0 0 12 12"><path d="M1 3l5 6 5-6" fill="none" stroke="#E0357D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div id="choices"><p id="tip"></p><p id="ask"></p><div id="optList"></div></div>
+    </div>
+  </section>
+
+  <div id="reveal">
+    <div id="flood"></div>
+    <div id="flame"></div>
+    <div id="rvKick">kamu tuh</div>
+    <h2 id="rvType"></h2>
+    <div id="rvEn"></div>
+    <p id="rvLine"></p>
+    <button id="rvGo" type="button">Lihat kartuku &#10024;</button>
+  </div>
+
+  <div id="result">
+    <div class="r-top"><span class="brand">emina</span><span class="camp">20 Under 20 · Made to Explore</span></div>
+    <div class="hero" id="hero"><div class="m" id="rM"></div><h1 id="rNick"></h1><div class="en" id="rEn"></div><p class="tag" id="rTag"></p></div>
+    <p class="closing"><b>Besok paginya</b><span id="rClose"></span></p>
+    <p class="note" id="rNote"></p>
+    <div class="trail" id="rTrail"></div>
+    <div class="btns">
+      <button class="btn" id="share" type="button">Bikin Story Card &#128242;</button>
+      <div class="row"><button class="btn ghost" id="again" type="button">Ulang harinya &#8617;</button>
+        <button class="btn ghost" id="reg" type="button">Daftar 20U20 &#10022;</button></div>
+    </div>
+    <p class="fine" id="fine"></p>
+  </div>
+
+  <div id="modal"><div class="in"><button class="mx" id="mx" type="button" aria-label="Tutup">&#10005;</button>
+    <img id="cardImg" alt="Story card">
+    <div class="btns" style="margin-top:12px"><button class="btn" id="saveCard" type="button">Simpan / Share &#128190;</button></div>
+    <p class="fine">Tekan &amp; tahan gambarnya buat simpan</p></div></div>
+</div>
+<canvas id="cardCanvas" width="1080" height="1920" class="sr" aria-hidden="true"></canvas>
+
+<script>
+const spark=(x,y,s,f)=>`<path transform="translate(${x},${y})" d="M0 ${-s} Q${s*0.2} ${-s*0.2} ${s} 0 Q${s*0.2} ${s*0.2} 0 ${s} Q${-s*0.2} ${s*0.2} ${-s} 0 Q${-s*0.2} ${-s*0.2} 0 ${-s} Z" fill="${f}"/>`;
+const heart=(x,y,s)=>{const u=s/16;return `M${x} ${y+6*u} C ${x-2*u} ${y+2*u} ${x-10*u} ${y-2*u} ${x-10*u} ${y-9*u} C ${x-10*u} ${y-14*u} ${x-4*u} ${y-16*u} ${x} ${y-11*u} C ${x+4*u} ${y-16*u} ${x+10*u} ${y-14*u} ${x+10*u} ${y-9*u} C ${x+10*u} ${y-2*u} ${x+2*u} ${y+2*u} ${x} ${y+6*u} Z`;};
+
+function mascotBase(halo,topper,prop){
+  const haloC=halo?`<circle cx="110" cy="116" r="106" fill="${halo}" opacity=".18"/>`:'';
+  return `<svg class="mascot" width="220" height="236" viewBox="0 0 220 236" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+    ${haloC}
+    <ellipse cx="110" cy="214" rx="56" ry="13" fill="#43283a" opacity=".06"/>
+    <ellipse cx="60" cy="158" rx="13" ry="20" fill="#fff"/>
+    <ellipse cx="160" cy="158" rx="13" ry="20" fill="#fff"/>
+    <rect x="63" y="126" width="94" height="84" rx="45" fill="#fff"/>
+    <ellipse cx="92" cy="208" rx="15" ry="10" fill="#fff"/>
+    <ellipse cx="128" cy="208" rx="15" ry="10" fill="#fff"/>
+    <circle cx="110" cy="94" r="57" fill="#fff"/>
+    ${topper||''}
+    <ellipse cx="91" cy="98" rx="6.5" ry="8.6" fill="#43283a"/>
+    <ellipse cx="129" cy="98" rx="6.5" ry="8.6" fill="#43283a"/>
+    <circle cx="93.4" cy="94.6" r="2.3" fill="#fff"/>
+    <circle cx="131.4" cy="94.6" r="2.3" fill="#fff"/>
+    <ellipse cx="72" cy="113" rx="9.5" ry="6" fill="#FF9DC0" opacity=".75"/>
+    <ellipse cx="148" cy="113" rx="9.5" ry="6" fill="#FF9DC0" opacity=".75"/>
+    <path d="M101 114 Q110 122 119 114" stroke="#43283a" stroke-width="3.3" fill="none" stroke-linecap="round"/>
+    ${prop||''}
+  </svg>`;
+}
+const MASCOT={
+  creator:{halo:'#FF8FC0',
+    topper:`<g transform="translate(110,41)"><path d="M0 0 L-27 -14 L-27 16 Z" fill="#FF5BA3"/><path d="M0 0 L27 -14 L27 16 Z" fill="#FF5BA3"/><circle r="8.5" fill="#E0357D"/></g>`,
+    prop:`<g transform="translate(160,150) rotate(10)"><rect x="-13" y="-22" width="26" height="42" rx="7" fill="#FF5BA3"/><rect x="-9" y="-16" width="18" height="28" rx="4" fill="#fff"/><path d="${heart(0,-1,9)}" fill="#FF5BA3"/></g>`},
+  boss:{halo:'#C9A7FF',
+    topper:`<g transform="translate(110,30)"><path d="M-28 12 L-28 -9 L-14 3 L0 -15 L14 3 L28 -9 L28 12 Z" fill="#FFC24B" stroke="#EDA62F" stroke-width="2.5" stroke-linejoin="round"/><circle cx="0" cy="-3" r="3.6" fill="#fff"/><circle cx="-28" cy="-9" r="3" fill="#FFE39A"/><circle cx="28" cy="-9" r="3" fill="#FFE39A"/></g>`,
+    prop:`<g transform="translate(161,150)"><rect x="-2.6" y="-6" width="5.2" height="42" rx="2.6" fill="#C9A7FF"/>${spark(0,-12,13,'#FFC24B')}</g>`},
+  artisan:{halo:'#FFC2A8',
+    topper:`<g transform="translate(110,33)"><g fill="#FF9DB4"><circle cx="0" cy="-11" r="8.4"/><circle cx="10.5" cy="-4" r="8.4"/><circle cx="6.5" cy="8.5" r="8.4"/><circle cx="-6.5" cy="8.5" r="8.4"/><circle cx="-10.5" cy="-4" r="8.4"/></g><circle r="7" fill="#FFD86B"/></g>`,
+    prop:`<g transform="translate(160,150)"><path d="M0 27 L-7 2 M0 27 L0 -2 M0 27 L7 2" stroke="#4FCF96" stroke-width="3.2" fill="none" stroke-linecap="round"/><circle cx="-7" cy="-1" r="6.6" fill="#FF8FB0"/><circle cx="0" cy="-5" r="6.6" fill="#FFB3C6"/><circle cx="7" cy="-1" r="6.6" fill="#FFD86B"/></g>`},
+  deep:{halo:'#C9D4FF',
+    topper:`<path d="M56 96 Q110 -30 164 96" stroke="#6B7FD7" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="56" cy="98" r="13" fill="#6B7FD7"/><circle cx="164" cy="98" r="13" fill="#6B7FD7"/><circle cx="56" cy="98" r="7" fill="#C9D4FF"/><circle cx="164" cy="98" r="7" fill="#C9D4FF"/>`,
+    prop:`<g transform="translate(160,152)"><rect x="-13" y="-10" width="24" height="22" rx="6" fill="#C9D4FF"/><path d="M11 -4 Q20 -4 20 4 Q20 12 11 12" stroke="#6B7FD7" stroke-width="3.5" fill="none"/><path d="M-6 -16 Q-3 -22 -6 -28" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".8"/><path d="M2 -16 Q5 -22 2 -28" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".8"/></g>`},
+  change:{halo:'#86E3C6',
+    topper:`<g transform="translate(110,34)"><rect x="-2.5" y="-5" width="5" height="13" rx="2.5" fill="#2EA27E"/><ellipse cx="-11" cy="-7" rx="11" ry="6.5" fill="#4FCF96" transform="rotate(-28 -11 -7)"/><ellipse cx="11" cy="-7" rx="11" ry="6.5" fill="#4FCF96" transform="rotate(28 11 -7)"/></g>`,
+    prop:`<g transform="translate(160,150)"><path d="${heart(0,0,17)}" fill="#17B6A6"/></g>`},
+  explorer:{halo:'#8FD0FF',
+    topper:`<g transform="translate(110,36)"><path d="M-32 5 Q0 -34 32 5 Z" fill="#4FA6E8"/><rect x="-37" y="3" width="74" height="9" rx="4.5" fill="#3A8FD0"/><circle cx="0" cy="-20" r="4" fill="#BFE2FF"/></g>`,
+    prop:`<g transform="translate(160,150)"><circle r="14" fill="#4FA6E8"/><circle r="9.5" fill="#EAF4FF"/><path d="M0 -8 L3.5 0 L0 8 L-3.5 0 Z" fill="#FF5B6E"/><circle r="2" fill="#3A8FD0"/></g>`},
+};
+const mascotSVG=k=>mascotBase(MASCOT[k].halo,MASCOT[k].topper,MASCOT[k].prop);
+const blankMascot=()=>mascotBase('#FFD1E6','',`<g transform="translate(150,60)">${spark(0,0,11,'#FFD36E')}</g><g transform="translate(66,78)">${spark(0,0,8,'#C9A7FF')}</g>`);
+const ARCH={
+  creator:{nick:'Si Main Character',en:'Main Character Energy',c1:'#FF5BA3',c2:'#FFB0D4',soft:'#FFE2EF',
+    tag:'Kamu nggak minta disorot. Sorotannya aja yang betah di kamu.',
+    str:['Pede ✨','Nular 💡','Punya selera 🔥'],
+    paths:['Di depan kamera','Pas nyusun feed','Pas jadi yang pertama nyoba','Di tengah circle']},
+  boss:{nick:'Si Ambis Santuy',en:'Big dreams, low pressure',c1:'#8A4FD6',c2:'#C9A7FF',soft:'#ECE3FF',
+    tag:'Mau banyak itu boleh. Santai sambil ngejarnya juga boleh.',
+    str:['Visioner 🎯','Tenang 🌿','Gercep ⚡'],
+    paths:['Pas bikin rencana','Pas yang lain bingung','Di notes HP kamu','Pas ngomong duluan']},
+  artisan:{nick:'Si Soft Life',en:'Slow hands, full heart',c1:'#FF7E9D',c2:'#FFC2A8',soft:'#FFE7DE',
+    tag:'Bikin satu hal pelan-pelan sampe bener itu juga prestasi.',
+    str:['Telaten 🎀','Hangat 💗','Sabar 🌸'],
+    paths:['Pas tangan kamu sibuk','Di meja yang rapi','Pas bikin hadiah','Di pagi yang pelan']},
+  deep:{nick:'Si Deep Talk',en:'Feels it first, says it best',c1:'#6B7FD7',c2:'#C9D4FF',soft:'#E8ECFF',
+    tag:'Overthinking kamu itu kedalaman. Makanya orang nyari kamu jam 2 pagi.',
+    str:['Peka 🌙','Dalem 💭','Setia dengerin 🎧'],
+    paths:['Jam dua pagi','Di voice note panjang','Pas temen butuh didengerin','Di jurnal kamu']},
+  change:{nick:'Si Penjaga Circle',en:'The one who holds everyone together',c1:'#17B6A6',c2:'#8FE3C8',soft:'#D8F5EE',
+    tag:'Kamu paling cepet sadar kalau ada yang ketinggalan. Terus kamu balik jemput.',
+    str:['Setia 💞','Berani ⚖️','Ngayomi 🌱'],
+    paths:['Pas ada yang digangguin','Di grup chat yang butuh ditenangin','Pas bagi-bagi','Di barisan paling depan']},
+  explorer:{nick:'Si Serba Penasaran',en:'Curious about everything, sorry about nothing',c1:'#4FA6E8',c2:'#FFD86B',soft:'#E3F0FF',
+    tag:'Belum milih bukan berarti bingung. Kamu lagi ngumpulin dulu.',
+    str:['Penasaran 🔭','Luwes 🦋','Berani nyoba 🌈'],
+    paths:['Di tab browser yang kebuka semua','Pas kelas baru','Di jalan yang belum pernah','Pas bilang "coba dulu"']},
+};
+const STORY={"title":"H-1","subtitle":"Besok pensi. Hari ini kacau. Kamu di tengahnya.","cast":{"nay":{"name":"Nay","color":"#FF4D97"},"rara":{"name":"Rara","color":"#8A4FD6"},"kinan":{"name":"Kinan","color":"#17B6A6"},"dimas":{"name":"Dimas","color":"#4FA6E8"},"sasa":{"name":"Sasa","color":"#F6A24A"},"alya":{"name":"Kak Alya","color":"#B14BD1"}},"welcome":{"kicker":"20 Under 20 · Made to Explore","title":"H-1","sub":"Satu hari sebelum pensi. Cerita yang jalannya kamu yang nentuin.","lead":"Besok sekolah kamu pensi. Nay, sahabat kamu, ketua panitianya. Dan pagi ini semuanya berantakan: IG sepi, panggung belum jadi, dana kurang, band alumni seen doang.","heart":"Kamu bakal nemenin Nay seharian. Tiap pilihan kamu ngubah ceritanya. Di akhir, kamu bakal tau kamu tipe yang kayak gimana pas temen lagi butuh.","cta":"Mulai","fine":"4 menit · 6 akhir yang beda · hasilnya bisa di-share ke Story"},"endings":[{"character":"creator","closing":"Notif kamu nggak berhenti dari jam 6. Video pensinya nyebar sampe sekolah sebelah. Komen paling atas: ini sekolah mana?? Nay ngirim screenshot akun pensi, followersnya nambah 1000. Caption-nya: INI GARA GARA KAMU."},{"character":"boss","closing":"Kamu bangun jam 9. Telat, buat pertama kalinya minggu ini. Nggak apa-apa. Laporan dananya udah kamu kirim semalem. Pas. Nggak kurang. Nay chat: tahun depan kamu ketuanya ya. Kamu bales pake stiker tidur."},{"character":"artisan","closing":"200 bunga kertas sekarang di kamar kamu, dibawa pulang sekardus. Kinan ngirim foto backdrop yang lagi dibongkar. Caption-nya: sayang ya. Kamu bales: bikin lagi aja, yang lebih bagus. Nay nimbrung: TAHUN DEPAN."},{"character":"deep","closing":"Jam 2 pagi tadi Kinan ngirim voice note. 7 menit. Kamu dengerin sampe abis sebelum tidur. Paginya Nay chat: aku tau kamu yang bikin dia tetep dateng. Kamu nggak bales. Kamu simpen aja."},{"character":"change","closing":"Grup kelas 10 yang kamu dimasukin kemaren udah rame dari subuh. Mereka bikin polling: tahun depan kita yang panitia. Nay ngirim foto barisan paling depan semalem. Isinya mereka semua. Caption-nya: ini kerjaan kamu."},{"character":"explorer","closing":"Sepatu kamu masih bau cat. Rekaman Sasa nyanyi kamu puter sambil sikat gigi. Nay chat: kemaren kamu ke mana aja sih?? Kamu kirim 5 pin lokasi dan 1 kata: semuanya."}],"start":"a1_aula","note":"Kamu belum harus jadi apa-apa. Hari ini aja kamu udah jadi seseorang buat Nay. Yang kayak gitu nggak bisa dipalsuin. Explore terus.","scenes":[{"id":"a0_gerbang","act":0,"tutorial":true,"place":"Gerbang sekolah","time":"06.50","floor":0.86,"beats":[{"who":"","text":"Jam 7 kurang 10. Gerbang sekolah baru kebuka setengah, udaranya masih dingin."},{"who":"","text":"HP kamu geter. Tiga chat dari Nay, semuanya huruf gede."},{"who":"nay","text":"KAMU DI MANA. CEPETAN. AKU SENDIRIAN DI AULA."}],"prompt":"Kamu...","options":[{"label":"Lari masuk, Nay udah teriak","x":0.72,"leadsTo":"a1_aula","scores":"","react":[{"who":"","text":"Kamu lari. Tas goyang-goyang, Pak Satpam ngeliatin. Di ujung koridor, pintu aula udah kebuka."}],"move":"run"},{"label":"Tarik napas dulu. Bentar","x":0.3,"leadsTo":"a1_aula","scores":"","react":[{"who":"","text":"Satu tarikan napas. Nggak apa-apa kalau deg-degan, Nay juga, dia cuma lebih berisik."},{"who":"","text":"Terus kamu jalan masuk."}],"move":"breathe"}],"after":[{"who":"","text":"Suara Nay udah kedengeran dari koridor."}],"tip":"<b>Tip:<\/b> pilih yang paling kamu banget. Nggak ada jawaban yang salah, dan dia bakal gerak sesuai pilihanmu."},{"id":"a1_aula","act":1,"place":"Aula sekolah","time":"07.10","floor":0.84,"beats":[{"who":"","text":"Jam 7 pagi. H-1 pensi. Aula masih bau cat, backdrop-nya baru jadi setengah."},{"who":"","text":"Di grup panitia, Dimas baru kirim screenshot BMKG. Hujan sore. Nay bales: TIDAK."},{"who":"nay","text":"Kamu dateng juga. Oke. Duduk. Jangan ngomong dulu, aku lagi mikir."},{"who":"nay","text":"Jadi gini. Masalah kita ada 4. IG pensi sepi, panggung belum kelar, dana kurang 2 juta, terus band alumni seen doang dari kemaren."},{"who":"nay","text":"Pilih satu buat kamu pegang pagi ini. Sisanya biar aku yang panik."}],"prompt":"Pagi ini kamu pegang yang mana?","options":[{"label":"Cek IG pensi, kok bisa sepi","x":0.2,"leadsTo":"a2_medsos","scores":"creator+1,deep+1","react":[{"who":"","text":"Kamu buka akunnya. Post terakhir 3 minggu lalu. Fotonya blur, caption-nya titik tiga doang."},{"who":"nay","text":"Tuh kan. Tuh kan."}],"move":"phone"},{"label":"Naik ke panggung, liat yang belum kelar","x":0.5,"leadsTo":"a2_panggung","scores":"artisan+1,explorer+1","react":[{"who":"","text":"Backdrop-nya setengah pink, setengah masih kardus. Kaleng cat tinggal 2, dua-duanya udah mau abis."}],"move":"climb"},{"label":"Duduk, itung ulang dananya bareng Nay","x":0.72,"leadsTo":"a2_dana","scores":"boss+1,change+1","react":[{"who":"","text":"Di bukunya ada angka yang dicoret 3 kali. Sound system: 3 juta. Dana: 1 koma 2."},{"who":"nay","text":"Jangan dibaca kenceng-kenceng, nanti aku denger."}],"move":"sit"},{"label":"Chat band alumni yang seen doang","x":0.88,"leadsTo":"a2_band","scores":"explorer+1,boss+1","react":[{"who":"","text":"Kamu ngetik, hapus, ngetik lagi. Kirim. Centang 2. Biru. Diem."}],"move":"phone"}]},{"id":"a2_medsos","act":2,"place":"Ruang OSIS","time":"08.30","floor":0.85,"beats":[{"who":"","text":"Ruang OSIS. Kipas anginnya bunyi kretek-kretek. Rara, sie publikasi, ngeliatin kamu dari balik laptop kayak kamu mau ngerebut kerjaannya."},{"who":"rara","text":"Aku udah nyoba ya. Nggak ada yang nge-like. Anak-anak lebih sibuk sama drama kelas sebelah."},{"who":"","text":"Kamu scroll. Yang bilang dateng: 80. Dari 800 murid. DM-nya ada 12, belum dibaca satu pun."}],"prompt":"Mulai dari mana nih?","options":[{"label":"Pinjem HP Rara, bikin konten sekarang","x":0.3,"leadsTo":"a3_creator","scores":"creator+2","react":[{"who":"","text":"Rara nyerahin HP-nya pelan banget, kayak nyerahin bayi."},{"who":"rara","text":"Kalau jelek, nama kamu yang aku tulis di caption ya."}],"move":"phone"},{"label":"Buka DM yang numpuk","x":0.62,"leadsTo":"a3_deep","scores":"deep+2","react":[{"who":"","text":"11 DM nanya tiket. 1 DM dari Kinan, sie dekor. Dikirim jam 2 pagi."},{"who":"kinan","text":"aku boleh nggak dateng aja ya besok"}],"move":"phone"},{"label":"Cek kenapa kelas 10 nggak ada yang daftar","x":0.85,"leadsTo":"a3_change","scores":"change+2","react":[{"who":"","text":"Di list hadir, kolom kelas 10 kosong melompong. Rara angkat bahu."},{"who":"rara","text":"Mereka bilang tiketnya buat anak kelas 12 doang. Katanya sih."}],"move":"look"}]},{"id":"a2_panggung","act":2,"place":"Panggung aula","time":"09.15","floor":0.86,"beats":[{"who":"","text":"Dari atas panggung, aulanya keliatan lebih gede. Dan lebih kosong. Kinan jongkok di pojok, ngelem bunga kertas satu-satu. Nggak ngomong."},{"who":"","text":"Dimas nongol dari balik tirai bawa kabel segulung."},{"who":"","text":"Dia liat kamu dulu, baru kabelnya. Kinan ngeliatin itu. Tetep nggak komentar."},{"who":"dimas","text":"Cat tinggal segini, Bos. Bunga kertasnya baru 30 dari 200. Mau mulai dari mana?"}],"prompt":"Panggung ini kamu apain dulu?","options":[{"label":"Duduk sebelah Kinan, bantu ngelem","x":0.22,"leadsTo":"a3_artisan","scores":"artisan+2","react":[{"who":"","text":"Kinan geser dikit. Nggak nengok, tapi geser. Lem tembaknya anget. Bunga ke-31 jadi di tangan kamu."}],"move":"craft"},{"label":"Keluar beli cat sama bahan, pake uang jajan","x":0.85,"leadsTo":"a3_explorer","scores":"explorer+2","react":[{"who":"","text":"Kamu catet: cat pink, kain, lampu tumblr. Dimas nitip es teh."},{"who":"dimas","text":"Jangan nyasar ya, Bos."}],"move":"run"},{"label":"Rekam proses dekornya buat IG","x":0.55,"leadsTo":"a3_creator","scores":"creator+2","react":[{"who":"","text":"Kamera kamu arahin ke tangan Kinan yang lagi ngelem. Dia pura-pura nggak liat. Tapi tangannya langsung lebih rapi."}],"move":"phone"}]},{"id":"a2_dana","act":2,"place":"Ruang OSIS","time":"10.00","floor":0.85,"beats":[{"who":"","text":"Nay ngegelar bukunya di meja. Pemasukan tiket: 1 koma 2 juta. Sound system: 3 juta. Di antara dua angka itu dia gambar awan. Awannya sedih."},{"who":"nay","text":"Bu Ratih bilang sekolah nggak bisa nambah. Terus gimana dong? Pensi tanpa sound? Pensi bisik-bisik?"},{"who":"","text":"Di luar, Bu Kantin lagi nurunin galon. Nggak peduli."}],"prompt":"Dananya kamu gimanain?","options":[{"label":"Ambil spidol, coret yang nggak penting","x":0.4,"leadsTo":"a3_boss","scores":"boss+2","react":[{"who":"","text":"Kamu coret 3 baris. Nay mau protes, liat angkanya, terus diem."},{"who":"nay","text":"Oke. Oke. Lanjut."}],"move":"write"},{"label":"Turunin harga tiket biar semua bisa masuk","x":0.6,"leadsTo":"a3_change","scores":"change+2","react":[{"who":"nay","text":"Turun?? Kita lagi KURANG lho."},{"who":"","text":"Kamu nunjuk angka yang dateng. 80 dari 800. Yang kurang itu orangnya, bukan duitnya, kata kamu."}],"move":"talk"},{"label":"Bikin yang bisa dijual besok. Bunga kertas, pin, apa aja","x":0.82,"leadsTo":"a3_artisan","scores":"artisan+2","react":[{"who":"","text":"Kamu ngitung. 200 bunga kertas kali 5 ribu. Nay ngeliatin kamu kayak kamu baru nemuin api."}],"move":"craft"}]},{"id":"a2_band","act":2,"place":"Koridor depan ruang guru","time":"10.40","floor":0.86,"beats":[{"who":"","text":"Katanya di koridor sinyalnya paling bagus. Kamu berdiri deket jendela, ngeliatin centang 2 biru yang nggak dibales-bales."},{"who":"nay","text":"Kak Alya bales? Belum?? Dia alumni lho. Dia JANJI. Namanya udah aku tulis di poster."},{"who":"","text":"Dari lapangan ada suara gitar. Anak kelas 10, latihan sendirian di tribun."}],"prompt":"Sekarang gimana?","options":[{"label":"Samperin anak gitar di tribun","x":0.85,"leadsTo":"a3_explorer","scores":"explorer+2","react":[{"who":"","text":"Dia berhenti main pas kamu dateng. Jarinya masih di senar."},{"who":"","text":"Namanya Sasa. Dia belum pernah manggung. Sama sekali."}],"move":"walk"},{"label":"Telepon Kak Alya sekarang, nggak usah chat","x":0.25,"leadsTo":"a3_boss","scores":"boss+2","react":[{"who":"","text":"Nada sambung 3 kali. Diangkat."},{"who":"alya","text":"Halo? Duh, sori sori, aku lupa bales. Besok ya? Hmm. Besok ya."}],"move":"call"},{"label":"Tarik Nay duduk dulu di tangga","x":0.55,"leadsTo":"a3_deep","scores":"deep+2","react":[{"who":"","text":"Nay duduk. Baru napasnya keluar semua."},{"who":"nay","text":"Kalau besok gagal, itu namaku di poster. Aku pindah sekolah. Ke Mars."}],"move":"sit"}]},{"id":"a3_creator","act":3,"place":"Belakang panggung","time":"11.30","floor":0.86,"beats":[{"who":"","text":"HP-nya sekarang di tangan kamu. Backstage berantakan, tapi cahayanya bagus banget. Satu jendela, debu, backdrop pink setengah jadi."},{"who":"","text":"Kamu udah rekam 3 klip. Kinan ngelem. Dimas kesetrum dikit. Nay teriak ke tirai."},{"who":"","text":"Tinggal pilih mana yang di-post duluan. Jempol kamu ngambang di atas tombol."}],"prompt":"Post yang mana dulu?","options":[{"label":"Klip Nay teriak. Mentah, tanpa edit","x":0.5,"leadsTo":"a4_gelap","scores":"creator+3","react":[{"who":"","text":"Post. 3 menit, 200 views. Komen pertama: INI KETUA PANITIA KITA??"},{"who":"nay","text":"Hapus. Jangan. Eh. Berapa views?"}],"move":"phone"},{"label":"Klip tangan Kinan ngelem, pelan, lagunya sedih","x":0.22,"leadsTo":"a4_gelap","scores":"deep+2,creator+1","react":[{"who":"","text":"Klipnya sepi. Tapi yang nonton, nontonnya sampe abis. Satu DM masuk: itu kinan ya? bilangin bunganya bagus."}],"move":"phone"},{"label":"Bikin story: tag semua kelas, siapa yang paling rame","x":0.8,"leadsTo":"a4_gelap","scores":"change+2,creator+1","react":[{"who":"","text":"Story-nya dibuka 300 kali dalam 10 menit. Kelas 10 mulai bales: kak emang boleh?"}],"move":"phone"}]},{"id":"a3_boss","act":3,"place":"Ruang OSIS, papan tulis","time":"12.30","floor":0.85,"beats":[{"who":"","text":"Papan tulis udah penuh tulisan kamu. 3 vendor sound, 3 harga, 1 yang mau nego."},{"who":"dimas","text":"Pak Yudi mau turun ke 2 juta, Bos. Syaratnya kita angkut sendiri. Sama dibayar hari ini."},{"who":"","text":"Dana di tangan: 1 koma 2. Jam udah 12 lewat."}],"prompt":"Langkah kamu?","options":[{"label":"Bayar DP sekarang, sisanya dari tiket besok","x":0.35,"leadsTo":"a4_gelap","scores":"boss+3","react":[{"who":"","text":"Kamu telepon Pak Yudi. Deal. Tangan kamu gemeter pas transfer. Suaranya nggak."},{"who":"dimas","text":"Bos."}],"move":"call"},{"label":"Minta kantin jadi sponsor, nama mereka di backdrop","x":0.8,"leadsTo":"a4_gelap","scores":"explorer+2,boss+1","react":[{"who":"","text":"Bu Kantin ketawa dulu. Terus nanya logonya mau segede apa. 500 ribu plus 2 kardus air."}],"move":"talk"},{"label":"Kumpulin semua sie, bagi beban rata","x":0.55,"leadsTo":"a4_gelap","scores":"change+2,boss+1","react":[{"who":"","text":"12 orang duduk melingkar. Yang biasanya diem ikut ngomong. 20 menit, kurangnya tinggal 300 ribu."}],"move":"wave"}]},{"id":"a3_artisan","act":3,"place":"Pojok dekor, lantai aula","time":"13.00","floor":0.87,"beats":[{"who":"","text":"Lantai aula jadi meja. Lem tembak, kertas krep, gunting yang tumpul sebelah. Kinan udah ngomong 4 kalimat hari ini. Semuanya ke kamu."},{"who":"kinan","text":"Yang ini kelopaknya dilipet 2 kali. Jangan ditarik."},{"who":"","text":"Bunga ke-100. Tangan kamu lengket semua. Dan kamu nggak mau berhenti."}],"prompt":"Sorenya dihabisin buat?","options":[{"label":"Bikin sampe 200. Rapi, satu-satu","x":0.4,"leadsTo":"a4_gelap","scores":"artisan+3","react":[{"who":"","text":"Jam 3. 200 bunga di lantai kayak karpet. Kinan ngeliatin lama, moto, terus nyimpen HP-nya. Nggak dikirim ke siapa-siapa."}],"move":"craft"},{"label":"Ajarin anak kelas 10 yang nongol di pintu","x":0.8,"leadsTo":"a4_gelap","scores":"change+2,artisan+1","react":[{"who":"","text":"3 anak kelas 10 duduk. Awalnya canggung. Setengah jam kemudian bunga mereka lebih rapi dari punya kamu."}],"move":"talk"},{"label":"Foto flatlay bunganya, post","x":0.2,"leadsTo":"a4_gelap","scores":"creator+2,artisan+1","react":[{"who":"","text":"Dari atas, bunganya kayak permen. Kamu post tanpa caption."},{"who":"rara","text":"FINALLY ada yang bagus di akun ini."}],"move":"phone"}]},{"id":"a3_deep","act":3,"place":"Tangga belakang sekolah","time":"13.30","floor":0.88,"beats":[{"who":"","text":"Tangga belakang. Tempat orang kabur dari upacara. Kinan duduk di anak tangga ketiga, meluk lutut."},{"who":"","text":"Kamu duduk satu anak tangga di bawahnya. Nggak ngomong dulu."},{"who":"kinan","text":"Aku yang bikin semua dekornya. Tapi di grup, yang dibilang keren posternya Rara. Aku capek nggak keliatan."},{"who":"","text":"Angin lewat. Di bawah, Dimas lagi ngetes mic. Cek, cek."}],"prompt":"Kamu...","options":[{"label":"Diem. Dengerin sampe dia selesai","x":0.35,"leadsTo":"a4_gelap","scores":"deep+3","react":[{"who":"","text":"Kinan ngomong 15 menit. Kamu cuma ngangguk."},{"who":"kinan","text":"Makasih ya udah nggak nyuruh aku semangat."}],"move":"listen"},{"label":"Tulis gede-gede di rundown: Dekor by Kinan","x":0.7,"leadsTo":"a4_gelap","scores":"change+2,deep+1","react":[{"who":"","text":"Kamu foto rundown-nya, kirim ke grup. 30 detik, Nay bales: ASLI IYA. Kinan nunduk. Ujung bibirnya naik dikit."}],"move":"write"},{"label":"Bikinin dia playlist buat besok","x":0.2,"leadsTo":"a4_gelap","scores":"artisan+2,deep+1","react":[{"who":"","text":"9 lagu. Judulnya: buat yang bikin bunganya. Kinan dengerin satu lagu sampe abis sebelum berdiri."}],"move":"phone"}]},{"id":"a3_change","act":3,"place":"Kantin","time":"14.00","floor":0.86,"beats":[{"who":"","text":"Kantin sepi, jam kosong. Di meja pojok ada 5 anak kelas 10 ngeliatin poster pensi di HP. Kayak ngeliatin sesuatu yang bukan buat mereka."},{"who":"","text":"Yang bawa gitar, Sasa, nanya pelan."},{"who":"sasa","text":"Kak. Kelas 10 boleh dateng nggak sih? Katanya ini acaranya kakak kelas."},{"who":"","text":"Nay di telepon lagi ngomel soal harga tiket. Kamu tutup dulu teleponnya."}],"prompt":"Kamu jawab apa?","options":[{"label":"Boleh. Terus anter mereka beli tiket sekarang","x":0.5,"leadsTo":"a4_gelap","scores":"change+3","react":[{"who":"","text":"5 anak jadi 30 dalam sejam. Kelas 10 bikin grup chat sendiri. Kamu dimasukin."}],"move":"wave"},{"label":"Bikin tiket kelas 10 setengah harga, umumin di story","x":0.25,"leadsTo":"a4_gelap","scores":"boss+2,change+1","react":[{"who":"","text":"Nay telepon lagi. Kamu udah siap sama angkanya."},{"who":"nay","text":"...oke. Pinter. Nyebelin, tapi pinter."}],"move":"phone"},{"label":"Tanya Sasa mau nggak main satu lagu besok","x":0.8,"leadsTo":"a4_gelap","scores":"explorer+2,change+1","react":[{"who":"","text":"Sasa ngeliatin gitarnya. Kayak gitarnya yang harus jawab. Terus dia ngangguk. Kecil banget."}],"move":"talk"}]},{"id":"a3_explorer","act":3,"place":"Depan gerbang sekolah","time":"14.30","floor":0.87,"beats":[{"who":"","text":"Kamu udah keluar gerbang 2 kali hari ini. Toko cat yang buka cuma 1. Yang jual lampu tumblr adanya di pasar sebelah."},{"who":"","text":"HP kamu 15 persen. Nay chat: KAMU DI MANA. Sasa chat: kak lagu yang mana ya"},{"who":"","text":"Angkot lewat. Nggak kamu stop. Belum."}],"prompt":"Yang kamu kejar?","options":[{"label":"Semuanya. Cat, lampu, sekalian dengerin Sasa latihan","x":0.5,"leadsTo":"a4_gelap","scores":"explorer+3","react":[{"who":"","text":"Jam 5 kamu balik bawa 2 kaleng cat, 3 meter lampu, sama rekaman Sasa nyanyi di tribun. HP kamu mati pas di gerbang."}],"move":"run"},{"label":"Lampunya dulu. Nawar sampe dapet bonus","x":0.2,"leadsTo":"a4_gelap","scores":"boss+2,explorer+1","react":[{"who":"","text":"3 meter jadi 5 meter, harganya tetep. Bapaknya bilang kamu mirip ibunya."}],"move":"talk"},{"label":"Catnya dulu, terus ikut ngecat sampe penuh","x":0.8,"leadsTo":"a4_gelap","scores":"artisan+2,explorer+1","react":[{"who":"","text":"Kamu balik bau cat. Backdrop-nya akhirnya satu warna. Kinan ngasih kamu kuas yang lebih bagus. Tanpa ngomong."}],"move":"paint"}]},{"id":"a4_gelap","act":4,"place":"Aula, mati lampu","time":"17.15","floor":0.85,"beats":[{"who":"","text":"Jam 5 lewat. Hujan turun kayak dituang. Pas kamu lagi ngeliatin backdrop, aula jadi gelap. Semuanya."},{"who":"","text":"Senter HP nyala satu-satu. 12 titik kecil di aula yang gede."},{"who":"nay","text":"...kalau besok listriknya gini juga gimana?"},{"who":"","text":"Nay berdiri di tengah aula, nggak gerak. HT di tangannya kresek-kresek. Dimas teriak dari belakang: MCB-nya jatuh, nggak mau naik!"}],"prompt":"Dalam gelap, kamu...","options":[{"label":"Nyalain senter, beresin yang bisa dibereskan","x":0.3,"leadsTo":"a5_malam","scores":"artisan+2,boss+1","react":[{"who":"","text":"Kamu nyusun kursi, gulung kabel. Satu-satu orang ikutan. Pas lampu nyala lagi jam 6, aulanya udah rapi."}],"move":"torch"},{"label":"Kumpulin semuanya ke tengah, bagi tugas","x":0.55,"leadsTo":"a5_malam","scores":"change+2,boss+1","react":[{"who":"","text":"12 senter ngumpul. Kamu bagi: 2 cari satpam, 3 jaga alat, sisanya nyanyi biar nggak panik. Nay akhirnya ketawa."}],"move":"wave"},{"label":"Rekam gelapnya. Caption: besok kita nyala","x":0.78,"leadsTo":"a5_malam","scores":"creator+2,deep+1","react":[{"who":"","text":"Video gelap, 12 senter, suara hujan. Caption: besok kita nyala. 1000 views sebelum lampunya balik."}],"move":"phone"},{"label":"Lari ke pos satpam, cari genset","x":0.92,"leadsTo":"a5_malam","scores":"explorer+2,boss+1","react":[{"who":"","text":"Kamu balik basah kuyup bareng Pak Satpam dan 1 genset tua. Nyala di tarikan ketiga. Satu aula tepuk tangan."}],"move":"run"}],"after":[{"who":"","text":"Lampu balik jam 6 lewat. Nay nyamperin kamu, naroin HT-nya di tangan kamu."},{"who":"nay","text":"Besok kamu pegang HT satu. Kalau aku pingsan, kamu yang ngomong."}]},{"id":"a5_malam","act":5,"place":"Aula, malam pensi","time":"Besoknya, 18.45","floor":0.84,"beats":[{"who":"","text":"Besoknya. Jam 7 kurang 15. Aula penuh. Bau parfum campur cat yang belum kering total."},{"who":"","text":"Backdrop pink nyala dari belakang. Sound-nya hidup. Kelas 10 duduk paling depan, rame sendiri."},{"who":"nay","text":"5 menit lagi. Kamu mau di mana pas lampunya nyala?"},{"who":"","text":"HT di tangan kamu kresek sekali. Nay nunggu."}],"prompt":"Pas lampu pertama nyala, kamu ada di...","options":[{"label":"Depan panggung. Pegang mic, buka acaranya","x":0.5,"leadsTo":"ending","scores":"creator+3","react":[{"who":"","text":"Lampu nyala. Yang pertama keliatan: kamu. Kamu bilang selamat malam, 800 orang bales."}],"move":"mic"},{"label":"Samping panggung. Pegang rundown, siap lari ke mana aja","x":0.15,"leadsTo":"ending","scores":"boss+2,explorer+2","react":[{"who":"","text":"Kamu liat semuanya dari pinggir. Kabel, waktu, muka orang. Acaranya jalan. Kalau ada yang meleset, cuma kamu yang tau."}],"move":"look"},{"label":"Di tengah penonton, sebelah yang dateng sendirian","x":0.82,"leadsTo":"ending","scores":"change+3","react":[{"who":"","text":"Kamu nemu anak kelas 10 yang duduk sendiri. Kamu duduk di sebelahnya. Pas lampu nyala, dia nggak sendirian lagi."}],"move":"sit"},{"label":"Tangga belakang bareng Nay, semenit sebelum mulai","x":0.3,"leadsTo":"ending","scores":"deep+2,artisan+2","react":[{"who":"","text":"Kalian duduk sebentar di tangga yang sama kayak kemaren. Nay nggak ngomong. Kamu juga."},{"who":"nay","text":"Makasih ya udah dateng kemaren."},{"who":"","text":"Terus lampunya nyala."}],"move":"sit"}]}]};
+const FB={"a0_gerbang":"#CFE2FB","a1_aula":"#E6DEF8","a2_medsos":"#EDF5FF","a2_panggung":"#FFEAD9","a2_dana":"#EFE6FF","a2_band":"#E3F1FF","a3_creator":"#FFE4F0","a3_boss":"#EFE6FF","a3_artisan":"#FFF3D6","a3_deep":"#E8ECFF","a3_change":"#DFF6EC","a3_explorer":"#BFE2FF","a4_gelap":"#2A1F45","a5_malam":"#FF9DC0"};
+const SPRITES=[{"src":"art/char/p00.png","w":140,"h":211},{"src":"art/char/p01.png","w":170,"h":219},{"src":"art/char/p02.png","w":178,"h":217},{"src":"art/char/p03.png","w":193,"h":217},{"src":"art/char/p04.png","w":162,"h":205},{"src":"art/char/p05.png","w":150,"h":206},{"src":"art/char/p06.png","w":126,"h":216},{"src":"art/char/p07.png","w":146,"h":217},{"src":"art/char/p08.png","w":125,"h":217},{"src":"art/char/p09.png","w":168,"h":208},{"src":"art/char/p10.png","w":174,"h":217},{"src":"art/char/p11.png","w":172,"h":217},{"src":"art/char/p12.png","w":131,"h":218},{"src":"art/char/p13.png","w":190,"h":218},{"src":"art/char/p14.png","w":203,"h":217},{"src":"art/char/p15.png","w":201,"h":229}];const SPR_H=62;
+const POSE={idle:0,walkA:1,walkB:2,run:3,sit:4,listen:5,craft:4,phone:6,call:7,write:8,tidy:9,wave:10,mic:11,look:12,talk:13,torch:14,paint:15,breathe:0,climb:0};
+const VER='214925';
+const $=s=>document.querySelector(s);
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const SC={};STORY.scenes.forEach(s=>SC[s.id]=s);
+const END={};STORY.endings.forEach(e=>END[e.character]=e);
+const KEYS=['creator','boss','artisan','deep','change','explorer'];
+const CAST=Object.assign({kamu:{name:'Kamu',color:'#E0357D'}},STORY.cast||{});
+const FIRST=STORY.scenes[0].id;const START=STORY.start||FIRST;
+
+/* ---------------- state ---------------- */
+let G;
+function fresh(){G={node:FIRST,score:{},trail:[],lock:false,hasHT:false};}
+
+/* ---------------- sound (synth only) ---------------- */
+const SFX={ctx:null,ambGain:null,
+  unlock(){if(this.ctx)return;try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();this.ambient();}catch(e){}},
+  ambient(){const c=this.ctx;if(!c)return;const g=c.createGain();g.gain.value=0;const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=400;
+    [110,110.6].forEach(f=>{const o=c.createOscillator();o.frequency.value=f;o.connect(lp);o.start();});
+    lp.connect(g);g.connect(c.destination);g.gain.setTargetAtTime(.012,c.currentTime,1.2);this.ambGain=g;},
+  noise(dur){const c=this.ctx,b=c.createBuffer(1,c.sampleRate*dur,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;const s=c.createBufferSource();s.buffer=b;return s;},
+  step(side){const c=this.ctx;if(!c)return;const s=this.noise(.04),bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=420;bp.Q.value=1.2;
+    const g=c.createGain();g.gain.value=.05;const p=c.createStereoPanner?c.createStereoPanner():null;if(p)p.pan.value=side?.15:-.15;
+    s.connect(bp);bp.connect(g);if(p){g.connect(p);p.connect(c.destination);}else g.connect(c.destination);s.start();},
+  tick(){const c=this.ctx;if(!c)return;const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=1800;g.gain.setValueAtTime(.025,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0005,c.currentTime+.05);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.06);},
+  pick(){const c=this.ctx;if(!c)return;[660,880].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.value=f;const t=c.currentTime+i*.07;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.06,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+.3);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.32);});},
+  swoosh(){const c=this.ctx;if(!c)return;const n=this.noise(.5),lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(200,c.currentTime);lp.frequency.exponentialRampToValueAtTime(1600,c.currentTime+.45);
+    const g=c.createGain();g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.05,c.currentTime+.25);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.5);n.connect(lp);lp.connect(g);g.connect(c.destination);n.start();},
+  lamp(){const c=this.ctx;if(!c)return;const o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.setValueAtTime(660,c.currentTime);
+    o.frequency.linearRampToValueAtTime(990,c.currentTime+.18);g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(.08,c.currentTime+.18);
+    g.gain.exponentialRampToValueAtTime(.001,c.currentTime+1.6);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+1.7);},
+  chord(){const c=this.ctx;if(!c)return;const dl=c.createDelay();dl.delayTime.value=.12;const fb=c.createGain();fb.gain.value=.35;dl.connect(fb);fb.connect(dl);dl.connect(c.destination);
+    [523,659,784].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.value=f;const t=c.currentTime+i*.16;
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.07,t+.1);g.gain.exponentialRampToValueAtTime(.001,t+2.4);o.connect(g);g.connect(c.destination);g.connect(dl);o.start(t);o.stop(t+2.5);});}
+};
+const haptic=p=>{try{navigator.vibrate&&navigator.vibrate(p);}catch(e){}};
+
+/* ---------------- welcome ---------------- */
+(function welcome(){
+  const w=STORY.welcome||{};$('#wKick').textContent=w.kicker||'';$('#wPh').textContent=w.title||'';$('#wTitle').textContent=w.title||'';
+  $('#wSub').textContent=w.sub||'';$('#wLead').textContent=w.lead||'';$('#startBtn').textContent=w.cta||'Mulai';$('#wFine').textContent=w.fine||'';
+  $('#wHeart').textContent=w.heart||'';
+  const hi=$('#heroImg');hi.onload=()=>{hi.style.opacity='1';const ph=document.querySelector('.w-hero .ph');if(ph)ph.style.display='none';};hi.onerror=()=>{hi.remove();};hi.src='art/hero.jpg?v='+VER;
+})();
+if(SPRITES)SPRITES.forEach(p=>{const im=new Image();im.src=p.src+'?v='+VER;});
+$('#startBtn').addEventListener('click',()=>{SFX.unlock();haptic(10);$('#welcome').classList.remove('on');$('#game').classList.add('on');fresh();enter(FIRST,true);});
+
+/* ---------------- stage: picture + actor ---------------- */
+const stage=$('#stage'),layer=$('#actorLayer'),imgs=[$('#bgA'),$('#bgB')];let cur=0,vbH=440;
+function fitLayer(){const r=stage.getBoundingClientRect();if(!r.width)return;vbH=Math.round(360*r.height/r.width);layer.setAttribute('viewBox','0 0 360 '+vbH);}
+window.addEventListener('resize',fitLayer);
+function setImage(id){
+  const nxt=imgs[1-cur],prev=imgs[cur];stage.style.setProperty('--fb',FB[id]||'#CDBEF2');
+  nxt.onload=()=>{nxt.classList.add('on');prev.classList.remove('on');cur=1-cur;$('#ground').style.display='none';};
+  nxt.onerror=()=>{prev.classList.remove('on');nxt.removeAttribute('src');$('#ground').style.display='';};
+  nxt.src='art/'+id+'.jpg?v='+VER;
+}
+function emoteMarkup(x,y){
+  return '<g transform="translate('+x+','+y+')"><g id="emoteWrap"><g id="emote">'
+   +'<rect x="-14" y="-12" width="28" height="24" rx="9" fill="#fff" stroke="#FFB0D4" stroke-width="1.3"/><path d="M-8 11 L-10 17 L-3 11.5" fill="#fff" stroke="#FFB0D4" stroke-width="1.3" stroke-linejoin="round"/>'
+   +'<g id="emTalk" class="em"><circle class="d1" cx="-6" cy="0" r="2.1" fill="#43283A"/><circle class="d2" cx="0" cy="0" r="2.1" fill="#43283A"/><circle class="d3" cx="6" cy="0" r="2.1" fill="#43283A"/></g>'
+   +'<g id="emNote" class="em"><path d="M-2 5 V-6 L6 -8 V3" stroke="#6B7FD7" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="-4" cy="5" r="2.8" fill="#6B7FD7"/><circle cx="4" cy="3" r="2.8" fill="#6B7FD7"/></g>'
+   +'<g id="emHeart" class="em"><path d="M0 6 C-2 3 -8 0 -8 -4 C-8 -7 -5 -9 -2 -7 L0 -5 L2 -7 C5 -9 8 -7 8 -4 C8 0 2 3 0 6Z" fill="#FF4D97"/></g>'
+   +'<g id="emBang" class="em"><rect x="-1.8" y="-8" width="3.6" height="10" rx="1.8" fill="#FF4D97"/><circle cx="0" cy="6" r="2.1" fill="#FF4D97"/></g>'
+   +'<g id="emQ" class="em"><path d="M-4 -4 Q-4 -8 0 -8 Q4 -8 4 -4 Q4 -1 0 0 V2" stroke="#8A4FD6" stroke-width="2.3" fill="none" stroke-linecap="round"/><circle cx="0" cy="6.5" r="1.8" fill="#8A4FD6"/></g>'
+   +'<g id="emSpark" class="em"><path d="M-5 -2 l1.6 3.6 3.6 1.6 -3.6 1.6 -1.6 3.6 -1.6 -3.6 -3.6 -1.6 3.6 -1.6Z" fill="#FFCE57"/><path d="M5 -7 l1.2 2.6 2.6 1.2 -2.6 1.2 -1.2 2.6 -1.2 -2.6 -2.6 -1.2 2.6 -1.2Z" fill="#FF8FC0"/></g>'
+   +'<g id="emRing" class="em"><path d="M-6 -1 Q-6 -8 0 -8" stroke="#17B6A6" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M-2 2 Q-2 -4 3 -4" stroke="#17B6A6" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="4" cy="4" r="2.6" fill="#17B6A6"/></g>'
+   +'<g id="emPen" class="em"><path d="M-8 3 L-4 -4 L0 3 L4 -4 L8 3" stroke="#43283A" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>'
+   +'<g id="emFlower" class="em"><g fill="#FF9DB4"><circle cx="0" cy="-5" r="3"/><circle cx="4.5" cy="-1.5" r="3"/><circle cx="3" cy="4" r="3"/><circle cx="-3" cy="4" r="3"/><circle cx="-4.5" cy="-1.5" r="3"/></g><circle r="2.4" fill="#FFD86B"/></g>'
+   +'<g id="emZ" class="em"><circle cx="-5" cy="4" r="2" fill="#8FD0FF"/><circle cx="0" cy="0" r="2.6" fill="#8FD0FF"/><circle cx="6" cy="-5" r="3.2" fill="#8FD0FF"/></g>'
+   +'<g id="emWave" class="em"><path d="M-7 -4 Q-3 0 -7 4M-1 -7 Q4 0 -1 7M5 -9 Q11 0 5 9" stroke="#FF4D97" stroke-width="2.2" fill="none" stroke-linecap="round"/></g>'
+      +'</g></g></g>';
+}
+function spriteMarkup(){
+  const p=SPRITES[0];const k=SPR_H/p.h,w=p.w*k;
+  return '<g id="actor" class="sprite">'
+   +'<ellipse id="shadow" cx="0" cy="2" rx="21" ry="5.5" fill="#43283A" opacity=".16"/>'
+   +'<g id="lean"><g id="squash"><g id="actorBob">'
+   +'<image id="sprite" href="'+p.src+'?v='+VER+'" x="'+(-w/2)+'" y="'+(-SPR_H)+'" width="'+w+'" height="'+SPR_H+'" preserveAspectRatio="xMidYMax meet"/>'
+   +'<g id="ht" style="opacity:0;transition:opacity .5s"><rect x="-30" y="-30" width="7" height="14" rx="2.5" fill="#43283A"/><path d="M-26.5 -30 V-38" stroke="#43283A" stroke-width="2" stroke-linecap="round"/><circle cx="-26.5" cy="-27" r="1.4" fill="#4FCF96"/></g>'
+   +emoteMarkup(20,-(SPR_H+16))
+   +'</g></g></g></g>';
+}
+function actorMarkup(){
+  if(SPRITES&&SPRITES.length)return spriteMarkup();
+  const S='stroke="#E9B7CF" stroke-width="1.2"';
+  return '<g id="actor">'
+   +'<ellipse id="shadow" cx="0" cy="2" rx="18" ry="5" fill="#43283A" opacity=".15"/>'
+   +'<g id="lean"><g id="squash"><g id="actorBob">'
+   +'<g id="legs"><g id="legL" class="lg lgL"><rect x="-7.4" y="-7" width="5.8" height="9" rx="2.9" fill="#fff" '+S+'/><rect x="-8.6" y="0" width="8.2" height="4.6" rx="2.3" fill="#FF8FC0"/></g>'
+   +'<g id="legR" class="lg lgR"><rect x="1.6" y="-7" width="5.8" height="9" rx="2.9" fill="#fff" '+S+'/><rect x="0.4" y="0" width="8.2" height="4.6" rx="2.3" fill="#FF8FC0"/></g></g>'
+   +'<g id="armL" class="arm"><rect x="-47" y="-29.5" width="57" height="60" fill="none"/><rect x="-22" y="-29.5" width="7" height="17" rx="3.5" fill="#fff" '+S+'/><circle cx="-18.5" cy="-13" r="4" fill="#FFD7E9" '+S+'/></g>'
+   +'<ellipse id="body" cx="0" cy="-27" rx="20" ry="25.5" fill="#fff" '+S+'/><ellipse cx="0" cy="-13" rx="14" ry="8" fill="#FFE9F3" opacity=".8"/>'
+   +'<g id="sitFeet"><ellipse cx="-11.5" cy="-2" rx="7" ry="3.8" fill="#FF8FC0" '+S+' transform="rotate(-16 -11.5 -2)"/><ellipse cx="11.5" cy="-2" rx="7" ry="3.8" fill="#FF8FC0" '+S+' transform="rotate(16 11.5 -2)"/></g>'
+   +'<g id="pItem" class="prop"><rect x="-9" y="-31" width="18" height="22" rx="2.5" fill="#FFF4F9" stroke="#C9A7FF" stroke-width="1.3"/><path d="M-5.5 -26h11M-5.5 -22h11M-5.5 -18h7" stroke="#9B9BB5" stroke-width="1.3" stroke-linecap="round"/><rect x="-3" y="-33" width="6" height="4" rx="1.5" fill="#C9A7FF"/></g>'
+   +'<ellipse id="pBeam" class="prop" cx="36" cy="0" rx="32" ry="7.5" fill="#FFE08A" opacity=".45"/>'
+   +'<g id="head">'
+   +'<ellipse class="eye" cx="-7" cy="-33" rx="3" ry="4" fill="#43283A"/><ellipse class="eye" cx="7" cy="-33" rx="3" ry="4" fill="#43283A"/>'
+   +'<circle cx="-5.9" cy="-34.4" r="1.1" fill="#fff"/><circle cx="8.1" cy="-34.4" r="1.1" fill="#fff"/>'
+   +'<ellipse cx="-12.6" cy="-27" rx="4.2" ry="2.7" fill="#FF9DC0" opacity=".8"/><ellipse cx="12.6" cy="-27" rx="4.2" ry="2.7" fill="#FF9DC0" opacity=".8"/>'
+   +'<path id="mouth" d="M-4 -26 Q0 -22 4 -26" stroke="#43283A" stroke-width="1.9" fill="none" stroke-linecap="round"/>'
+   +'<g transform="translate(0,-50)"><path d="M0 0 L-12 -6 L-12 7 Z" fill="#FF5BA3"/><path d="M0 0 L12 -6 L12 7 Z" fill="#FF5BA3"/><circle r="3.8" fill="#E0357D"/></g>'
+   +'</g>'
+   +'<g id="armR" class="arm"><rect x="-10" y="-29.5" width="57" height="60" fill="none"/><rect x="15" y="-29.5" width="7" height="17" rx="3.5" fill="#fff" '+S+'/><circle cx="18.5" cy="-13" r="4" fill="#FFD7E9" '+S+'/>'
+   +'<g id="pPhone" class="prop"><rect x="12.5" y="-20" width="12" height="20" rx="3" fill="#FF4D97"/><rect x="14.5" y="-17.5" width="8" height="14" rx="1.8" fill="#FFE4F0"/></g>'
+   +'<g id="pPen" class="prop" transform="rotate(-35 18.5 -12)"><rect x="17" y="-27" width="3.4" height="23" rx="1.7" fill="#43283A"/><path d="M16.8 -4.5 L18.7 0 L20.6 -4.5 Z" fill="#FFB0D4"/></g>'
+   +'<g id="pMic" class="prop"><rect x="16.6" y="-22" width="4" height="17" rx="2" fill="#43283A"/><circle cx="18.6" cy="-25" r="5.5" fill="#9B9BB5"/></g>'
+   +'<g id="pBrush" class="prop"><rect x="17" y="-27" width="3.4" height="21" rx="1.7" fill="#E8A95A"/><rect x="14.3" y="-29.5" width="8.5" height="7" rx="2.5" fill="#FF8FC0"/></g>'
+   +'<g id="pTorch" class="prop"><rect x="14.5" y="-20" width="8" height="15" rx="2.5" fill="#43283A"/><circle cx="18.5" cy="-21.5" r="4.5" fill="#FFE08A"/></g>'
+   +'</g>'
+   +'<g id="ht" style="opacity:0;transition:opacity .5s"><rect x="-27" y="-26" width="7" height="14" rx="2.5" fill="#43283A"/><path d="M-23.5 -26 V-34" stroke="#43283A" stroke-width="2" stroke-linecap="round"/><circle cx="-23.5" cy="-23" r="1.4" fill="#4FCF96"/></g>'
+   +emoteMarkup(17,-72)
+   +'</g></g></g></g>';
+}
+const AS=1.55; // white mascot walker
+function placeActor(xf,yf,instant){const a=$('#actor');if(!a)return;const x=xf*360,y=yf*vbH;
+  if(instant)a.style.transition='none';a.style.transform='translate('+x+'px,'+y+'px) scale('+AS+')';a.dataset.x=xf;
+  if(instant){void a.offsetWidth;a.style.transition='';}}
+function setPose(i){const img=$('#sprite');if(!img||!SPRITES)return;const p=SPRITES[i]||SPRITES[0];const k=SPR_H/SPRITES[0].h,w=p.w*k,h=p.h*k;
+  img.setAttribute('href',p.src+'?v='+VER);img.setAttribute('x',-w/2);img.setAttribute('y',-h);img.setAttribute('width',w);img.setAttribute('height',h);}
+function setAction(name){const a=$('#actor');if(!a)return;const sp=a.classList.contains('sprite');const ew=$('#emoteWrap');
+  [a,ew].forEach(el=>{if(el)[...el.classList].filter(c=>c.indexOf('act-')===0).forEach(c=>el.classList.remove(c));});
+  if(sp)setPose(0);
+  if(!name||name==='walk'||name==='run')return;
+  (sp?ew:a).classList.add('act-'+name);if(sp&&name==='breathe')a.classList.add('act-breathe');
+  if(sp)setPose(POSE[name]!=null?POSE[name]:0);}
+function oneShot(sel,frames,ms,opts){const el=$(sel);if(!el||!el.animate)return Promise.resolve();
+  try{const an=el.animate(frames,Object.assign({duration:ms,easing:'cubic-bezier(.34,1.56,.64,1)'},opts||{}));const total=ms*((opts&&opts.iterations)||1);return Promise.race([an.finished.catch(()=>{}),wait(total+150)]);}catch(e){return Promise.resolve();}}
+async function walkTo(xf,yf,manner){
+  const a=$('#actor');if(!a)return;const fx=+a.dataset.x||0;const dx=xf-fx;const dist=Math.abs(dx)*360;
+  const run=manner==='run';setAction(null);const lean=$('#lean');
+  if(dist>6){await oneShot('#squash',[{transform:'scaleY(1) scaleX(1)'},{transform:'scaleY(.93) scaleX(1.04)'},{transform:'scaleY(1.015) scaleX(.99)'},{transform:'none'}],160,{easing:'ease-out'});} // anticipation
+  const dur=Math.max(run?240:380,Math.min(1500,dist*(run?3.4:6)));a.style.transitionDuration=dur+'ms';
+  layer.classList.add('walking');layer.classList.toggle('run',run);
+  const stepMs=run?120:210;let i=0;const sp=a.classList.contains('sprite');if(sp)setPose(run?3:1);
+  const iv=setInterval(()=>{SFX.step(i++%2);if(sp&&!run)setPose(i%2?2:1);},stepMs);
+  placeActor(xf,yf);await wait(dur);clearInterval(iv);layer.classList.remove('walking','run');a.style.transitionDuration='';if(sp)setPose(0);
+  if(dist>6){await oneShot('#squash',[{transform:'scaleY(.9) scaleX(1.08)'},{transform:'scaleY(1.04) scaleX(.97)'},{transform:'none'}],300);} // follow-through
+}
+async function act(manner){
+  if(!manner||manner==='walk'||manner==='run')return;
+  if(manner==='climb'){await oneShot('#squash',[{transform:'translateY(0)'},{transform:'translateY(-16px) scaleY(1.06)'},{transform:'translateY(0) scaleY(.9) scaleX(1.08)'},{transform:'none'}],520,{iterations:2,easing:'ease-in-out'});return;}
+  setAction(manner);SFX.step(1);oneShot('#squash',[{transform:'scaleY(.9) scaleX(1.06)'},{transform:'scaleY(1.03) scaleX(.98)'},{transform:'none'}],260);await wait(manner==='breathe'?1000:380);
+}
+function mountActor(yf){layer.innerHTML=actorMarkup();if(G.hasHT)$('#ht').style.opacity='1';placeActor(-.14,yf,true);}
+
+/* ---------------- text box: typewriter + beats ---------------- */
+const who=$('#who'),txt=$('#txt'),nextI=$('#next');
+let typing=null,queue=[],onDone=null,waiting=false,choicesOpen=false,hinted=false;
+function showWho(k){if(!k){who.classList.remove('on');return;}const c=CAST[k]||{name:k,color:'#9B9BB5'};who.textContent=c.name;who.style.setProperty('--who',c.color);who.classList.add('on');}
+function type(text,cls){return new Promise(res=>{
+  txt.className=cls||'';txt.textContent='';let i=0;nextI.classList.remove('on');
+  const step=()=>{if(!typing||typing.text!==text)return;i+=text.charCodeAt(i)===32?2:1;txt.textContent=text.slice(0,i);if(i%6===0)SFX.tick();
+    if(i<text.length){typing.t=setTimeout(step,15);}else{typing=null;res();}};
+  typing={text,t:0,finish(){clearTimeout(this.t);txt.textContent=text;typing=null;res();}};step();});}
+async function showBeat(b){showWho(b.who);await type(b.text,b.who?'':'narr');waiting=true;nextI.classList.add('on');if(!hinted){const h=$('#hint');h.classList.toggle('tut',!!(SC[G.node]&&SC[G.node].tutorial));h.classList.add('on');}}
+function playBeats(beats,done){queue=beats.slice();onDone=done;advance(true);}
+function advance(auto){
+  if(G.lock&&!auto)return;
+  if(typing){typing.finish();waiting=true;nextI.classList.add('on');return;}
+  if(!queue.length){if(!waiting&&!auto)return;waiting=false;nextI.classList.remove('on');const d=onDone;onDone=null;d&&d();return;}
+  waiting=false;showBeat(queue.shift());
+}
+function tapAdvance(e){if(choicesOpen)return;if(e.target.closest('button'))return;SFX.unlock();if(!hinted){hinted=true;$('#hint').classList.remove('on');}advance(false);}
+$('#panel').addEventListener('click',tapAdvance);stage.addEventListener('click',tapAdvance);
+document.addEventListener('keydown',e=>{if(!$('#game').classList.contains('on'))return;if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!choicesOpen)advance(false);}
+  if(choicesOpen&&/^[1-4]$/.test(e.key)){const b=document.querySelectorAll('.opt')[+e.key-1];b&&b.click();}});
+
+/* ---------------- scenes ---------------- */
+async function enter(id,first){
+  const s=SC[id];G.node=id;G.lock=true;choicesOpen=false;$('#choices').classList.remove('on');showWho('');txt.textContent='';nextI.classList.remove('on');
+  if(!first){$('#fade').classList.add('on');SFX.swoosh();await wait(480);}
+  fitLayer();setImage(id);$('#chipT').textContent=s.time;$('#chipP').textContent=s.place;$('#chip').classList.add('on');$('#tutBadge').classList.toggle('on',!!s.tutorial);
+  mountActor(s.floor||.85);
+  $('#fade').classList.remove('on');await wait(first?500:380);
+  await walkTo(.42,s.floor||.85);      // she walks into the room
+  G.lock=false;
+  playBeats(s.beats,()=>showChoices(s));
+}
+function showChoices(s){
+  $('#ask').textContent=s.prompt||'';const tp=$('#tip');if(s.tip){tp.innerHTML=s.tip;tp.classList.add('on');}else{tp.classList.remove('on');}const L=$('#optList');
+  L.innerHTML=s.options.map((o,i)=>'<button class="opt" type="button" data-i="'+i+'">'+o.label+'</button>').join('');
+  showWho('');txt.textContent='';$('#choices').classList.toggle('tut',!!s.tutorial);$('#choices').classList.add('on');choicesOpen=true;
+  [...L.children].forEach((b,i)=>{setTimeout(()=>b.classList.add('in'),80+i*70);b.addEventListener('click',()=>choose(i));});
+}
+async function choose(i){
+  if(!choicesOpen||G.lock)return;choicesOpen=false;G.lock=true;
+  const s=SC[G.node],o=s.options[i];haptic(12);SFX.pick();
+  [...document.querySelectorAll('.opt')].forEach((b,j)=>b.classList.add(j===i?'pick':'dim'));
+  await wait(380);$('#choices').classList.remove('on');
+  showWho('kamu');txt.className='echo';txt.textContent='› '+o.label;   // what she decided, in her head
+  await walkTo(o.x==null?.5:o.x,s.floor||.85,o.move);await act(o.move);  // travel like the choice, then do the thing
+  (o.scores||'').split(/[,\s]+/).forEach(p=>{const m=/^([a-z]+)\+(\d+)$/.exec(p);if(m)G.score[m[1]]=(G.score[m[1]]||0)+ +m[2];});
+  G.trail.push({node:G.node,i});
+  const beats=(o.react||[]).concat(s.after||[]);
+  G.lock=false;
+  playBeats(beats,()=>{
+    if(s.id==='a4_gelap'&&!G.hasHT){G.hasHT=true;const h=$('#ht');if(h)h.style.opacity='1';SFX.lamp();}
+    if(o.leadsTo==='ending')reveal();else enter(o.leadsTo,false);
+  });
+}
+
+/* ---------------- reveal ceremony ---------------- */
+function winner(){let mx=-1;KEYS.forEach(k=>{if((G.score[k]||0)>mx)mx=G.score[k]||0;});let top=KEYS.filter(k=>(G.score[k]||0)===mx);
+  if(top.length===1)return top[0];
+  for(let t=G.trail.length-1;t>=0;t--){const o=SC[G.trail[t].node].options[G.trail[t].i];const sc={};(o.scores||'').split(/[,\s]+/).forEach(p=>{const m=/^([a-z]+)\+(\d+)$/.exec(p);if(m)sc[m[1]]=+m[2];});
+    let best=0;top.forEach(k=>{if((sc[k]||0)>best)best=sc[k]||0;});if(best>0){const c=top.filter(k=>(sc[k]||0)===best);if(c.length===1)return c[0];top=c;}}
+  return top[0];}
+let currentKey=null;
+async function reveal(){
+  const k=winner();currentKey=k;const a=ARCH[k];G.lock=true;
+  $('#fade').classList.add('on');await wait(900);
+  const rv=$('#reveal');rv.style.setProperty('--c1',a.c1);rv.style.setProperty('--c2',a.c2);rv.classList.add('on');$('#game').classList.remove('on');$('#fade').classList.remove('on');
+  await wait(400);$('#flame').classList.add('on');SFX.lamp();await wait(900);
+  $('#flood').classList.add('on');SFX.chord();await wait(520);
+  $('#rvKick').classList.add('on');
+  const T=$('#rvType');T.innerHTML='';[...a.nick].forEach(ch=>{const s=document.createElement('span');s.textContent=ch===' '?' ':ch;T.appendChild(s);});
+  const spans=T.querySelectorAll('span');for(let i=0;i<spans.length;i++){spans[i].classList.add('on');await wait(28);}
+  $('#rvEn').textContent=a.en;$('#rvEn').classList.add('on');
+  await wait(300);$('#rvLine').textContent=a.tag||'';$('#rvLine').classList.add('on');
+  await wait(800);$('#rvGo').classList.add('on');
+}
+$('#rvGo').addEventListener('click',()=>{$('#reveal').classList.remove('on');showResult();});
+
+/* ---------------- result ---------------- */
+function showResult(){
+  const k=currentKey,a=ARCH[k],e=END[k]||{closing:''};
+  $('#rM').innerHTML=mascotSVG(k);$('#rNick').textContent=a.nick;$('#rEn').textContent=a.en;$('#rTag').textContent=a.tag||'';$('#rClose').textContent=e.closing;
+  $('#hero').style.background='linear-gradient(160deg,#fff 0%,'+a.soft+' 42%,'+a.c2+' 100%)';
+  $('#rTrail').innerHTML=G.trail.map(t=>'<img src="art/'+t.node+'.jpg?v='+VER+'" alt="" onerror="this.style.visibility=\'hidden\'">').join('');
+  const t1=G.trail.find(t=>t.node===START)||G.trail[0];const first=SC[t1.node].options[t1.i].label,last=SC[G.trail[G.trail.length-1].node].options[G.trail[G.trail.length-1].i].label;$('#rNote').innerHTML='<b>dari emina</b>'+(STORY.note||'');
+  $('#fine').textContent='1 dari 6 akhir · pagi itu kamu: '+first.toLowerCase()+' · malamnya kamu: '+last.toLowerCase();
+  $('#result').classList.add('on');buildCard(k);
+}
+$('#again').addEventListener('click',()=>{fresh();G.node=START;$('#result').classList.remove('on');$('#reveal').classList.remove('on');
+  ['flame','flood','rvKick','rvEn','rvLine','rvGo'].forEach(id=>$('#'+id).classList.remove('on'));$('#game').classList.add('on');enter(START,true);});
+$('#reg').addEventListener('click',()=>window.open('https://bit.ly/Emina20Under20','_blank','noopener'));
+
+/* ---------------- share card ---------------- */
+const canvas=$('#cardCanvas'),cx=canvas.getContext('2d');
+function rr(c,x,y,w,h,r){if(c.roundRect){c.beginPath();c.roundRect(x,y,w,h,r);return;}c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+function svgImg(inner,vb,w,h){return new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);
+  i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'" viewBox="'+vb+'">'+inner+'</svg>');});}
+function wrapT(t,x,y,mw,lh){const w=t.split(' ');let l='',yy=y;w.forEach(q=>{const s=l+q+' ';if(cx.measureText(s).width>mw&&l){cx.fillText(l.trim(),x,yy);l=q+' ';yy+=lh;}else l=s;});cx.fillText(l.trim(),x,yy);return yy;}
+async function buildCard(k){
+  const a=ARCH[k],e=END[k]||{closing:''};
+  let m=null;try{await document.fonts.ready;await Promise.all(['800 40px Fraunces','italic 700 40px Fraunces','400 40px Fraunces','700 30px "Plus Jakarta Sans"'].map(f=>document.fonts.load(f)));m=await svgImg(mascotSVG(k).replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,''),'0 0 220 236',220,236);}catch(err){}
+  const W=1080,H=1920;const g=cx.createLinearGradient(0,0,W*.3,H);g.addColorStop(0,a.c1);g.addColorStop(1,a.c2);cx.fillStyle=g;cx.fillRect(0,0,W,H);
+  cx.save();cx.globalAlpha=.18;cx.fillStyle='#fff';cx.beginPath();cx.arc(150,300,300,0,7);cx.fill();cx.beginPath();cx.arc(960,1700,340,0,7);cx.fill();cx.restore();
+  cx.textAlign='center';cx.fillStyle='rgba(255,255,255,.92)';cx.font='600 30px "Plus Jakarta Sans",sans-serif';cx.fillText('H-1 · SATU HARI SEBELUM PENSI',W/2,170);
+  cx.font='italic 700 30px Fraunces,serif';cx.fillStyle='rgba(255,255,255,.8)';cx.fillText('emina · 20 under 20',W/2,218);
+  if(m){cx.drawImage(m,W/2-190,330,380,408);}
+  cx.fillStyle='rgba(255,255,255,.92)';cx.font='italic 500 40px Fraunces,serif';cx.fillText('H-1 pensi, aku ternyata',W/2,840);
+  let ns=132;cx.font='800 '+ns+'px Fraunces,serif';while(cx.measureText(a.nick).width>W-120&&ns>70){ns-=6;cx.font='800 '+ns+'px Fraunces,serif';}
+  cx.fillStyle='#fff';cx.fillText(a.nick,W/2,845+ns);
+  cx.font='600 30px "Plus Jakarta Sans",sans-serif';cx.fillStyle='rgba(255,255,255,.9)';cx.fillText(a.en.toUpperCase(),W/2,845+ns+52);
+  cx.font='400 40px Fraunces,serif';cx.fillStyle='#fff';const yEnd=wrapT(a.tag||e.closing,W/2,845+ns+140,W-220,54);
+  const t1=G.trail.find(t=>t.node===START)||G.trail[0];const first=SC[t1.node].options[t1.i].label.toLowerCase();
+  cx.font='400 28px "Plus Jakarta Sans",sans-serif';cx.fillStyle='rgba(255,255,255,.82)';wrapT('pagi itu aku: '+first,W/2,Math.max(yEnd+90,1480),W-200,38);
+  cx.fillStyle='rgba(255,255,255,.95)';rr(cx,90,1560,W-180,160,36);cx.fill();
+  cx.fillStyle=a.c1;cx.font='800 40px Fraunces,serif';cx.fillText('Kamu bakal milih apa? ✨',W/2,1620);
+  cx.fillStyle='#6a4a5a';cx.font='500 28px "Plus Jakarta Sans",sans-serif';cx.fillText('1 dari 6  ·  @eminacosmetics  ·  #Emina20Under20',W/2,1672);
+  try{$('#cardImg').src=canvas.toDataURL('image/png');}catch(err){}
+}
+let _dl;async function getDL(){if(_dl!==undefined)return _dl;try{_dl=(window.claude&&window.claude.use)?await window.claude.use('downloads'):null;}catch(e){_dl=null;}return _dl;}
+$('#share').addEventListener('click',()=>$('#modal').classList.add('on'));
+$('#mx').addEventListener('click',()=>$('#modal').classList.remove('on'));
+$('#modal').addEventListener('click',e=>{if(e.target===$('#modal'))$('#modal').classList.remove('on');});
+$('#saveCard').addEventListener('click',()=>{const a=ARCH[currentKey],name='emina-h1-'+currentKey+'.png';
+  canvas.toBlob(async b=>{if(!b)return;try{const f=new File([b],name,{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Emina 20 Under 20',text:'H-1 pensi, aku ternyata '+a.nick+'. Kalau kamu, milih apa? #Emina20Under20'});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+    const dl=await getDL();if(dl){try{await dl.save({filename:name,data:b});return;}catch(e){if(e&&e.code==='declined')return;}}
+    try{const u=URL.createObjectURL(b),l=document.createElement('a');l.href=u;l.download=name;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);}catch(e){}},'image/png');});
+
+fresh();fitLayer();
+</script>

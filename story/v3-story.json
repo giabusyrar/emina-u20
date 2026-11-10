@@ -1,0 +1,491 @@
+{
+ "title": "Empat Pintu, Satu Hari",
+ "premise": "Nay nemuin kamu di DM dua minggu lalu dan cuma nulis dateng aja. Hari ini dia yang bukain pintu Rumah Emina buat kamu, terus dia ilang ke dalem sebelum kamu selesai ngomong. Tas kamu masih nyangkut di satu pundak. Di ujung lorong empat pintu nganga, dan salah satunya nelen dia.",
+ "scenes": [
+  {
+   "id": "a1_pintu",
+   "act": "Babak 1 - Pintu-Pintu",
+   "name": "Empat Pintu Kebuka",
+   "sceneryDesc": "Flat pastel, lorong krem dilihat dari depan. Empat pintu melengkung nganga berjejer, masing-masing numpahin warna cahaya beda ke lantai kayu: emas, kuning madu, putih kebiruan, abu terang. Papan kecil bertuliskan Rumah Emina nempel di dinding kiri. Siluet cewek berkardigan pink berdiri membelakangi pembaca, tas di satu pundak, bayangannya kebagi empat. Bentuk bulat, tanpa garis tepi.",
+   "narration": "Nay udah nyelip ke salah satu ruangan ini. Dari tiap celah suaranya beda, dan satu ketawa di antaranya mirip dia. Kamu dengerin dulu satu-satu.",
+   "options": [
+    {
+     "label": "Pintu yang berdenyut",
+     "illustrationDesc": "Flat pastel, satu pintu nganga numpahin cahaya emas berbentuk kipas ke lantai krem. Di dalemnya leher gitar nyender, satu stand mic, speaker bulat. Tiga lingkaran suara keluar dari celah, debu berkilau di jalur cahaya. Palet emas, krem, pink muda.",
+     "sound": "Dum, dum, dum dari bawah lantai, dan cahaya emasnya ikut goyang di lantai lorong. Ada yang nyetem satu senar. Terus satu cewek ketawa kenceng, dan ketawanya mirip Nay.",
+     "transition": "Bass-nya pindah dari lantai ke dada kamu begitu kamu masuk.",
+     "leadsTo": "a2_suara",
+     "scores": "stage+1,creator+1"
+    },
+    {
+     "label": "Pintu yang wangi lem",
+     "illustrationDesc": "Flat pastel, pintu kayu nganga numpahin cahaya kuning madu berbentuk segitiga lembut. Di dalemnya gunting peach, gulungan benang pink, satu lampu meja melengkung. Dua potongan kain kecil melayang ke lorong. Palet kuning madu, krem, peach.",
+     "sound": "Bau lem duluan, baru suaranya. Gunting krek dua kali, mesin jahit lari pendek-pendek. Lampu meja kuning madu di dalem bikin kayunya keliatan anget.",
+     "transition": "Di langkah kedua, serpihan kain udah nempel di sepatu kamu.",
+     "leadsTo": "a2_tangan",
+     "scores": "artisan+1,creator+1"
+    },
+    {
+     "label": "Pintu yang rame ngomong",
+     "illustrationDesc": "Flat pastel, pintu kaca nganga numpahin cahaya putih kebiruan. Di dalemnya papan kaca penuh coretan, sticky note kuning dan pink, dua kursi plastik miring, satu gelas es kopi berembun di lantai. Tiga gelembung obrolan numpuk di celah pintu. Palet biru muda, putih, pink stabilo.",
+     "sound": "Spidol nyicit di kaca. Dua orang ngomong barengan terus ketawa, kursi plastik digeser ke tengah. Siang nembus kacanya sampe putih, dan es kopi di lantai mulai bau manis.",
+     "transition": "Cewek yang megang spidol berhenti nulis sedetik buat ngasih kamu jalan.",
+     "leadsTo": "a2_papan",
+     "scores": "boss+1,change+1"
+    },
+    {
+     "label": "Pintu yang kehujanan",
+     "illustrationDesc": "Flat pastel, kusen pintu nganga ke jalanan basah di bawah langit abu terang abis hujan siang. Garis hujan tipis, kanopi seng bergaris, spion motor, dua siluet kecil di bawah satu payung. Satu genangan mantulin langit terang. Palet abu terang, mint, krem.",
+     "sound": "Hujan nabrak kanopi seng, kenceng, nutupin suara yang lain. Langit abu terang abis hujan siang, baunya tanah basah. Dari jauh ada yang nawarin gorengan.",
+     "transition": "Kamu keluar ke teras dan hujannya masih turun tipis di luar kanopi.",
+     "leadsTo": "a2_teras",
+     "scores": "explorer+1,change+1"
+    }
+   ]
+  },
+  {
+   "id": "a2_suara",
+   "act": "Babak 2 - Dunia di Dalem",
+   "name": "Ruang Suara",
+   "sceneryDesc": "Flat pastel, ruang latihan hangat dilihat agak miring. Tiga sudut kebaca jelas dan tiap sudut ada orangnya: ring light pink dengan hp di tripod mini, panggung bundar kecil dengan satu stand mic dan bangku kayu, pintu samping yang nganga ke bak mobil penuh tas alat. Satu scrunchie pink nyangkut di stand mic. Di belakang panggung bundar ada pintu tinggi yang nganga ke ruang gelap. Kabel-kabel melengkung di lantai kayak mi. Palet emas, krem, pink.",
+   "narration": "Bass itu udah pindah ke dada kamu dan ruangannya lebih kecil dari suaranya. Tiga sudut ini udah ada orangnya, dan ketiganya geser dikit waktu liat kamu. Cewek yang gulung kabel nunjuk scrunchie pink di stand mic, Nay baru naik ke atap bawa kardus katanya, soundcheck empat puluh menit lagi.",
+   "options": [
+    {
+     "label": "Duduk depan ring light",
+     "illustrationDesc": "Flat pastel, lingkaran ring light pink dengan hp di tripod mini. Cewek duduk bersila di depannya sambil ngerapihin rambut, satu tube lip tint dan satu scrunchie di sebelah dengkul. Palet pink, krem, putih.",
+     "sound": "Ring light-nya klik waktu dinyalain, hp di tripod bunyi notif sekali.",
+     "transition": "Cewek di depan ring light geser bantalnya buat kamu, dan layar hp nyala pas di depan muka kamu.",
+     "leadsTo": "a3_creator",
+     "scores": "creator+2"
+    },
+    {
+     "label": "Naik panggung kecil",
+     "illustrationDesc": "Flat pastel, panggung bundar kecil dengan satu stand mic dan bangku kayu. Satu lingkaran cahaya hangat di papan, bayangan kaki cewek masuk ke lingkarannya, pintu tinggi di belakang panggung nganga ke gelap. Palet emas, ungu lembut, krem.",
+     "sound": "Papan panggung bunyi dua kali di bawah sepatu kamu, mic-nya desis pendek.",
+     "transition": "Begitu kamu naik dua langkah, ada yang naikin lampunya dari belakang, dan dari atas sini pintu ke aula gede baru keliatan nganga.",
+     "leadsTo": "a3_stage",
+     "scores": "stage+2"
+    },
+    {
+     "label": "Angkat kabel ke mobil",
+     "illustrationDesc": "Flat pastel, bak mobil nganga penuh tas alat, satu gulungan kabel nyangkut di pundak cewek, satu lanyard kru, satu sticker peta di pintu mobil. Palet mint, krem, abu.",
+     "sound": "Gulungan kabelnya gesrek di lantai kayu sampe pintu samping.",
+     "transition": "Kabelnya kamu taro di bak mobil, terus yang nerima nunjuk tangga besi di samping pintu, naik aja katanya, dari atas keliatan semua.",
+     "leadsTo": "a3_explorer",
+     "scores": "explorer+2"
+    }
+   ]
+  },
+  {
+   "id": "a2_tangan",
+   "act": "Babak 2 - Dunia di Dalem",
+   "name": "Ruang Tangan",
+   "sceneryDesc": "Flat pastel, ruang kerajinan mint dan krem. Tiga meja kebaca jelas: mahkota bunga yang belum keiket dengan pinset di sebelahnya, hp dijepit tripod mini ngarah ke flatlay pastel, dan satu alat label harga di sebelah tumpukan kotak kraft dan papan nama tulis tangan. Satu kertas label tulisan tangan Nay nyender di toples cat, tintanya masih basah. Di kiri ada meja kecil nempel jendela buram yang kebagian cahaya sore. Palet mint, krem, peach.",
+   "narration": "Ada yang nunjuk sepatu kamu terus ketawa, yang masuk sini selalu bawa kain katanya, terus dia balik ke mejanya dan ninggalin tiga meja yang belum kelar buat kamu. Di salah satunya ada kertas label tulisan tangan Nay, tintanya belum kering dan di bawahnya dia nulis atap setengah tujuh.",
+   "options": [
+    {
+     "label": "Lanjutin mahkota bunga",
+     "illustrationDesc": "Flat pastel, dua tangan megang pinset naro satu kelopak pink ke mahkota bunga yang belum keiket. Kelopak cadangan di piring kecil, gunting di pinggir. Palet mint, krem, pink muda.",
+     "sound": "Pinset ketemu kelopak, bunyinya kecil banget.",
+     "transition": "Mahkota yang belum keiket itu kamu bawa ke meja deket jendela, tempat cahayanya paling akhir dateng.",
+     "leadsTo": "a3_artisan",
+     "scores": "artisan+2"
+    },
+    {
+     "label": "Tata flatlay buat difoto",
+     "illustrationDesc": "Flat pastel dilihat dari atas, hp di tripod mini ngarah ke bawah ke flatlay pastel. Lip tint dijejer rapi, satu pita melengkung, dua tangan geser satu tube seujung kuku. Palet peach, krem, putih.",
+     "sound": "Tube lip tint ketuk-ketuk di meja waktu dijejer.",
+     "transition": "Satu tube kamu geser satu senti ke kiri, dan layar hp-nya penuh sama meja itu.",
+     "leadsTo": "a3_creator",
+     "scores": "creator+2"
+    },
+    {
+     "label": "Pasang harga dan label",
+     "illustrationDesc": "Flat pastel, alat label harga pink, tumpukan kotak kraft, papan nama toko tulis tangan, buku catatan nganga isi angka, kalkulator pastel. Palet krem, mint, pink.",
+     "sound": "Alat labelnya jeplak tiga kali, kertas kraftnya kesret.",
+     "transition": "Notes harganya kamu bawa keluar, terus satu cewek baca angkanya dua kali dan manggil dua orang lain ke meja panjang.",
+     "leadsTo": "a3_boss",
+     "scores": "boss+2"
+    }
+   ]
+  },
+  {
+   "id": "a2_papan",
+   "act": "Babak 2 - Dunia di Dalem",
+   "name": "Ruang Papan",
+   "sceneryDesc": "Flat pastel, ruang biru muda dengan papan kaca gede penuh sticky note dan anak panah. Tiga kumpulan catatan kebaca beda warna: pink, kuning, teal. Satu sticky note pink di pojok papan tulisan tangan Nay bunyinya atap setengah tujuh. Empat kursi plastik diatur lingkaran longgar dengan satu kursi kosong, satu es kopi berembun di lantai. Palet biru muda, putih, pink stabilo.",
+   "narration": "Es kopinya masih bikin bercak di lantai, papan kacanya penuh sampe pinggir dengan tiga baris paling bawah masih kosong, dan sticky note di pojoknya tulisan Nay: atap, setengah tujuh.",
+   "options": [
+    {
+     "label": "Ambil spidol biru",
+     "illustrationDesc": "Flat pastel, satu tangan narik garis panah gede nyambungin tiga sticky note. Tutup spidol digigit, satu garis waktu kasar di bawahnya. Palet biru muda, putih, pink.",
+     "sound": "Spidolnya nyicit panjang, tutupnya kamu gigit.",
+     "transition": "Satu garis kamu tarik nyambungin tiga catatan mereka, dan mereka langsung bangun pindah ke meja panjang.",
+     "leadsTo": "a3_boss",
+     "scores": "boss+2"
+    },
+    {
+     "label": "Tanya yang paling diem",
+     "illustrationDesc": "Flat pastel, kumpulan sticky note disusun kayak tiga orang kecil gandengan tangan, satu tangan ngelingkerin mereka pake spidol teal. Satu snack yang baru dimakan separo di bibir papan. Palet teal, krem, pink.",
+     "sound": "Ruangannya turun satu tingkat, tinggal kaki kursi kesret.",
+     "transition": "Dua kursi plastik kamu geser ke pojok, dan yang paling diem nyusul duduk sambil bawa gelas airnya.",
+     "leadsTo": "a3_change",
+     "scores": "change+2"
+    },
+    {
+     "label": "Cek jadwal acara malam",
+     "illustrationDesc": "Flat pastel, deretan sticky note jadi rundown dengan jam di sisinya, satu ikon panggung kecil digambar spidol pink, satu tangan nambahin bintang di baris terakhir. Palet biru, pink, kuning.",
+     "sound": "Rundown-nya dibacain kenceng, jam setengah tujuh dilingkerin.",
+     "transition": "Mereka dorong kamu ke lorong sebelah, dan makin jauh dari papan kaca itu lampunya makin dikit, sampe tinggal pintu aula yang nganga gelap di ujung.",
+     "leadsTo": "a3_stage",
+     "scores": "stage+2"
+    }
+   ]
+  },
+  {
+   "id": "a2_teras",
+   "act": "Babak 2 - Dunia di Dalem",
+   "name": "Teras dan Jalan",
+   "sceneryDesc": "Flat pastel, teras di bawah hujan tipis dan langit abu terang. Tiga titik kebaca jelas: meja lipat dengan dua kotak donasi dan satu papan jalan, satu cewek jongkok metik bunga putih kecil di tangga, dan skuter mint dengan helm pastel dan peta kertas ditempel di panel. Sepasang sandal jepit basah ketinggalan di tangga atas. Pintu samping di kanan ketutup separo. Genangan mantulin langit. Palet mint, abu terang, krem.",
+   "narration": "Hujannya masih netes dari kanopi waktu kamu berdiri di teras. Tiga orang di situ ngerjain hal yang beda-beda dan nggak ada yang keganggu. Sandal Nay ketinggalan basah di tangga, dan yang jongkok di situ bilang Nay lari ke atap tadi bawa kardus.",
+   "options": [
+    {
+     "label": "Duduk di meja donasi",
+     "illustrationDesc": "Flat pastel, meja lipat dengan dua kotak berlabel, satu papan jalan isi daftar nama, satu pensil diiket benang, satu siluet gede nunduk dengerin siluet yang lebih kecil. Palet mint, krem, pink.",
+     "sound": "Kotak donasinya bunyi pelan waktu digeser, hujan masih di seng.",
+     "transition": "Dua kursi plastik kamu tarik ke teduhan, dan dia duduk sambil ngelanjutin ceritanya.",
+     "leadsTo": "a3_change",
+     "scores": "change+2"
+    },
+    {
+     "label": "Petik bunga di tangga",
+     "illustrationDesc": "Flat pastel, satu tangan metik bunga putih kecil dari rumput di sela tangga basah. Keranjang kecil di sebelahnya udah isi empat bunga, satu kaca pembesar ngambang di atas satu kelopak, pintu samping ketutup separo di belakang. Palet sage, krem, putih.",
+     "sound": "Tangkai-tangkai putus kecil di tangan kamu, air masih netes dari kanopi.",
+     "transition": "Bunganya kamu kumpulin di telapak tangan, dan yang jongkok di sebelah bilang bunga segini harus langsung dirangkai sebelum layu. Dia nunjuk pintu samping, dan kamu nyelip masuk ninggalin bunyi hujan di belakang, lewat lorong yang baunya lem, sampe ke meja deket jendela yang kebagian cahaya kering.",
+     "leadsTo": "a3_artisan",
+     "scores": "artisan+2"
+    },
+    {
+     "label": "Buka pintu samping",
+     "illustrationDesc": "Flat pastel, pintu samping ketutup separo dari arah teras, tangga besi keliatan di baliknya naik ke atas. Peta kertas lepas satu sudut dan melambai, satu bel sepeda di pagar. Palet biru muda, krem, mint.",
+     "sound": "Engsel pintunya ngerik, hujan ketinggal di luar.",
+     "transition": "Pintu sampingnya berat, dan di baliknya tangga besi naik ke bordes yang ngelewatin atas lorong.",
+     "leadsTo": "a3_explorer",
+     "scores": "explorer+2"
+    }
+   ]
+  },
+  {
+   "id": "a3_creator",
+   "act": "Babak 3 - Jalur Kamu",
+   "name": "Pojok Layar",
+   "sceneryDesc": "Flat pastel, pojok sempit yang hangat. Layar hp di tripod nunjukin tiga thumbnail sejajar dari klip yang sama, satu kolom draft caption kosong di pinggir layar, headphone nyender di sandaran, mug dengan satu kepul uap tipis, cahaya pink dari layar kena pipi siluet. Palet pink, ungu lembut, putih.",
+   "narration": "Layar itu nunjukin muka kamu beda dari yang kamu kira. Tiga thumbnail sejajar, dan yang tengah bikin kamu diem sebentar. Di pinggir layar ada draft caption yang Nay tinggalin buat kamu, judulnya masih kosong. Dari halaman belakang ada bunyi gedebuk, berat, terus orang-orang mulai manggil-manggil.",
+   "options": [
+    {
+     "label": "Pilih yang paling jujur",
+     "illustrationDesc": "Flat pastel, tiga thumbnail sejajar, yang tengah dilingkerin pink dan agak gede, dua lainnya pudar. Satu hati kecil nempel di atas yang kepilih. Palet pink, ungu, putih.",
+     "sound": "Satu klik kirim.",
+     "transition": "Yang tengah kamu kirim, headphone kamu lepas, hp-nya kamu cabut dari tripod, dan suara halaman belakang masuk semua sekaligus.",
+     "leadsTo": "a4_halaman",
+     "scores": "creator+3"
+    },
+    {
+     "label": "Tambahin musiknya",
+     "illustrationDesc": "Flat pastel, slider volume ditarik naik, gelombang suara bulat keluar dari layar, dua not balok melayang di pinggir frame. Palet pink, kuning, ungu.",
+     "sound": "Bass-nya naik pelan di headphone.",
+     "transition": "Musiknya kamu naikin sampe bass-nya kerasa, terus gedebuk tadi kedengeran lagi dan hp-nya kamu bawa keluar masih nyala.",
+     "leadsTo": "a4_halaman",
+     "scores": "stage+2,creator+1"
+    },
+    {
+     "label": "Balas yang paling sepi",
+     "illustrationDesc": "Flat pastel, satu gelembung komen kecil disorot terang di antara gelembung lain yang gelap, satu hati nyala di sebelahnya, kursor ngetik di bawahnya. Palet ungu gelap, pink, putih.",
+     "sound": "Keyboard hp bunyi tik tik pendek.",
+     "transition": "Satu komen yang paling nggak keliatan kamu bales. Suara di halaman makin rame, dan hp-nya masih di tangan kamu waktu dia ngetik lagi di tangga belakang.",
+     "leadsTo": "a4_halaman",
+     "scores": "change+2,creator+1"
+    }
+   ]
+  },
+  {
+   "id": "a3_boss",
+   "act": "Babak 3 - Jalur Kamu",
+   "name": "Meja Panjang",
+   "sceneryDesc": "Flat pastel, meja panjang krem dengan tiga siluet duduk baca selembar notes angka. Satu amplop nganga di tengah dengan angka kecil dan tulisan tangan di tutupnya, papan rencana nempel di dinding belakang, cahaya biru dari jendela tinggi. Palet krem, biru muda, pink.",
+   "narration": "Notes angka kamu dibaca dua kali keliling meja sebelum ada yang ngomong. Di tengah meja ada amplop yang isinya kurang dari kebutuhan kalian, dan di tutupnya Nay nulis buat atap, jangan dipake dulu. Terus di luar ada barang jatuh dan satu orang bilang aduh kenceng banget.",
+   "options": [
+    {
+     "label": "Potong yang nggak penting",
+     "illustrationDesc": "Flat pastel, daftar enam baris, tiga baris dicoret pink rapi, tiga sisanya dapet centang mint. Satu kalkulator kecil di pinggir. Palet putih, pink, mint.",
+     "sound": "Pulpennya nyoret tiga kali, kalkulatornya ketuk-ketuk.",
+     "transition": "Tiga baris kamu coret sampe angkanya ketemu, kursi-kursi langsung kesret ke belakang semua, dan daftar yang udah dicoret itu kamu bawa.",
+     "leadsTo": "a4_halaman",
+     "scores": "boss+3"
+    },
+    {
+     "label": "Tanya mau mereka dulu",
+     "illustrationDesc": "Flat pastel, tiga gelembung obrolan beda warna ngambang di atas meja, satu tangan nulis poin di buku kecil yang nganga. Palet pink, biru, kuning.",
+     "sound": "Tiga orang ngomong nyusul-nyusulan.",
+     "transition": "Semua maunya kamu catat, terus bunyi di luar bikin kalian berdiri hampir bareng dan buku catatannya kamu bawa.",
+     "leadsTo": "a4_halaman",
+     "scores": "change+2,boss+1"
+    },
+    {
+     "label": "Pitch ke sponsor kecil",
+     "illustrationDesc": "Flat pastel, layar hp dengan satu gelembung pesan kekirim, satu mockup poster pastel di sebelahnya, dua panah share melayang naik. Palet biru, krem, pink.",
+     "sound": "Satu bunyi pesan kekirim.",
+     "transition": "Satu pesan kamu kirim ke sponsor, dan hp-nya masih di tangan kamu waktu kamu ikut lari ke belakang.",
+     "leadsTo": "a4_halaman",
+     "scores": "creator+2,boss+1"
+    }
+   ]
+  },
+  {
+   "id": "a3_artisan",
+   "act": "Babak 3 - Jalur Kamu",
+   "name": "Meja Deket Jendela",
+   "sceneryDesc": "Flat pastel, meja kecil nempel jendela buram, kering dan jauh dari bunyi hujan. Cahaya sore masuk miring ke permukaan kayu, dua inisial diukir kecil di pinggir meja, yang dibawa pembaca ada di tengah meja belum keiket, gunting, gulungan benang pink, satu tanaman mini. Palet krem, sage, pink muda.",
+   "narration": "Meja deket jendela kebagian cahaya paling akhir, dan yang kamu bawa udah ada di situ, belum keiket. Yang di sebelah kamu nunjuk inisial Nay yang diukir di pinggir meja, terus satu bunyi jatuh dari halaman motong ngomongnya.",
+   "options": [
+    {
+     "label": "Benerin sampe pas",
+     "illustrationDesc": "Flat pastel, jarum nutup jahitan terakhir, kaca pembesar ngambang di atas satu detail, kelopak disortir rapi per ukuran. Palet krem, pink, sage.",
+     "sound": "Benangnya ketarik pelan sampe simpulnya rapet.",
+     "transition": "Simpul terakhir kamu iket pas bunyi tadi dateng, dan hasilnya kamu bawa keluar sambil dipeluk.",
+     "leadsTo": "a4_halaman",
+     "scores": "artisan+3"
+    },
+    {
+     "label": "Ajarin yang nanya",
+     "illustrationDesc": "Flat pastel, dua pasang tangan megang satu kain, tangan yang lebih gede nunjukin arah jarum, benang nyambung di antara keduanya, dua gelas teh di pinggir. Palet sage, krem, pink.",
+     "sound": "Dua gelas teh ketuk di meja.",
+     "transition": "Alatnya kamu geser ke dia, kain yang belum kelar kamu bawa, dan kalian berdua ninggalin meja itu waktu suara di halaman makin rame.",
+     "leadsTo": "a4_halaman",
+     "scores": "change+2,artisan+1"
+    },
+    {
+     "label": "Foto dari atas meja",
+     "illustrationDesc": "Flat pastel, hp diangkat di atas meja kerja, layarnya nunjukin meja itu dari atas lengkap sama tangannya, bayangan hp jatuh lembut ke kelopak. Palet krem, peach, putih.",
+     "sound": "Shutter sekali, kursi digeser.",
+     "transition": "Hp kamu angkat di atas meja, dapet satu foto, terus bunyi di luar bikin kamu lari kecil ke pintu belakang sambil hp-nya masih di tangan.",
+     "leadsTo": "a4_halaman",
+     "scores": "creator+2,artisan+1"
+    }
+   ]
+  },
+  {
+   "id": "a3_stage",
+   "act": "Babak 3 - Jalur Kamu",
+   "name": "Lampu Satu Titik",
+   "sceneryDesc": "Flat pastel, aula gelap dengan satu kerucut cahaya kuning jatuh ke satu titik. Siluet cewek di dalem lingkaran cahaya, satu stand mic di depannya, tiga siluet kru megang alat di belakang panggung, satu booth lampu kecil nyala di belakang kursi penonton, kursi penonton cuma garis-garis gelap, pinggiran gorden merah muda tua di dua sisi. Palet ungu gelap, kuning hangat, pink.",
+   "narration": "Aulanya jauh lebih gede dari ruangan tadi dan cuma satu lampu yang nyala, dan yang di booth ngarahin lampunya ke titik tempat kamu berdiri. Mic di depan kamu masih kosong. Tiga orang di belakang panggung udah megang alatnya, dan salah satunya bilang Nay nitip satu lagu buat nanti di atap. Dari pintu samping ada bunyi barang jatuh, keras, terus suara orang numpuk.",
+   "options": [
+    {
+     "label": "Nyanyi yang kamu tulis",
+     "illustrationDesc": "Flat pastel, mic di tengah lingkaran cahaya, lirik tulis tangan ngambang jadi tiga baris pendek, dua not balok naik, bayangan panjang di belakang. Palet kuning, pink, ungu.",
+     "sound": "Satu bait balik dari dinding belakang.",
+     "transition": "Satu bait kamu nyanyi sampe suaranya balik dari dinding, mic-nya masih nyala waktu kamu jalan ke pintu samping, dan lirik tulis tangan kamu ikut kamu bawa.",
+     "leadsTo": "a4_halaman",
+     "scores": "stage+3"
+    },
+    {
+     "label": "Tarik satu orang naik",
+     "illustrationDesc": "Flat pastel, dua cewek di tepi panggung, satu narik yang lain ke atas pake tangan, yang ditarik nutup mulut. Lingkaran cahaya melar sampe cukup buat dua orang. Palet kuning, ungu, pink.",
+     "sound": "Papan panggung bunyi dua kali, ada yang ketawa kecil.",
+     "transition": "Yang di booth ngelebarin lingkaran lampunya sampe cukup buat dua orang, terus kalian turun nyari bunyi tadi sambil kamu bawa kertas setlist dari stand mic.",
+     "leadsTo": "a4_halaman",
+     "scores": "change+2,stage+1"
+    },
+    {
+     "label": "Ganti lagu di tengah",
+     "illustrationDesc": "Flat pastel, partitur dibalik di standnya, not-not melayang acak warna-warni, siluet kru di belakang ngangkat kepala bareng. Palet ungu, kuning, mint.",
+     "sound": "Dua bar sunyi, terus alat-alatnya nyusul.",
+     "transition": "Lagunya kamu ganti di tengah dan yang di belakang panggung nyusul dalam dua bar, terus bunyi di luar bikin mereka naro alatnya dan partitur yang kebalik itu kamu bawa.",
+     "leadsTo": "a4_halaman",
+     "scores": "explorer+2,stage+1"
+    }
+   ]
+  },
+  {
+   "id": "a3_change",
+   "act": "Babak 3 - Jalur Kamu",
+   "name": "Dua Kursi Plastik",
+   "sceneryDesc": "Flat pastel, dua kursi plastik dihadapin sampe dengkul ketemu. Satu siluet cerita dengan tangan kebuka, satu dengerin dengan buku ketutup di pangkuan, satu gelas air di lantai di antara mereka. Cahaya teal lembut dari samping. Palet mint, krem, pink.",
+   "narration": "Dua kursi plastik kalian hadapin sampe dengkul ketemu, dan Nay yang nyuruh dia nungguin kamu di situ. Dia cerita sambil nunduk dan ada satu bagian yang nyangkut di kamu. Satu gedebuk dari halaman bikin dia berhenti di tengah kalimat.",
+   "options": [
+    {
+     "label": "Dengerin sampe habis",
+     "illustrationDesc": "Flat pastel dari deket, dua pasang tangan, satu megang yang lain. Satu tisu kusut dan satu gelas teh di sebelahnya, satu hati kecil ngambang. Palet teal, krem, pink.",
+     "sound": "Napasnya panjang sekali, terus pelan.",
+     "transition": "Tangannya udah nggak dingin waktu kalian berdua jalan nyari bunyi tadi, dan buku yang dari pangkuan dia kamu yang bawa.",
+     "leadsTo": "a4_halaman",
+     "scores": "change+3"
+    },
+    {
+     "label": "Bikinin sesuatu buat dia",
+     "illustrationDesc": "Flat pastel, dua tangan lipet bunga kertas kecil di sebelah kartu tulis tangan, satu pita, satu gunting, bungkusnya baru kelar separo. Palet peach, krem, mint.",
+     "sound": "Kertasnya ketekuk tiga kali.",
+     "transition": "Satu bunga kertas kamu lipet buat dia, satu lagi kamu bawa sendiri, dan kalian keluar ke arah suara orang.",
+     "leadsTo": "a4_halaman",
+     "scores": "artisan+2,change+1"
+    },
+    {
+     "label": "Tulis tiga langkahnya",
+     "illustrationDesc": "Flat pastel, halaman buku catatan dengan tiga langkah bernomor dan kotak centang, pulpen ketangkep pas nyentang satu, kalender kecil dengan satu tanggal dilingkerin. Palet teal, krem, pink.",
+     "sound": "Pulpennya nyentang dua kali.",
+     "transition": "Tiga langkah kamu tulis di notes, notesnya kamu bawa, dan kalian jalan ke halaman pas suaranya makin rame.",
+     "leadsTo": "a4_halaman",
+     "scores": "boss+2,change+1"
+    }
+   ]
+  },
+  {
+   "id": "a3_explorer",
+   "act": "Babak 3 - Jalur Kamu",
+   "name": "Bordes Tengah Gedung",
+   "sceneryDesc": "Flat pastel, bordes kayu yang ngelewatin atas lorong. Tiga pintu nganga di bawah dan warna cahayanya ketemu di lantai krem, pintu keempat cuma ngasih kotak langit abu terang. Tas kanvas pembaca digantung di pagar bordes, dan tangga besi terus naik ke pintu atap di atas. Palet krem, biru, kuning, pink.",
+   "narration": "Kabelnya udah kamu taro di bak mobil dan tangganya masih nganga waktu kamu naik. Dari bordes ini lorongnya keliatan dari atas, dan warna dari tiga pintu ketemu di lantai krem. Tas kamu yang dari tadi nyangkut di satu pundak sekarang kamu gantung di pagar, di sebelah tangga yang terusannya naik ke atap tempat Nay ngangkutin kardus. Terus dari bawah ada bunyi jatuh, dan suara orang rame sekaligus.",
+   "options": [
+    {
+     "label": "Masuk semua ruangan",
+     "illustrationDesc": "Flat pastel, satu siluet digandain empat kali kecil di depan empat pintu beda warna, jejak kaki putus-putus muter nyambungin semuanya. Palet pink, biru, kuning, mint.",
+     "sound": "Empat suara ruangan numpuk di tangga.",
+     "transition": "Empat-empatnya kamu mampir, tas kanvas kamu ambil lagi dari pagar, dan di tangga terakhir kamu nyusul bunyi yang dari bawah.",
+     "leadsTo": "a4_halaman",
+     "scores": "explorer+3"
+    },
+    {
+     "label": "Sambungin dua ruangan",
+     "illustrationDesc": "Flat pastel, dua pintu dihubungin pita pink melengkung, dua orang kecil ketemu di tengah pita dan jabat tangan. Palet biru, kuning, pink.",
+     "sound": "Dua nama disebut, terus satu jabat tangan.",
+     "transition": "Dua orang dari ruangan beda kamu kenalin, mereka yang narik kamu turun ke halaman, dan tas kamu nyangkut di pundak lagi.",
+     "leadsTo": "a4_halaman",
+     "scores": "boss+2,explorer+1"
+    },
+    {
+     "label": "Bikin yang belum ada",
+     "illustrationDesc": "Flat pastel, pintu kelima digambar pakai garis putus-putus di tembok kosong, satu tangan megang kuas basah, cat masih nitik ke lantai. Palet krem, pink, mint.",
+     "sound": "Kuasnya nyapu tembok, catnya nitik.",
+     "transition": "Pintu kelima kamu gambar di tembok kosong, catnya masih netes waktu bunyi tadi dateng, dan kuasnya masih di tangan kamu sampe di bawah.",
+     "leadsTo": "a4_halaman",
+     "scores": "artisan+2,explorer+1"
+    }
+   ]
+  },
+  {
+   "id": "a4_halaman",
+   "act": "Babak 4 - Yang Jatuh",
+   "name": "Yang Jatuh di Halaman",
+   "sceneryDesc": "Flat pastel, halaman belakang kena cahaya sore amber. Nay berdiri dengan tangan masih di posisi gendong kardus, kardus krem miring di tanah di depan sepatunya dan isinya nyebar: kabel mic, mahkota bunga ketekuk, kertas rundown, bunga kertas, kaleng cat kecil, satu lampu kecil yang masih nyala. Satu hp ketelungkup di aspal dengan layar retak. Tiga siluet cewek berhenti di tengah jalan. Tangga besi luar nempel di dinding kanan naik ke atap, lampu talinya masih gelap. Palet amber, pink berdebu, krem.",
+   "narration": "Nay papasan sama kamu di tengah halaman sambil gendong kardus kegedean, tangannya kelepasan, dan isinya nyebar sampe ke sepatu kamu. Dia cuma bilang aduh, terus semua orang di halaman berhenti. Di tumpukan itu ada kabel mic, mahkota bunga yang ketekuk, kertas rundown, bunga kertas, kaleng cat kecil, dan satu lampu kecil yang masih nyala. Yang kamu bawa dari dalem masih di tangan kamu, dan barang dari ruangan kamu yang paling atas tumpukannya. Hp Nay ketelungkup di aspal dengan layar retak, dan di dinding kanan ada tangga besi yang naik ke atap.",
+   "options": [
+    {
+     "label": "Beresin satu-satu",
+     "illustrationDesc": "Flat pastel, dua tangan ngumpulin kertas dan bunga kertas balik ke kardus krem, satu selotip nambal sudut yang sobek, hp retak dikasih satu sticker plester. Lampu kecil nyala di sebelahnya. Palet amber, krem, pink.",
+     "sound": "Selotipnya ditarik panjang sekali.",
+     "transition": "Kertas dan bunga kertas kamu kumpulin balik, sudut kardusnya kamu tambal selotip, dan lampu kecilnya kamu pegang waktu Nay nunjuk tangga ke atap.",
+     "leadsTo": "a5_atap",
+     "scores": "artisan+2,boss+1"
+    },
+    {
+     "label": "Panggil orang bantuin",
+     "illustrationDesc": "Flat pastel, enam pasang tangan masuk ke satu lingkaran mungutin barang, dua orang megangin kardus biar tegak, satu bunga kertas dilempar tangan ke tangan. Palet coral, amber, krem.",
+     "sound": "Satu panggilan, terus kaki rame.",
+     "transition": "Nay naroin lampu kecilnya di tangan kamu, dan lima orang lain ngangkat kardusnya rame-rame ke tangga atap.",
+     "leadsTo": "a5_atap",
+     "scores": "change+2,explorer+1"
+    },
+    {
+     "label": "Rekam yang retak",
+     "illustrationDesc": "Flat pastel, hp disender tegak dan masih ngerekam hp retak yang ketelungkup, barang yang nyebar kebaca di dalem layarnya, satu kilau kecil di retakannya, siluet pastel buram di belakang. Palet pink, amber, krem.",
+     "sound": "Tombol rekam bunyi sekali.",
+     "transition": "Retakan hp Nay kamu rekam apa adanya, dia ngeliatin tanpa nyuruh berhenti, terus lampu kecilnya kamu bawa di tangan naik tangga atap.",
+     "leadsTo": "a5_atap",
+     "scores": "creator+2,stage+1"
+    },
+    {
+     "label": "Ketawa dulu, lanjut",
+     "illustrationDesc": "Flat pastel, cewek ketawa dengan kepala kebelakang di tengah barang yang nyebar, satu bunga kertas nyelip di belakang telinga, kertas-kertas lepas ketangkep di udara kayak burung kecil. Palet amber keemasan, pink, krem.",
+     "sound": "Satu ketawa pecah, nular ke yang lain.",
+     "transition": "Ketawa kamu nular ke Nay dulu, terus ke semuanya, dan lampu kecilnya kamu angkat tinggi sambil naik tangga.",
+     "leadsTo": "a5_atap",
+     "scores": "stage+2,explorer+1"
+    }
+   ]
+  },
+  {
+   "id": "a5_atap",
+   "act": "Babak 5 - Senja",
+   "name": "Atap Jam Setengah Tujuh",
+   "sceneryDesc": "Flat pastel, atap waktu senja di bawah langit peach ke lavender. Lampu tali belum nyala di kabelnya, spanduk kecil bertuliskan Born to be Loved diiket di pagar, empat bibir atap rendah ngarah ke empat arah di atas kota pastel, kardus yang jatuh tadi udah naik dan kebuka di tengah. Barang yang dibawa pembaca ditaro di bibir atap sebelah lampu kecil yang nyala. Siluet kecil duduk berdua-tiga, Nay duduk di salah satu bibir atap. Palet peach, lavender, emas.",
+   "narration": "Tangga itu abis di atap dan langitnya udah peach. Lampu tali belum nyala di kabelnya, dan spanduk kecil bertuliskan Born to be Loved udah diiket Nay di pagar. Yang kamu bawa dari dalem kamu taro di bibir atap, dan Nay nanya itu dari ruangan mana. Lampu kecil tadi masih nyala di tangan kamu, dan nggak ada satu orang pun di atap ini yang nyuruh kamu mau diapain.",
+   "options": [
+    {
+     "label": "Arahin ke muka kamu",
+     "illustrationDesc": "Flat pastel, lampu kecil diangkat nerangin muka cewek dari bawah, pantulan mukanya keliatan di layar hp, lampu tali nyala satu-satu di belakangnya, satu cewek di pojok atap megang sakelar. Palet coral, lavender, emas.",
+     "sound": "Satu sakelar diklik di pojok atap.",
+     "transition": "Lampunya kamu angkat ke muka kamu sendiri, dan yang di pojok atap nyalain lampu talinya pas di detik itu.",
+     "leadsTo": "ending",
+     "scores": "creator+3,stage+1"
+    },
+    {
+     "label": "Taro nyorot jalan",
+     "illustrationDesc": "Flat pastel, lampu kecil ditaro di bibir atap, sorotnya nerangin jalur putus-putus yang nyambung dari atap ke atap sampe jauh, satu kompas mini di sebelahnya. Palet lavender, emas, krem.",
+     "sound": "Angin sekali, spanduknya kebat.",
+     "transition": "Lampunya kamu taro di bibir atap nyorot ke depan, dan jalur atap ke atap keliatan sampe jauh.",
+     "leadsTo": "ending",
+     "scores": "boss+3,explorer+1"
+    },
+    {
+     "label": "Nyalain lampu orang",
+     "illustrationDesc": "Flat pastel, satu lampu kecil nyalain lima lampion kecil yang dipegang siluet pastel berdiri melingkar, cahaya kuning nyebar ke permukaan atap. Palet coral, krem, lavender.",
+     "sound": "Lima klik pendek, satu-satu.",
+     "transition": "Lampu mereka kamu nyalain satu-satu, Nay yang terakhir, dan atapnya penuh titik kuning.",
+     "leadsTo": "ending",
+     "scores": "change+2,artisan+2"
+    },
+    {
+     "label": "Bawa terus, jalan",
+     "illustrationDesc": "Flat pastel, cewek jalan di tepi atap sambil lampunya goyang di tangan, bayangannya panjang di belakang, dua burung kecil di atas, separo matahari turun di garis horizon, satu siluet duduk di bibir atap ngeliatin. Palet emas, lavender, peach.",
+     "sound": "Sepatu kamu di semen, pelan, muter.",
+     "transition": "Lampunya kamu bawa terus sampe mataharinya turun separo, dan Nay dudukin bibir atap sambil ngeliatin kamu muter.",
+     "leadsTo": "ending",
+     "scores": "explorer+3,stage+1"
+    }
+   ]
+  }
+ ],
+ "endings": [
+  {
+   "character": "creator",
+   "sceneryDesc": "Flat pastel pagi, kamar kecil. Hp di atas bantal nyala penuh kartu notifikasi yang numpuk keluar dari layar, lampu kecil semalem nyender di meja samping, gorden pink kena matahari, satu mug di lantai. Palet pink muda, putih, kuning pagi.",
+   "closing": "Hp kamu udah penuh orang yang nggak kamu kenal sebelum kamu bangun. Komen paling atas cuma nulis makasih, dan kamu nggak tau dia ngomongin bagian yang mana. Nay ngirim foto layar hp-nya yang retak, captionnya satu kata: sengaja."
+  },
+  {
+   "character": "boss",
+   "sceneryDesc": "Flat pastel pagi, meja panjang kena cahaya jendela. Buku rencana nganga isi tiga kolom yang udah dicentang, satu amplop di pinggir, tiga mug kopi berasap, lampu kecil dipake jadi penindih kertas. Palet krem, biru muda, pink.",
+   "closing": "Kopinya masih panas waktu tiga orang dateng bawa ide, dan kamu yang paling pagi nyampe di meja panjang Rumah Emina. Angkanya ketemu di percobaan keempat. Lampu kecil semalem kamu bawa turun dari atap dan sekarang kepake nindih kertas, dan Nay nitip pesen biar lampunya jangan dibalikin dulu."
+  },
+  {
+   "character": "artisan",
+   "sceneryDesc": "Flat pastel pagi, meja deket jendela buram. Yang dibawa pembaca dari atap sekarang ada di meja kerja, satu kerjaan baru mulai di sebelahnya, gulungan benang pink dan gunting rapi, lampu kecil nyender di gulungan benang, satu kucing tidur di bercak cahaya. Palet sage, krem, pink muda.",
+   "closing": "Yang kamu bawa turun dari atap semalem udah pindah ke meja kerja. Tangan kamu gerak dulu sebelum kepala kamu nyambung, dan yang baru udah mulai di sebelahnya sebelum kamu mandi. Lampu kecil semalem nyender di gulungan benang, dan Nay bilang itu buat kamu simpen."
+  },
+  {
+   "character": "stage",
+   "sceneryDesc": "Flat pastel pagi, aula kosong dilihat dari kursi penonton. Cahaya pagi masuk dari pintu samping yang nganga, satu kursi di tengah panggung, stand mic nyender, lampu kecil ditaro di kaki stand mic, dua botol air, setlist kusut dengan tulisan baru. Palet merah muda tua, emas, krem.",
+   "closing": "Aulanya kosong dan kamu yang pertama buka pintunya, terus kamu berdiri di tengah panggung buat ngecek suara kamu nyampe pojok apa nggak. Lampu kecil semalem kamu bawa turun dari atap dan kamu taro di kaki stand mic, dan Nay dateng bawa dua botol air tanpa diminta."
+  },
+  {
+   "character": "change",
+   "sceneryDesc": "Flat pastel pagi, cewek duduk di lantai samping kasur kena cahaya pagi. Hp di dua tangan nunjukin satu gelembung chat panjang, satu mug di sebelah dengkul, dua kursi plastik dilipet di pojok, lampu kecil di lantai dengan kabel kebelit, satu tanaman kecil. Palet mint, krem, pink.",
+   "closing": "Chat dari Nay masuk waktu langitnya masih biru tua. Panjang, dan ujungnya cuma makasih. Kamu bales pendek, terus kamu nangis dikit. Lampu kecilnya dia tinggalin di kamar kamu dan kabelnya masih kebelit."
+  },
+  {
+   "character": "explorer",
+   "sceneryDesc": "Flat pastel pagi, depan pintu kamar dengan tas kanvas udah siap. Lampu kecil semalem dijepit di tali tas, peta kertas dengan satu pin pink baru, sepatu yang masih kotor, lorong di belakangnya sekarang sepi. Palet biru muda, krem, kuning.",
+   "closing": "Tas kamu udah siap sebelum kamu mikir mau ke mana. Lampu kecil semalem kamu bawa turun dari atap dan sekarang kejepit di tali tas, dan Nay ngirim satu pin baru di peta: atap sebelah. Sepatu kamu masih kotor dan kamu tetep pake."
+  }
+ ]
+}

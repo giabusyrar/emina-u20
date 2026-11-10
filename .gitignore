@@ -1,7 +1,5 @@
-.env
-.env.*
-!.env.example
-bin/
-*.exe
-.claude/worktrees/
-.superpowers/
+.DS_Store
+*.local
+test.html
+nohup.out
+__pycache__/

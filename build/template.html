@@ -1,0 +1,415 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#CDBEF2">
+<title>Empat Pintu Satu Hari</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Fredoka:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap">
+<style>
+  :root{
+    --pink:#FF4D97;--pink-deep:#E0357D;--pink-soft:#FFD7E9;--cream:#FFF3F8;--cream2:#FFE9F3;
+    --ink:#43283A;--ink-soft:#80596B;--lilac:#C9A7FF;--lemon:#FFD86B;
+    --disp:'Fredoka','Baloo 2',system-ui,sans-serif;--chub:'Baloo 2','Fredoka',system-ui,sans-serif;
+    --body:'Poppins',system-ui,-apple-system,sans-serif;
+    --shadow:0 16px 34px rgba(224,53,125,.20);--shadow-sm:0 8px 18px rgba(224,53,125,.14);
+    --shadow-xs:0 4px 10px rgba(224,53,125,.12);
+    --sky:#CDBEF2;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html,body{height:100%}
+  body{margin:0;font-family:var(--body);color:var(--ink);background:var(--cream);
+    -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(130% 60% at 12% -8%,#FFE3EF 0,transparent 55%),
+      radial-gradient(120% 55% at 98% 2%,#FFEFD6 0,transparent 52%),
+      radial-gradient(135% 75% at 50% 112%,#E7D8FF 0,transparent 48%);
+    transition:opacity .6s}
+  .stage{position:relative;z-index:1;max-width:440px;margin:0 auto;min-height:100%;
+    padding:16px 16px 30px;display:flex;flex-direction:column}
+  .screen{flex:1;display:flex;flex-direction:column;min-height:0}
+  .screen-in{animation:sIn .45s cubic-bezier(.22,1,.36,1) both}
+  @keyframes sIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .brandbar{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:10px}
+  .wordmark{font-family:var(--chub);font-weight:800;font-size:24px;color:var(--pink-deep);line-height:1}
+  .wordmark .dot{color:var(--lilac)}
+  .u20chip{font-family:var(--chub);font-weight:700;font-size:10.5px;letter-spacing:.07em;color:#fff;
+    background:linear-gradient(135deg,var(--pink),#FF77B0);padding:5px 10px;border-radius:999px;
+    text-transform:uppercase;box-shadow:var(--shadow-xs)}
+  h1,h2{font-family:var(--disp);font-weight:700;margin:0;text-wrap:balance;line-height:1.08}
+
+  .btn{font-family:var(--chub);font-weight:700;font-size:17px;border:none;border-radius:999px;
+    padding:15px 22px;min-height:54px;cursor:pointer;width:100%;color:#fff;
+    background:linear-gradient(135deg,var(--pink),#FF77B0);box-shadow:var(--shadow);
+    transition:transform .14s cubic-bezier(.3,1.4,.5,1)}
+  .btn:hover{transform:translateY(-2px)}
+  .btn:active{transform:translateY(1px) scale(.98)}
+  .btn.ghost{background:#fff;color:var(--pink-deep);border:2.5px solid var(--pink-soft);box-shadow:var(--shadow-sm)}
+  .btn:focus-visible,.opt:focus-visible{outline:3px solid var(--lilac);outline-offset:3px}
+
+  /* intro */
+  #intro{justify-content:center;text-align:center;gap:22px}
+  .hero-m{display:flex;justify-content:center;align-items:flex-end;margin-bottom:-4px}
+  .hero-m div{width:92px;margin:0 -10px;animation:bob 3s ease-in-out infinite}
+  .hero-m div:nth-child(1){width:70px;transform:rotate(-6deg);animation-delay:.2s}
+  .hero-m div:nth-child(3){width:70px;transform:rotate(6deg);animation-delay:.4s}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .kicker{font-family:var(--chub);font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    font-size:11.5px;color:var(--pink-deep);display:flex;align-items:center;gap:9px;justify-content:center}
+  .kicker::before,.kicker::after{content:"";width:18px;height:2px;border-radius:2px;background:var(--pink-soft)}
+  #intro h1{font-size:clamp(30px,8.5vw,40px)}
+  #intro h1 em{font-style:normal;color:var(--pink);display:block}
+  .lede{color:var(--ink-soft);font-size:14.5px;max-width:34ch;margin:0 auto}
+
+  /* scene */
+  .shead{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .back{background:#fff;border:none;width:44px;height:44px;border-radius:50%;box-shadow:var(--shadow-xs);
+    font-size:18px;color:var(--pink-deep);cursor:pointer;flex:none}
+  .back:disabled{opacity:.3;cursor:default}
+  .bar{flex:1;height:14px;background:#fff;border-radius:999px;overflow:hidden;position:relative;
+    box-shadow:inset 0 2px 5px rgba(224,53,125,.12)}
+  .bar>i{position:absolute;inset:0;width:20%;border-radius:999px;
+    background:linear-gradient(90deg,var(--lilac),var(--pink) 70%,#FF8AC0);
+    transition:width .5s cubic-bezier(.34,1.4,.5,1)}
+  .step{font-family:var(--chub);font-weight:700;font-size:12px;color:#fff;background:var(--pink);
+    padding:5px 10px;border-radius:999px;flex:none}
+
+  .art{width:100%;border-radius:24px;display:block;box-shadow:var(--shadow-sm)}
+  .narr{font-size:15.5px;line-height:1.62;color:var(--ink);text-align:center;margin:16px 2px 18px;
+    text-wrap:pretty}
+
+  .opts{display:grid;gap:11px}
+  .opts.n3{grid-template-columns:repeat(3,1fr)}
+  .opts.n4{grid-template-columns:repeat(2,1fr)}
+  .opt{border:3px solid transparent;border-radius:20px;background:#fff;padding:7px 7px 9px;cursor:pointer;
+    box-shadow:var(--shadow-xs);font-family:var(--body);color:var(--ink);
+    transition:transform .14s cubic-bezier(.3,1.4,.5,1),border-color .14s,box-shadow .14s;
+    display:flex;flex-direction:column;align-items:center;gap:6px;animation:pop .4s backwards}
+  .opt:hover{transform:translateY(-3px) scale(1.02);box-shadow:var(--shadow-sm)}
+  .opt.sel{border-color:var(--pink);transform:scale(.97)}
+  .opt svg{width:100%;height:auto;border-radius:15px;display:block}
+  .opt b{font-weight:600;font-size:12px;line-height:1.3;text-align:center}
+  @keyframes pop{from{opacity:0;transform:translateY(12px)}to{opacity:1}}
+
+  /* beat */
+  .beat{position:fixed;inset:0;background:rgba(67,40,58,.55);backdrop-filter:blur(5px);display:flex;
+    align-items:center;justify-content:center;padding:26px;z-index:60;animation:fade .25s}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .beat-card{background:var(--cream);border-radius:28px;padding:26px 22px 22px;max-width:360px;width:100%;
+    text-align:center;box-shadow:var(--shadow);animation:pop2 .5s cubic-bezier(.3,1.5,.5,1) both}
+  @keyframes pop2{from{opacity:0;transform:scale(.9) translateY(12px)}to{opacity:1;transform:none}}
+  .beat-card svg{width:88px;height:88px;border-radius:20px;margin:0 auto 14px;display:block;box-shadow:var(--shadow-xs)}
+  .beat-card p{font-family:var(--disp);font-weight:500;font-size:17px;line-height:1.55;margin:0 0 20px}
+
+  /* result */
+  #result{animation:fade .5s}
+  .rkick{text-align:center;font-family:var(--chub);font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;font-size:11px;color:var(--ink-soft);margin-bottom:9px}
+  .hero-card{position:relative;overflow:hidden;border-radius:28px;padding:14px 20px 24px;text-align:center;
+    box-shadow:var(--shadow);animation:pop2 .6s cubic-bezier(.3,1.5,.5,1) both}
+  .hero-card .m{width:180px;margin:0 auto -2px;animation:bob 3s ease-in-out infinite}
+  .hero-card .nick{font-family:var(--chub);font-weight:800;font-size:clamp(26px,7.5vw,33px);line-height:1.04}
+  .hero-card .en{font-family:var(--chub);font-weight:600;font-size:11.5px;letter-spacing:.14em;
+    text-transform:uppercase;opacity:.62;margin-top:3px}
+  .closing{background:#fff;border-radius:22px;padding:18px 18px;margin-top:16px;font-size:14.5px;
+    line-height:1.65;box-shadow:var(--shadow-xs)}
+  .closing .lbl{font-family:var(--chub);font-weight:700;font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--pink-deep);display:block;margin-bottom:7px}
+  .seclbl{font-family:var(--chub);font-weight:700;font-size:12px;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--pink-deep);margin:22px 0 10px;text-align:center}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .chip{background:#fff;border:2px solid var(--pink-soft);border-radius:999px;padding:8px 14px;
+    font-size:12.5px;font-weight:600;box-shadow:var(--shadow-xs)}
+  .paths{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .path{background:#fff;border-radius:16px;padding:12px;box-shadow:var(--shadow-xs);font-size:12.5px;
+    font-weight:500;display:flex;align-items:center;gap:8px}
+  .pdot{width:10px;height:10px;border-radius:50%;flex:none}
+  .trailmap{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+  .trailmap svg{width:52px;height:auto;border-radius:11px;box-shadow:var(--shadow-xs)}
+  .cta{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+  .row2{display:flex;gap:10px}.row2 .btn{flex:1}
+  .note{text-align:center;font-size:11.5px;color:var(--ink-soft);margin-top:12px}
+
+  .modal{position:fixed;inset:0;background:rgba(67,40,58,.55);backdrop-filter:blur(4px);display:flex;
+    align-items:center;justify-content:center;padding:18px;z-index:70;animation:fade .25s}
+  .modal-in{background:var(--cream);border-radius:26px;padding:18px;max-width:380px;width:100%;
+    box-shadow:var(--shadow);max-height:94vh;overflow:auto;position:relative}
+  .modal-in h2{font-size:20px;text-align:center;margin-bottom:12px}
+  .mx{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:none;
+    background:#fff;box-shadow:var(--shadow-xs);font-size:17px;color:var(--pink-deep);cursor:pointer}
+  #cardImg{width:100%;border-radius:16px;box-shadow:var(--shadow);display:block;aspect-ratio:9/16;background:var(--cream2)}
+  .hint{text-align:center;font-size:11.5px;color:var(--ink-soft);margin:11px 0 2px}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="stage">
+  <div class="brandbar"><span class="wordmark">emina<span class="dot">.</span></span><span class="u20chip">20 Under 20</span></div>
+
+  <section class="screen" id="intro">
+    <div class="hero-m" id="heroM"></div>
+    <div class="kicker">Made to Explore</div>
+    <h1>Empat pintu,<br><em>satu hari.</em></h1>
+    <p class="lede" id="lede"></p>
+    <button class="btn" id="start">Masuk ke Rumah Emina &#10024;</button>
+    <p class="note">5 pilihan &middot; 576 kemungkinan cerita &middot; 6 akhir</p>
+  </section>
+
+  <section class="screen" id="scene" hidden>
+    <div class="shead">
+      <button class="back" id="back" type="button" aria-label="Kembali">&#8592;</button>
+      <div class="bar"><i id="barfill"></i></div>
+      <span class="step" id="step">1/5</span>
+    </div>
+    <div id="art"></div>
+    <p class="narr" id="narr" aria-live="polite"></p>
+    <div class="opts" id="opts" role="group" aria-label="Pilihan"></div>
+  </section>
+
+  <section class="screen" id="result" hidden>
+    <div class="rkick">&#10024; Kamu jadi &#10024;</div>
+    <div class="hero-card" id="hero">
+      <div class="m" id="rM"></div>
+      <h2 class="nick" id="rNick"></h2>
+      <div class="en" id="rEn"></div>
+    </div>
+    <div class="closing"><span class="lbl">Besok paginya</span><span id="rClose"></span></div>
+    <div class="seclbl">&#128170; Kekuatan kamu</div>
+    <div class="chips" id="rStr"></div>
+    <div class="seclbl">&#128640; Passion path</div>
+    <div class="paths" id="rPaths"></div>
+    <div class="seclbl">&#128506; Jalan cerita kamu</div>
+    <div class="trailmap" id="rTrail"></div>
+    <div class="cta">
+      <button class="btn" id="share">Bikin Story Card &#128242;</button>
+      <div class="row2">
+        <button class="btn ghost" id="again">Coba pintu lain &#128256;</button>
+        <button class="btn ghost" id="reg">Daftar 20U20 &#10022;</button>
+      </div>
+    </div>
+    <p class="note">Share hasilmu &amp; tag 3 bestie kamu &#128149;</p>
+  </section>
+</div>
+
+<div class="beat" id="beat" hidden role="dialog" aria-modal="true" aria-label="Lanjutan cerita">
+  <div class="beat-card"><div id="beatArt"></div><p id="beatText"></p>
+    <button class="btn" id="beatNext" type="button">Lanjut &#10024;</button></div>
+</div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true">
+  <div class="modal-in">
+    <button class="mx" id="mx" type="button" aria-label="Tutup">&#10005;</button>
+    <h2>Story Card kamu &#127881;</h2>
+    <img id="cardImg" alt="Kartu hasil kuis Emina 20 Under 20">
+    <p class="hint">&#128241; Tekan &amp; tahan gambarnya buat simpan</p>
+    <div class="cta" style="margin-top:10px">
+      <button class="btn" id="saveCard">Simpan / Share &#128190;</button>
+      <button class="btn ghost" id="closeModal">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="cardCanvas" width="1080" height="1920" class="sr" aria-hidden="true"></canvas>
+<canvas id="confetti" style="position:fixed;inset:0;pointer-events:none;z-index:50" hidden></canvas>
+
+<script>
+/*__MASCOTS__*/
+
+/*__ARCH__*/
+
+const STORY=/*__STORY__*/;
+const ART=/*__ART__*/;
+const SKY=/*__SKY__*/;
+
+const $=s=>document.querySelector(s);
+const SC={}; STORY.scenes.forEach(s=>SC[s.id]=s);
+const END={}; STORY.endings.forEach(e=>END[e.character]=e);
+const KEYS=['creator','boss','artisan','stage','change','explorer'];
+const START='a1_pintu';
+
+function svg(vb,inner,cls){return '<svg class="'+(cls||'')+'" viewBox="'+vb+'" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+(inner||'')+'</svg>';}
+function sceneArt(id){return svg('0 0 320 170',ART[id],'art');}
+function optArt(id,i){return svg('0 0 120 120',ART[id+'.opt'+i]);}
+function parseScores(str){const o={};(str||'').split(/[,\s]+/).forEach(p=>{const m=/^([a-z]+)\+(\d+)$/.exec(p);if(m)o[m[1]]=(o[m[1]]||0)+ +m[2];});return o;}
+
+let node,score,trail,beatNext;
+function reset(){node=START;score={};trail=[];}
+function show(n){['intro','scene','result'].forEach(k=>$('#'+k).hidden=k!==n);
+  const el=$('#'+n);el.classList.remove('screen-in');void el.offsetWidth;el.classList.add('screen-in');
+  window.scrollTo({top:0,behavior:'auto'});}
+function setSky(id){document.documentElement.style.setProperty('--sky',SKY[id]||'#CDBEF2');
+  document.body.style.background=SKY[id]||'#FFF3F8';}
+
+function renderScene(){
+  const s=SC[node];
+  setSky(node);
+  $('#art').innerHTML=sceneArt(node);
+  $('#narr').textContent=s.narration;
+  const step=trail.length+1;
+  $('#step').textContent=step+'/5';
+  $('#barfill').style.width=(step/5*100)+'%';
+  $('#back').disabled=!trail.length;
+  const box=$('#opts');box.innerHTML='';box.className='opts n'+s.options.length;
+  s.options.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='opt';b.type='button';b.style.animationDelay=(i*.06)+'s';
+    b.innerHTML=optArt(node,i)+'<b>'+o.label+'</b>';
+    b.addEventListener('click',()=>pick(i),{once:true});
+    box.appendChild(b);
+  });
+}
+function pick(i){
+  const s=SC[node],o=s.options[i];
+  const sc=parseScores(o.scores);
+  for(const k in sc)score[k]=(score[k]||0)+sc[k];
+  trail.push({node:node,i:i});
+  $('#beatArt').innerHTML=optArt(node,i);
+  $('#beatText').textContent=o.transition;
+  beatNext=o.leadsTo;
+  const last=beatNext==='ending';
+  $('#beatNext').textContent=last?'Lihat hasilku ✨':'Lanjut ✨';
+  $('#beat').hidden=false;
+  const c=$('.beat-card');c.style.animation='none';void c.offsetWidth;c.style.animation='';
+  try{$('#beatNext').focus();}catch(e){}
+}
+function advance(){
+  $('#beat').hidden=true;
+  if(beatNext==='ending'){finish();}
+  else{node=beatNext;renderScene();}
+}
+$('#beatNext').addEventListener('click',advance);
+$('#beat').addEventListener('click',e=>{if(e.target===$('#beat'))advance();});
+$('#back').addEventListener('click',()=>{
+  if(!trail.length)return;
+  const last=trail.pop();
+  const sc=parseScores(SC[last.node].options[last.i].scores);
+  for(const k in sc)score[k]=(score[k]||0)-sc[k];
+  node=last.node;renderScene();
+});
+
+/* winner: highest score, ties broken by the latest choice that favours one of the tied types */
+function winner(){
+  let mx=-1;KEYS.forEach(k=>{if((score[k]||0)>mx)mx=score[k]||0;});
+  let top=KEYS.filter(k=>(score[k]||0)===mx);
+  if(top.length===1)return top[0];
+  for(let t=trail.length-1;t>=0;t--){
+    const sc=parseScores(SC[trail[t].node].options[trail[t].i].scores);
+    let best=0;top.forEach(k=>{if((sc[k]||0)>best)best=sc[k]||0;});
+    if(best>0){const cand=top.filter(k=>(sc[k]||0)===best);if(cand.length===1)return cand[0];top=cand;}
+  }
+  return top[0];
+}
+
+let currentKey=null;
+function finish(){
+  const k=winner();currentKey=k;
+  const a=ARCH[k],e=END[k]||{closing:''};
+  $('#rM').innerHTML=mascotSVG(k);
+  $('#rNick').textContent=a.nick;
+  $('#rEn').textContent=a.en;
+  $('#rClose').textContent=e.closing;
+  $('#hero').style.background='linear-gradient(160deg,#fff 0%,'+a.soft+' 42%,'+a.c2+' 100%)';
+  const st=$('#rStr');st.innerHTML='';
+  a.str.forEach(x=>{const c=document.createElement('span');c.className='chip';c.textContent=x;st.appendChild(c);});
+  const pp=$('#rPaths');pp.innerHTML='';
+  a.paths.forEach(p=>{const d=document.createElement('div');d.className='path';
+    d.innerHTML='<span class="pdot" style="background:'+a.c1+'"></span>'+p;pp.appendChild(d);});
+  const tm=$('#rTrail');tm.innerHTML=trail.map(t=>optArt(t.node,t.i)).join('');
+  document.body.style.background='#FFF3F8';
+  show('result');burst(a.c1,a.c2);buildCard(k);
+}
+
+function burst(c1,c2){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  const cv=$('#confetti'),x=cv.getContext('2d');cv.hidden=false;cv.width=innerWidth;cv.height=innerHeight;
+  const col=[c1,c2,'#FFD86B','#C9A7FF','#fff'],P=[];
+  for(let i=0;i<80;i++)P.push({x:innerWidth/2+(Math.random()-.5)*120,y:innerHeight*.3,vx:(Math.random()-.5)*9,
+    vy:Math.random()*-11-3,s:6+Math.random()*7,r:Math.random()*6,vr:(Math.random()-.5)*.4,
+    c:col[(Math.random()*col.length)|0],l:0});
+  let t=0;(function loop(){t++;x.clearRect(0,0,cv.width,cv.height);
+    P.forEach(p=>{p.vy+=.32;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;p.l++;
+      x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.globalAlpha=Math.max(0,1-p.l/88);
+      x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.62);x.restore();});
+    if(t<92)requestAnimationFrame(loop);else{cv.hidden=true;x.clearRect(0,0,cv.width,cv.height);}})();
+}
+
+/* ---- share card ---- */
+const canvas=$('#cardCanvas'),cx=canvas.getContext('2d');
+function rr(c,x,y,w,h,r){if(c.roundRect){c.beginPath();c.roundRect(x,y,w,h,r);return;}
+  c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+function imgOf(markup,w,h){return new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);
+  i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'" viewBox="'+(w===120?'0 0 120 120':'0 0 220 236')+'">'+markup+'</svg>');});}
+function wrap(t,x,y,mw,lh){const w=t.split(' ');let l='',yy=y;
+  w.forEach(q=>{const s=l+q+' ';if(cx.measureText(s).width>mw&&l){cx.fillText(l.trim(),x,yy);l=q+' ';yy+=lh;}else l=s;});
+  cx.fillText(l.trim(),x,yy);return yy;}
+function star(x,y,s){cx.save();cx.translate(x,y);cx.beginPath();
+  for(let i=0;i<4;i++){cx.rotate(Math.PI/2);cx.moveTo(0,0);cx.quadraticCurveTo(s*.4,s*.4,s,0);cx.quadraticCurveTo(s*.4,-s*.4,0,0);}
+  cx.fill();cx.restore();}
+
+async function buildCard(k){
+  const a=ARCH[k],e=END[k]||{closing:''};
+  let m=null;try{const r=await Promise.all([document.fonts.ready,imgOf(mascotSVG(k).replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,''),220,236)]);m=r[1];}catch(err){}
+  const W=1080,H=1920;
+  const g=cx.createLinearGradient(0,0,W*.4,H);g.addColorStop(0,a.c1);g.addColorStop(1,a.c2);
+  cx.fillStyle=g;cx.fillRect(0,0,W,H);
+  cx.save();cx.globalAlpha=.2;cx.fillStyle='#fff';
+  cx.beginPath();cx.arc(130,260,260,0,7);cx.fill();cx.beginPath();cx.arc(980,1760,320,0,7);cx.fill();cx.restore();
+  cx.fillStyle='rgba(255,255,255,.85)';[[170,560,16],[905,990,12],[150,1470,13],[905,1430,16],[520,300,10]].forEach(p=>star(p[0],p[1],p[2]));
+  cx.textAlign='center';
+  cx.fillStyle='#fff';cx.font='800 60px "Baloo 2",sans-serif';cx.fillText('emina.',W/2-70,146);
+  cx.font='700 32px "Baloo 2",sans-serif';const pill='20 UNDER 20',pw=cx.measureText(pill).width+56;
+  cx.fillStyle='rgba(255,255,255,.24)';rr(cx,W/2-pw/2,176,pw,62,31);cx.fill();
+  cx.fillStyle='#fff';cx.fillText(pill,W/2,218);
+  cx.font='600 29px Poppins,sans-serif';cx.fillStyle='rgba(255,255,255,.95)';cx.fillText('✦  EMPAT PINTU, SATU HARI  ✦',W/2,288);
+  cx.beginPath();cx.arc(W/2,548,180,0,7);cx.fillStyle='rgba(255,255,255,.96)';cx.fill();
+  if(m){const mw=320,mh=mw*236/220;cx.drawImage(m,W/2-mw/2,548-mh/2+6,mw,mh);}
+  cx.fillStyle='rgba(255,255,255,.95)';cx.font='500 40px Poppins,sans-serif';cx.fillText('aku jadi…',W/2,820);
+  cx.fillStyle='#fff';let ns=98;cx.font='800 '+ns+'px "Baloo 2",sans-serif';
+  while(cx.measureText(a.nick).width>W-130&&ns>54){ns-=4;cx.font='800 '+ns+'px "Baloo 2",sans-serif';}
+  cx.fillText(a.nick,W/2,822+ns);
+  const aft=822+ns+50;
+  cx.font='600 32px Poppins,sans-serif';cx.fillStyle='rgba(255,255,255,.92)';cx.fillText(a.en.toUpperCase(),W/2,aft);
+  cx.font='400 37px Poppins,sans-serif';cx.fillStyle='#fff';
+  const endY=wrap(e.closing,W/2,aft+86,W-200,50);
+  const fy=Math.max(endY+90,1560);
+  cx.fillStyle='rgba(255,255,255,.96)';rr(cx,80,fy,W-160,250,42);cx.fill();
+  cx.fillStyle=a.c1;cx.font='800 44px "Baloo 2",sans-serif';cx.fillText('Kamu buka pintu yang mana? ✨',W/2,fy+72);
+  cx.fillStyle='#6a4a5a';cx.font='400 31px Poppins,sans-serif';
+  cx.fillText('576 kemungkinan cerita, 6 akhir.',W/2,fy+124);
+  cx.fillText('Ikutan & tag 3 bestie kamu! \u{1F495}',W/2,fy+166);
+  cx.fillStyle=a.c1;cx.font='600 30px Poppins,sans-serif';cx.fillText('@eminacosmetics · #Emina20Under20',W/2,fy+214);
+  try{$('#cardImg').src=canvas.toDataURL('image/png');}catch(err){}
+}
+
+let _dl;
+async function getDL(){if(_dl!==undefined)return _dl;
+  try{_dl=(window.claude&&window.claude.use)?await window.claude.use('downloads'):null;}catch(e){_dl=null;}return _dl;}
+$('#share').addEventListener('click',()=>{$('#modal').hidden=false;});
+$('#closeModal').addEventListener('click',()=>{$('#modal').hidden=true;});
+$('#mx').addEventListener('click',()=>{$('#modal').hidden=true;});
+$('#modal').addEventListener('click',e=>{if(e.target===$('#modal'))$('#modal').hidden=true;});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#modal').hidden=true;}});
+$('#saveCard').addEventListener('click',()=>{
+  const a=ARCH[currentKey],name='emina-'+currentKey+'.png';
+  canvas.toBlob(async b=>{
+    if(!b)return;
+    try{const f=new File([b],name,{type:'image/png'});
+      if(navigator.canShare&&navigator.canShare({files:[f]})){
+        await navigator.share({files:[f],title:'Emina 20 Under 20',text:'Aku jadi '+a.nick+'! Kamu buka pintu yang mana? ✨ #Emina20Under20'});return;}
+    }catch(e){if(e&&e.name==='AbortError')return;}
+    const dl=await getDL();
+    if(dl){try{await dl.save({filename:name,data:b});return;}catch(e){if(e&&e.code==='declined')return;}}
+    try{const u=URL.createObjectURL(b),l=document.createElement('a');l.href=u;l.download=name;
+      document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);}catch(e){}
+  },'image/png');
+});
+$('#reg').addEventListener('click',()=>window.open('https://bit.ly/Emina20Under20','_blank','noopener'));
+$('#start').addEventListener('click',()=>{reset();renderScene();show('scene');});
+$('#again').addEventListener('click',()=>{reset();document.body.style.background='#FFF3F8';show('intro');});
+
+/* boot */
+$('#lede').textContent=STORY.premise;
+$('#heroM').innerHTML=['artisan','creator','explorer'].map(k=>'<div>'+mascotSVG(k)+'</div>').join('');
+reset();
+</script>

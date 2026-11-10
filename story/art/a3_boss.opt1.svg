@@ -1,0 +1,6 @@
+<rect width="120" height="120" fill="#EFE6FF"/>
+<ellipse cx="30" cy="22" rx="20" ry="14" fill="#FFD86B"/>
+<ellipse cx="94" cy="24" rx="20" ry="14" fill="#8FD0FF"/>
+<path d="M36 28 H84 a18 18 0 0 1 18 18 V70 a18 18 0 0 1 -18 18 H58 q-3 12 -16 16 q6-7 5-16 H36 a18 18 0 0 1 -18-18 V46 a18 18 0 0 1 18-18 Z" fill="#FF5BA3"/>
+<path d="M39 58 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0 M55 58 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0 M71 58 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0" fill="#FFFFFF"/>
+<path d="M106 90 l2 4.5 4.5 2 -4.5 2 -2 4.5 -2-4.5 -4.5-2 4.5-2 Z" fill="#FFFFFF"/>

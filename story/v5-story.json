@@ -1,0 +1,1117 @@
+{
+ "title": "H-1",
+ "subtitle": "Besok pensi. Hari ini kacau. Kamu di tengahnya.",
+ "version": "v5",
+ "premise": "Besok pensi sekolah. Nay, sahabat kamu, ketua panitianya, lagi di ambang meledak. Hari ini kamu bantu dia, dan cara kamu bantu nunjukin kamu itu siapa.",
+ "cast": {
+  "nay": {
+   "name": "Nay",
+   "color": "#FF4D97"
+  },
+  "rara": {
+   "name": "Rara",
+   "color": "#8A4FD6"
+  },
+  "kinan": {
+   "name": "Kinan",
+   "color": "#17B6A6"
+  },
+  "dimas": {
+   "name": "Dimas",
+   "color": "#4FA6E8"
+  },
+  "sasa": {
+   "name": "Sasa",
+   "color": "#F6A24A"
+  },
+  "alya": {
+   "name": "Kak Alya",
+   "color": "#B14BD1"
+  }
+ },
+ "style": "Flat vector illustration, soft pastel palette dominated by candy pink, lavender, peach and mint, clean rounded shapes, minimal outlines, soft cozy lighting, Indonesian high school setting, teenage girls in white and grey school uniform or casual clothes, no text, no letters, no logos, no watermark, eye-level wide shot, the bottom quarter of the frame is open floor where a character could stand.",
+ "scenes": [
+  {
+   "id": "a0_gerbang",
+   "act": 0,
+   "tutorial": true,
+   "place": "Gerbang sekolah",
+   "time": "06.50",
+   "floor": 0.86,
+   "imagePrompt": "The front gate of an Indonesian high school at dawn, half open, empty quiet street, soft blue and pink sky, one lit window in the school hall far behind, a security post with a sleepy guard, dew on the road. Nobody in the foreground.",
+   "beats": [
+    {
+     "who": "",
+     "text": "Jam 7 kurang 10. Gerbang sekolah baru kebuka setengah, udaranya masih dingin."
+    },
+    {
+     "who": "",
+     "text": "HP kamu geter. Tiga chat dari Nay, semuanya huruf gede."
+    },
+    {
+     "who": "nay",
+     "text": "KAMU DI MANA. CEPETAN. AKU SENDIRIAN DI AULA."
+    }
+   ],
+   "prompt": "Kamu...",
+   "options": [
+    {
+     "label": "Lari masuk, Nay udah teriak",
+     "x": 0.72,
+     "leadsTo": "a1_aula",
+     "scores": "",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamu lari. Tas goyang-goyang, Pak Satpam ngeliatin. Di ujung koridor, pintu aula udah kebuka."
+      }
+     ],
+     "move": "run"
+    },
+    {
+     "label": "Tarik napas dulu. Bentar",
+     "x": 0.3,
+     "leadsTo": "a1_aula",
+     "scores": "",
+     "react": [
+      {
+       "who": "",
+       "text": "Satu tarikan napas. Nggak apa-apa kalau deg-degan, Nay juga, dia cuma lebih berisik."
+      },
+      {
+       "who": "",
+       "text": "Terus kamu jalan masuk."
+      }
+     ],
+     "move": "breathe"
+    }
+   ],
+   "after": [
+    {
+     "who": "",
+     "text": "Suara Nay udah kedengeran dari koridor."
+    }
+   ],
+   "tip": "<b>Tip:</b> pilih yang paling kamu banget. Nggak ada jawaban yang salah, dan dia bakal gerak sesuai pilihanmu."
+  },
+  {
+   "id": "a1_aula",
+   "act": 1,
+   "place": "Aula sekolah",
+   "time": "07.10",
+   "floor": 0.84,
+   "imagePrompt": "A large school hall the morning before a festival. A half-finished pink stage backdrop, cardboard still showing on one side, stacked plastic chairs, paint cans, a tangle of cables, morning light through high windows. A girl with a messy bun and a lanyard (Nay, the committee chair) stands near the stage holding a clipboard and a walkie talkie, looking overwhelmed. Nobody else in the frame.",
+   "beats": [
+    {
+     "who": "",
+     "text": "Jam 7 pagi. H-1 pensi. Aula masih bau cat, backdrop-nya baru jadi setengah."
+    },
+    {
+     "who": "",
+     "text": "Di grup panitia, Dimas baru kirim screenshot BMKG. Hujan sore. Nay bales: TIDAK."
+    },
+    {
+     "who": "nay",
+     "text": "Kamu dateng juga. Oke. Duduk. Jangan ngomong dulu, aku lagi mikir."
+    },
+    {
+     "who": "nay",
+     "text": "Jadi gini. Masalah kita ada 4. IG pensi sepi, panggung belum kelar, dana kurang 2 juta, terus band alumni seen doang dari kemaren."
+    },
+    {
+     "who": "nay",
+     "text": "Pilih satu buat kamu pegang pagi ini. Sisanya biar aku yang panik."
+    }
+   ],
+   "prompt": "Pagi ini kamu pegang yang mana?",
+   "options": [
+    {
+     "label": "Cek IG pensi, kok bisa sepi",
+     "x": 0.2,
+     "leadsTo": "a2_medsos",
+     "scores": "creator+1,deep+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamu buka akunnya. Post terakhir 3 minggu lalu. Fotonya blur, caption-nya titik tiga doang."
+      },
+      {
+       "who": "nay",
+       "text": "Tuh kan. Tuh kan."
+      }
+     ],
+     "move": "phone"
+    },
+    {
+     "label": "Naik ke panggung, liat yang belum kelar",
+     "x": 0.5,
+     "leadsTo": "a2_panggung",
+     "scores": "artisan+1,explorer+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Backdrop-nya setengah pink, setengah masih kardus. Kaleng cat tinggal 2, dua-duanya udah mau abis."
+      }
+     ],
+     "move": "climb"
+    },
+    {
+     "label": "Duduk, itung ulang dananya bareng Nay",
+     "x": 0.72,
+     "leadsTo": "a2_dana",
+     "scores": "boss+1,change+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Di bukunya ada angka yang dicoret 3 kali. Sound system: 3 juta. Dana: 1 koma 2."
+      },
+      {
+       "who": "nay",
+       "text": "Jangan dibaca kenceng-kenceng, nanti aku denger."
+      }
+     ],
+     "move": "sit"
+    },
+    {
+     "label": "Chat band alumni yang seen doang",
+     "x": 0.88,
+     "leadsTo": "a2_band",
+     "scores": "explorer+1,boss+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamu ngetik, hapus, ngetik lagi. Kirim. Centang 2. Biru. Diem."
+      }
+     ],
+     "move": "phone"
+    }
+   ]
+  },
+  {
+   "id": "a2_medsos",
+   "act": 2,
+   "place": "Ruang OSIS",
+   "time": "08.30",
+   "floor": 0.85,
+   "imagePrompt": "A small cluttered student council room in an Indonesian high school. A girl with round glasses and a purple scrunchie (Rara) sits behind an open laptop at a desk covered in posters and sticky notes, peeking over the screen suspiciously. An old standing fan, a corkboard full of blank papers, a window with morning light, a phone with a glowing screen on the desk.",
+   "beats": [
+    {
+     "who": "",
+     "text": "Ruang OSIS. Kipas anginnya bunyi kretek-kretek. Rara, sie publikasi, ngeliatin kamu dari balik laptop kayak kamu mau ngerebut kerjaannya."
+    },
+    {
+     "who": "rara",
+     "text": "Aku udah nyoba ya. Nggak ada yang nge-like. Anak-anak lebih sibuk sama drama kelas sebelah."
+    },
+    {
+     "who": "",
+     "text": "Kamu scroll. Yang bilang dateng: 80. Dari 800 murid. DM-nya ada 12, belum dibaca satu pun."
+    }
+   ],
+   "prompt": "Mulai dari mana nih?",
+   "options": [
+    {
+     "label": "Pinjem HP Rara, bikin konten sekarang",
+     "x": 0.3,
+     "leadsTo": "a3_creator",
+     "scores": "creator+2",
+     "react": [
+      {
+       "who": "",
+       "text": "Rara nyerahin HP-nya pelan banget, kayak nyerahin bayi."
+      },
+      {
+       "who": "rara",
+       "text": "Kalau jelek, nama kamu yang aku tulis di caption ya."
+      }
+     ],
+     "move": "phone"
+    },
+    {
+     "label": "Buka DM yang numpuk",
+     "x": 0.62,
+     "leadsTo": "a3_deep",
+     "scores": "deep+2",
+     "react": [
+      {
+       "who": "",
+       "text": "11 DM nanya tiket. 1 DM dari Kinan, sie dekor. Dikirim jam 2 pagi."
+      },
+      {
+       "who": "kinan",
+       "text": "aku boleh nggak dateng aja ya besok"
+      }
+     ],
+     "move": "phone"
+    },
+    {
+     "label": "Cek kenapa kelas 10 nggak ada yang daftar",
+     "x": 0.85,
+     "leadsTo": "a3_change",
+     "scores": "change+2",
+     "react": [
+      {
+       "who": "",
+       "text": "Di list hadir, kolom kelas 10 kosong melompong. Rara angkat bahu."
+      },
+      {
+       "who": "rara",
+       "text": "Mereka bilang tiketnya buat anak kelas 12 doang. Katanya sih."
+      }
+     ],
+     "move": "look"
+    }
+   ]
+  },
+  {
+   "id": "a2_panggung",
+   "act": 2,
+   "place": "Panggung aula",
+   "time": "09.15",
+   "floor": 0.86,
+   "imagePrompt": "View from on top of a school hall stage looking into a big empty hall. A quiet girl with a long braid (Kinan) crouches in the corner gluing pink paper flowers one by one, a hot glue gun beside her, a small pile of finished flowers. A tall boy with curly hair (Dimas) peeks from behind a dark curtain holding a coil of cable. Two nearly empty pink paint cans, rows of empty chairs below.",
+   "beats": [
+    {
+     "who": "",
+     "text": "Dari atas panggung, aulanya keliatan lebih gede. Dan lebih kosong. Kinan jongkok di pojok, ngelem bunga kertas satu-satu. Nggak ngomong."
+    },
+    {
+     "who": "",
+     "text": "Dimas nongol dari balik tirai bawa kabel segulung."
+    },
+    {
+     "who": "",
+     "text": "Dia liat kamu dulu, baru kabelnya. Kinan ngeliatin itu. Tetep nggak komentar."
+    },
+    {
+     "who": "dimas",
+     "text": "Cat tinggal segini, Bos. Bunga kertasnya baru 30 dari 200. Mau mulai dari mana?"
+    }
+   ],
+   "prompt": "Panggung ini kamu apain dulu?",
+   "options": [
+    {
+     "label": "Duduk sebelah Kinan, bantu ngelem",
+     "x": 0.22,
+     "leadsTo": "a3_artisan",
+     "scores": "artisan+2",
+     "react": [
+      {
+       "who": "",
+       "text": "Kinan geser dikit. Nggak nengok, tapi geser. Lem tembaknya anget. Bunga ke-31 jadi di tangan kamu."
+      }
+     ],
+     "move": "craft"
+    },
+    {
+     "label": "Keluar beli cat sama bahan, pake uang jajan",
+     "x": 0.85,
+     "leadsTo": "a3_explorer",
+     "scores": "explorer+2",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamu catet: cat pink, kain, lampu tumblr. Dimas nitip es teh."
+      },
+      {
+       "who": "dimas",
+       "text": "Jangan nyasar ya, Bos."
+      }
+     ],
+     "move": "run"
+    },
+    {
+     "label": "Rekam proses dekornya buat IG",
+     "x": 0.55,
+     "leadsTo": "a3_creator",
+     "scores": "creator+2",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamera kamu arahin ke tangan Kinan yang lagi ngelem. Dia pura-pura nggak liat. Tapi tangannya langsung lebih rapi."
+      }
+     ],
+     "move": "phone"
+    }
+   ]
+  },
+  {
+   "id": "a2_dana",
+   "act": 2,
+   "place": "Ruang OSIS",
+   "time": "10.00",
+   "floor": 0.85,
+   "imagePrompt": "Inside a student council room, a long table with an open notebook full of crossed-out numbers, a calculator, a glass of iced tea sweating onto the table, a pink highlighter. A girl with a messy bun and lanyard (Nay) sits with her forehead on the table in despair. Through the open door, a school canteen with a woman lowering a water gallon. Midmorning light.",
+   "beats": [
+    {
+     "who": "",
+     "text": "Nay ngegelar bukunya di meja. Pemasukan tiket: 1 koma 2 juta. Sound system: 3 juta. Di antara dua angka itu dia gambar awan. Awannya sedih."
+    },
+    {
+     "who": "nay",
+     "text": "Bu Ratih bilang sekolah nggak bisa nambah. Terus gimana dong? Pensi tanpa sound? Pensi bisik-bisik?"
+    },
+    {
+     "who": "",
+     "text": "Di luar, Bu Kantin lagi nurunin galon. Nggak peduli."
+    }
+   ],
+   "prompt": "Dananya kamu gimanain?",
+   "options": [
+    {
+     "label": "Ambil spidol, coret yang nggak penting",
+     "x": 0.4,
+     "leadsTo": "a3_boss",
+     "scores": "boss+2",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamu coret 3 baris. Nay mau protes, liat angkanya, terus diem."
+      },
+      {
+       "who": "nay",
+       "text": "Oke. Oke. Lanjut."
+      }
+     ],
+     "move": "write"
+    },
+    {
+     "label": "Turunin harga tiket biar semua bisa masuk",
+     "x": 0.6,
+     "leadsTo": "a3_change",
+     "scores": "change+2",
+     "react": [
+      {
+       "who": "nay",
+       "text": "Turun?? Kita lagi KURANG lho."
+      },
+      {
+       "who": "",
+       "text": "Kamu nunjuk angka yang dateng. 80 dari 800. Yang kurang itu orangnya, bukan duitnya, kata kamu."
+      }
+     ],
+     "move": "talk"
+    },
+    {
+     "label": "Bikin yang bisa dijual besok. Bunga kertas, pin, apa aja",
+     "x": 0.82,
+     "leadsTo": "a3_artisan",
+     "scores": "artisan+2",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamu ngitung. 200 bunga kertas kali 5 ribu. Nay ngeliatin kamu kayak kamu baru nemuin api."
+      }
+     ],
+     "move": "craft"
+    }
+   ]
+  },
+  {
+   "id": "a2_band",
+   "act": 2,
+   "place": "Koridor depan ruang guru",
+   "time": "10.40",
+   "floor": 0.86,
+   "imagePrompt": "A long open-air school corridor with pillars and a tiled floor, looking out onto a sunny sports field with a small concrete bleacher. On the bleacher far away a girl in uniform (Sasa) sits alone with an acoustic guitar. In the corridor a girl with a messy bun and lanyard (Nay) leans on a pillar catching her breath, phone in hand. Potted plants, a trophy cabinet, bright late-morning light.",
+   "beats": [
+    {
+     "who": "",
+     "text": "Katanya di koridor sinyalnya paling bagus. Kamu berdiri deket jendela, ngeliatin centang 2 biru yang nggak dibales-bales."
+    },
+    {
+     "who": "nay",
+     "text": "Kak Alya bales? Belum?? Dia alumni lho. Dia JANJI. Namanya udah aku tulis di poster."
+    },
+    {
+     "who": "",
+     "text": "Dari lapangan ada suara gitar. Anak kelas 10, latihan sendirian di tribun."
+    }
+   ],
+   "prompt": "Sekarang gimana?",
+   "options": [
+    {
+     "label": "Samperin anak gitar di tribun",
+     "x": 0.85,
+     "leadsTo": "a3_explorer",
+     "scores": "explorer+2",
+     "react": [
+      {
+       "who": "",
+       "text": "Dia berhenti main pas kamu dateng. Jarinya masih di senar."
+      },
+      {
+       "who": "",
+       "text": "Namanya Sasa. Dia belum pernah manggung. Sama sekali."
+      }
+     ],
+     "move": "walk"
+    },
+    {
+     "label": "Telepon Kak Alya sekarang, nggak usah chat",
+     "x": 0.25,
+     "leadsTo": "a3_boss",
+     "scores": "boss+2",
+     "react": [
+      {
+       "who": "",
+       "text": "Nada sambung 3 kali. Diangkat."
+      },
+      {
+       "who": "alya",
+       "text": "Halo? Duh, sori sori, aku lupa bales. Besok ya? Hmm. Besok ya."
+      }
+     ],
+     "move": "call"
+    },
+    {
+     "label": "Tarik Nay duduk dulu di tangga",
+     "x": 0.55,
+     "leadsTo": "a3_deep",
+     "scores": "deep+2",
+     "react": [
+      {
+       "who": "",
+       "text": "Nay duduk. Baru napasnya keluar semua."
+      },
+      {
+       "who": "nay",
+       "text": "Kalau besok gagal, itu namaku di poster. Aku pindah sekolah. Ke Mars."
+      }
+     ],
+     "move": "sit"
+    }
+   ]
+  },
+  {
+   "id": "a3_creator",
+   "act": 3,
+   "place": "Belakang panggung",
+   "time": "11.30",
+   "floor": 0.86,
+   "imagePrompt": "Backstage of a school hall, cluttered and warm. One tall window pouring dusty light, a half-finished pink backdrop seen from behind, a phone on a small tripod with a ring light glowing, costume rack, a crate of props. Through a gap in the dark curtain the empty hall. Nobody in the frame, the phone screen glowing with a video thumbnail without text.",
+   "beats": [
+    {
+     "who": "",
+     "text": "HP-nya sekarang di tangan kamu. Backstage berantakan, tapi cahayanya bagus banget. Satu jendela, debu, backdrop pink setengah jadi."
+    },
+    {
+     "who": "",
+     "text": "Kamu udah rekam 3 klip. Kinan ngelem. Dimas kesetrum dikit. Nay teriak ke tirai."
+    },
+    {
+     "who": "",
+     "text": "Tinggal pilih mana yang di-post duluan. Jempol kamu ngambang di atas tombol."
+    }
+   ],
+   "prompt": "Post yang mana dulu?",
+   "options": [
+    {
+     "label": "Klip Nay teriak. Mentah, tanpa edit",
+     "x": 0.5,
+     "leadsTo": "a4_gelap",
+     "scores": "creator+3",
+     "react": [
+      {
+       "who": "",
+       "text": "Post. 3 menit, 200 views. Komen pertama: INI KETUA PANITIA KITA??"
+      },
+      {
+       "who": "nay",
+       "text": "Hapus. Jangan. Eh. Berapa views?"
+      }
+     ],
+     "move": "phone"
+    },
+    {
+     "label": "Klip tangan Kinan ngelem, pelan, lagunya sedih",
+     "x": 0.22,
+     "leadsTo": "a4_gelap",
+     "scores": "deep+2,creator+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Klipnya sepi. Tapi yang nonton, nontonnya sampe abis. Satu DM masuk: itu kinan ya? bilangin bunganya bagus."
+      }
+     ],
+     "move": "phone"
+    },
+    {
+     "label": "Bikin story: tag semua kelas, siapa yang paling rame",
+     "x": 0.8,
+     "leadsTo": "a4_gelap",
+     "scores": "change+2,creator+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Story-nya dibuka 300 kali dalam 10 menit. Kelas 10 mulai bales: kak emang boleh?"
+      }
+     ],
+     "move": "phone"
+    }
+   ]
+  },
+  {
+   "id": "a3_boss",
+   "act": 3,
+   "place": "Ruang OSIS, papan tulis",
+   "time": "12.30",
+   "floor": 0.85,
+   "imagePrompt": "A student council room with a whiteboard covered in colorful scribbles, arrows and three columns of marks (no readable text), a phone on the table, a lunch box. A tall boy with curly hair (Dimas) leans in the doorway holding a lunch box and an energy drink can. Noon light, a wall clock, a tired fan.",
+   "beats": [
+    {
+     "who": "",
+     "text": "Papan tulis udah penuh tulisan kamu. 3 vendor sound, 3 harga, 1 yang mau nego."
+    },
+    {
+     "who": "dimas",
+     "text": "Pak Yudi mau turun ke 2 juta, Bos. Syaratnya kita angkut sendiri. Sama dibayar hari ini."
+    },
+    {
+     "who": "",
+     "text": "Dana di tangan: 1 koma 2. Jam udah 12 lewat."
+    }
+   ],
+   "prompt": "Langkah kamu?",
+   "options": [
+    {
+     "label": "Bayar DP sekarang, sisanya dari tiket besok",
+     "x": 0.35,
+     "leadsTo": "a4_gelap",
+     "scores": "boss+3",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamu telepon Pak Yudi. Deal. Tangan kamu gemeter pas transfer. Suaranya nggak."
+      },
+      {
+       "who": "dimas",
+       "text": "Bos."
+      }
+     ],
+     "move": "call"
+    },
+    {
+     "label": "Minta kantin jadi sponsor, nama mereka di backdrop",
+     "x": 0.8,
+     "leadsTo": "a4_gelap",
+     "scores": "explorer+2,boss+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Bu Kantin ketawa dulu. Terus nanya logonya mau segede apa. 500 ribu plus 2 kardus air."
+      }
+     ],
+     "move": "talk"
+    },
+    {
+     "label": "Kumpulin semua sie, bagi beban rata",
+     "x": 0.55,
+     "leadsTo": "a4_gelap",
+     "scores": "change+2,boss+1",
+     "react": [
+      {
+       "who": "",
+       "text": "12 orang duduk melingkar. Yang biasanya diem ikut ngomong. 20 menit, kurangnya tinggal 300 ribu."
+      }
+     ],
+     "move": "wave"
+    }
+   ]
+  },
+  {
+   "id": "a3_artisan",
+   "act": 3,
+   "place": "Pojok dekor, lantai aula",
+   "time": "13.00",
+   "floor": 0.87,
+   "imagePrompt": "The floor of a school hall used as a craft table: a sea of pink and peach paper flowers, rolls of crepe paper, a hot glue gun, scissors, ribbon. A quiet girl with a long braid (Kinan) sits cross-legged folding a petal, finally relaxed. Afternoon light in warm stripes across the floor, the half-finished backdrop behind.",
+   "beats": [
+    {
+     "who": "",
+     "text": "Lantai aula jadi meja. Lem tembak, kertas krep, gunting yang tumpul sebelah. Kinan udah ngomong 4 kalimat hari ini. Semuanya ke kamu."
+    },
+    {
+     "who": "kinan",
+     "text": "Yang ini kelopaknya dilipet 2 kali. Jangan ditarik."
+    },
+    {
+     "who": "",
+     "text": "Bunga ke-100. Tangan kamu lengket semua. Dan kamu nggak mau berhenti."
+    }
+   ],
+   "prompt": "Sorenya dihabisin buat?",
+   "options": [
+    {
+     "label": "Bikin sampe 200. Rapi, satu-satu",
+     "x": 0.4,
+     "leadsTo": "a4_gelap",
+     "scores": "artisan+3",
+     "react": [
+      {
+       "who": "",
+       "text": "Jam 3. 200 bunga di lantai kayak karpet. Kinan ngeliatin lama, moto, terus nyimpen HP-nya. Nggak dikirim ke siapa-siapa."
+      }
+     ],
+     "move": "craft"
+    },
+    {
+     "label": "Ajarin anak kelas 10 yang nongol di pintu",
+     "x": 0.8,
+     "leadsTo": "a4_gelap",
+     "scores": "change+2,artisan+1",
+     "react": [
+      {
+       "who": "",
+       "text": "3 anak kelas 10 duduk. Awalnya canggung. Setengah jam kemudian bunga mereka lebih rapi dari punya kamu."
+      }
+     ],
+     "move": "talk"
+    },
+    {
+     "label": "Foto flatlay bunganya, post",
+     "x": 0.2,
+     "leadsTo": "a4_gelap",
+     "scores": "creator+2,artisan+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Dari atas, bunganya kayak permen. Kamu post tanpa caption."
+      },
+      {
+       "who": "rara",
+       "text": "FINALLY ada yang bagus di akun ini."
+      }
+     ],
+     "move": "phone"
+    }
+   ]
+  },
+  {
+   "id": "a3_deep",
+   "act": 3,
+   "place": "Tangga belakang sekolah",
+   "time": "13.30",
+   "floor": 0.88,
+   "imagePrompt": "A quiet concrete back staircase of an Indonesian school, shaded, with a view of green trees and a slice of sky. A quiet girl with a long braid (Kinan) sits on the third step hugging her knees, school bag beside her. Dappled afternoon light, a sleeping cat on the wall, peeling pastel paint, a single sneaker print of paint on a step.",
+   "beats": [
+    {
+     "who": "",
+     "text": "Tangga belakang. Tempat orang kabur dari upacara. Kinan duduk di anak tangga ketiga, meluk lutut."
+    },
+    {
+     "who": "",
+     "text": "Kamu duduk satu anak tangga di bawahnya. Nggak ngomong dulu."
+    },
+    {
+     "who": "kinan",
+     "text": "Aku yang bikin semua dekornya. Tapi di grup, yang dibilang keren posternya Rara. Aku capek nggak keliatan."
+    },
+    {
+     "who": "",
+     "text": "Angin lewat. Di bawah, Dimas lagi ngetes mic. Cek, cek."
+    }
+   ],
+   "prompt": "Kamu...",
+   "options": [
+    {
+     "label": "Diem. Dengerin sampe dia selesai",
+     "x": 0.35,
+     "leadsTo": "a4_gelap",
+     "scores": "deep+3",
+     "react": [
+      {
+       "who": "",
+       "text": "Kinan ngomong 15 menit. Kamu cuma ngangguk."
+      },
+      {
+       "who": "kinan",
+       "text": "Makasih ya udah nggak nyuruh aku semangat."
+      }
+     ],
+     "move": "listen"
+    },
+    {
+     "label": "Tulis gede-gede di rundown: Dekor by Kinan",
+     "x": 0.7,
+     "leadsTo": "a4_gelap",
+     "scores": "change+2,deep+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamu foto rundown-nya, kirim ke grup. 30 detik, Nay bales: ASLI IYA. Kinan nunduk. Ujung bibirnya naik dikit."
+      }
+     ],
+     "move": "write"
+    },
+    {
+     "label": "Bikinin dia playlist buat besok",
+     "x": 0.2,
+     "leadsTo": "a4_gelap",
+     "scores": "artisan+2,deep+1",
+     "react": [
+      {
+       "who": "",
+       "text": "9 lagu. Judulnya: buat yang bikin bunganya. Kinan dengerin satu lagu sampe abis sebelum berdiri."
+      }
+     ],
+     "move": "phone"
+    }
+   ]
+  },
+  {
+   "id": "a3_change",
+   "act": 3,
+   "place": "Kantin",
+   "time": "14.00",
+   "floor": 0.86,
+   "imagePrompt": "An Indonesian school canteen in a quiet afternoon hour: long tables, plastic stools in pastel colors, a glass display of snacks, a hanging menu board with no text, ceiling fans. At the corner table five tenth graders in uniform huddle over one phone; one girl (Sasa) has an acoustic guitar case leaning on her stool. Soft green light from trees outside.",
+   "beats": [
+    {
+     "who": "",
+     "text": "Kantin sepi, jam kosong. Di meja pojok ada 5 anak kelas 10 ngeliatin poster pensi di HP. Kayak ngeliatin sesuatu yang bukan buat mereka."
+    },
+    {
+     "who": "",
+     "text": "Yang bawa gitar, Sasa, nanya pelan."
+    },
+    {
+     "who": "sasa",
+     "text": "Kak. Kelas 10 boleh dateng nggak sih? Katanya ini acaranya kakak kelas."
+    },
+    {
+     "who": "",
+     "text": "Nay di telepon lagi ngomel soal harga tiket. Kamu tutup dulu teleponnya."
+    }
+   ],
+   "prompt": "Kamu jawab apa?",
+   "options": [
+    {
+     "label": "Boleh. Terus anter mereka beli tiket sekarang",
+     "x": 0.5,
+     "leadsTo": "a4_gelap",
+     "scores": "change+3",
+     "react": [
+      {
+       "who": "",
+       "text": "5 anak jadi 30 dalam sejam. Kelas 10 bikin grup chat sendiri. Kamu dimasukin."
+      }
+     ],
+     "move": "wave"
+    },
+    {
+     "label": "Bikin tiket kelas 10 setengah harga, umumin di story",
+     "x": 0.25,
+     "leadsTo": "a4_gelap",
+     "scores": "boss+2,change+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Nay telepon lagi. Kamu udah siap sama angkanya."
+      },
+      {
+       "who": "nay",
+       "text": "...oke. Pinter. Nyebelin, tapi pinter."
+      }
+     ],
+     "move": "phone"
+    },
+    {
+     "label": "Tanya Sasa mau nggak main satu lagu besok",
+     "x": 0.8,
+     "leadsTo": "a4_gelap",
+     "scores": "explorer+2,change+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Sasa ngeliatin gitarnya. Kayak gitarnya yang harus jawab. Terus dia ngangguk. Kecil banget."
+      }
+     ],
+     "move": "talk"
+    }
+   ]
+  },
+  {
+   "id": "a3_explorer",
+   "act": 3,
+   "place": "Depan gerbang sekolah",
+   "time": "14.30",
+   "floor": 0.87,
+   "imagePrompt": "Outside the front gate of an Indonesian high school on a hot afternoon: a street with a passing pastel green angkot minibus, a small paint shop with colorful cans stacked outside, a street vendor cart, a signboard with no text, tropical trees, long shadows. Nobody in the foreground, the gate half open.",
+   "beats": [
+    {
+     "who": "",
+     "text": "Kamu udah keluar gerbang 2 kali hari ini. Toko cat yang buka cuma 1. Yang jual lampu tumblr adanya di pasar sebelah."
+    },
+    {
+     "who": "",
+     "text": "HP kamu 15 persen. Nay chat: KAMU DI MANA. Sasa chat: kak lagu yang mana ya"
+    },
+    {
+     "who": "",
+     "text": "Angkot lewat. Nggak kamu stop. Belum."
+    }
+   ],
+   "prompt": "Yang kamu kejar?",
+   "options": [
+    {
+     "label": "Semuanya. Cat, lampu, sekalian dengerin Sasa latihan",
+     "x": 0.5,
+     "leadsTo": "a4_gelap",
+     "scores": "explorer+3",
+     "react": [
+      {
+       "who": "",
+       "text": "Jam 5 kamu balik bawa 2 kaleng cat, 3 meter lampu, sama rekaman Sasa nyanyi di tribun. HP kamu mati pas di gerbang."
+      }
+     ],
+     "move": "run"
+    },
+    {
+     "label": "Lampunya dulu. Nawar sampe dapet bonus",
+     "x": 0.2,
+     "leadsTo": "a4_gelap",
+     "scores": "boss+2,explorer+1",
+     "react": [
+      {
+       "who": "",
+       "text": "3 meter jadi 5 meter, harganya tetep. Bapaknya bilang kamu mirip ibunya."
+      }
+     ],
+     "move": "talk"
+    },
+    {
+     "label": "Catnya dulu, terus ikut ngecat sampe penuh",
+     "x": 0.8,
+     "leadsTo": "a4_gelap",
+     "scores": "artisan+2,explorer+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamu balik bau cat. Backdrop-nya akhirnya satu warna. Kinan ngasih kamu kuas yang lebih bagus. Tanpa ngomong."
+      }
+     ],
+     "move": "paint"
+    }
+   ]
+  },
+  {
+   "id": "a4_gelap",
+   "act": 4,
+   "place": "Aula, mati lampu",
+   "time": "17.15",
+   "floor": 0.85,
+   "imagePrompt": "A school hall plunged into darkness during heavy rain, seen from inside. A dozen phone flashlights glow like stars held by silhouetted students, rain streaking the tall windows with faint blue dusk light, the pink backdrop barely visible. In the center a girl with a messy bun and lanyard (Nay) stands frozen holding a walkie talkie. Moody, deep violet and navy, warm little lights.",
+   "beats": [
+    {
+     "who": "",
+     "text": "Jam 5 lewat. Hujan turun kayak dituang. Pas kamu lagi ngeliatin backdrop, aula jadi gelap. Semuanya."
+    },
+    {
+     "who": "",
+     "text": "Senter HP nyala satu-satu. 12 titik kecil di aula yang gede."
+    },
+    {
+     "who": "nay",
+     "text": "...kalau besok listriknya gini juga gimana?"
+    },
+    {
+     "who": "",
+     "text": "Nay berdiri di tengah aula, nggak gerak. HT di tangannya kresek-kresek. Dimas teriak dari belakang: MCB-nya jatuh, nggak mau naik!"
+    }
+   ],
+   "prompt": "Dalam gelap, kamu...",
+   "options": [
+    {
+     "label": "Nyalain senter, beresin yang bisa dibereskan",
+     "x": 0.3,
+     "leadsTo": "a5_malam",
+     "scores": "artisan+2,boss+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamu nyusun kursi, gulung kabel. Satu-satu orang ikutan. Pas lampu nyala lagi jam 6, aulanya udah rapi."
+      }
+     ],
+     "move": "torch"
+    },
+    {
+     "label": "Kumpulin semuanya ke tengah, bagi tugas",
+     "x": 0.55,
+     "leadsTo": "a5_malam",
+     "scores": "change+2,boss+1",
+     "react": [
+      {
+       "who": "",
+       "text": "12 senter ngumpul. Kamu bagi: 2 cari satpam, 3 jaga alat, sisanya nyanyi biar nggak panik. Nay akhirnya ketawa."
+      }
+     ],
+     "move": "wave"
+    },
+    {
+     "label": "Rekam gelapnya. Caption: besok kita nyala",
+     "x": 0.78,
+     "leadsTo": "a5_malam",
+     "scores": "creator+2,deep+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Video gelap, 12 senter, suara hujan. Caption: besok kita nyala. 1000 views sebelum lampunya balik."
+      }
+     ],
+     "move": "phone"
+    },
+    {
+     "label": "Lari ke pos satpam, cari genset",
+     "x": 0.92,
+     "leadsTo": "a5_malam",
+     "scores": "explorer+2,boss+1",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamu balik basah kuyup bareng Pak Satpam dan 1 genset tua. Nyala di tarikan ketiga. Satu aula tepuk tangan."
+      }
+     ],
+     "move": "run"
+    }
+   ],
+   "after": [
+    {
+     "who": "",
+     "text": "Lampu balik jam 6 lewat. Nay nyamperin kamu, naroin HT-nya di tangan kamu."
+    },
+    {
+     "who": "nay",
+     "text": "Besok kamu pegang HT satu. Kalau aku pingsan, kamu yang ngomong."
+    }
+   ]
+  },
+  {
+   "id": "a5_malam",
+   "act": 5,
+   "place": "Aula, malam pensi",
+   "time": "Besoknya, 18.45",
+   "floor": 0.84,
+   "imagePrompt": "A school hall on festival night, packed with students in casual clothes, seen from the side of the stage. A finished pink stage backdrop glowing with fairy lights and hundreds of paper flowers, stage lights warming up, a sound desk, a crowd buzzing, tenth graders excited in the front row. A girl with a messy bun and lanyard (Nay) stands at the stage edge with a clipboard, looking at the viewer expectantly. Warm pink and amber light, celebratory.",
+   "beats": [
+    {
+     "who": "",
+     "text": "Besoknya. Jam 7 kurang 15. Aula penuh. Bau parfum campur cat yang belum kering total."
+    },
+    {
+     "who": "",
+     "text": "Backdrop pink nyala dari belakang. Sound-nya hidup. Kelas 10 duduk paling depan, rame sendiri."
+    },
+    {
+     "who": "nay",
+     "text": "5 menit lagi. Kamu mau di mana pas lampunya nyala?"
+    },
+    {
+     "who": "",
+     "text": "HT di tangan kamu kresek sekali. Nay nunggu."
+    }
+   ],
+   "prompt": "Pas lampu pertama nyala, kamu ada di...",
+   "options": [
+    {
+     "label": "Depan panggung. Pegang mic, buka acaranya",
+     "x": 0.5,
+     "leadsTo": "ending",
+     "scores": "creator+3",
+     "react": [
+      {
+       "who": "",
+       "text": "Lampu nyala. Yang pertama keliatan: kamu. Kamu bilang selamat malam, 800 orang bales."
+      }
+     ],
+     "move": "mic"
+    },
+    {
+     "label": "Samping panggung. Pegang rundown, siap lari ke mana aja",
+     "x": 0.15,
+     "leadsTo": "ending",
+     "scores": "boss+2,explorer+2",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamu liat semuanya dari pinggir. Kabel, waktu, muka orang. Acaranya jalan. Kalau ada yang meleset, cuma kamu yang tau."
+      }
+     ],
+     "move": "look"
+    },
+    {
+     "label": "Di tengah penonton, sebelah yang dateng sendirian",
+     "x": 0.82,
+     "leadsTo": "ending",
+     "scores": "change+3",
+     "react": [
+      {
+       "who": "",
+       "text": "Kamu nemu anak kelas 10 yang duduk sendiri. Kamu duduk di sebelahnya. Pas lampu nyala, dia nggak sendirian lagi."
+      }
+     ],
+     "move": "sit"
+    },
+    {
+     "label": "Tangga belakang bareng Nay, semenit sebelum mulai",
+     "x": 0.3,
+     "leadsTo": "ending",
+     "scores": "deep+2,artisan+2",
+     "react": [
+      {
+       "who": "",
+       "text": "Kalian duduk sebentar di tangga yang sama kayak kemaren. Nay nggak ngomong. Kamu juga."
+      },
+      {
+       "who": "nay",
+       "text": "Makasih ya udah dateng kemaren."
+      },
+      {
+       "who": "",
+       "text": "Terus lampunya nyala."
+      }
+     ],
+     "move": "sit"
+    }
+   ]
+  }
+ ],
+ "endings": [
+  {
+   "character": "creator",
+   "closing": "Notif kamu nggak berhenti dari jam 6. Video pensinya nyebar sampe sekolah sebelah. Komen paling atas: ini sekolah mana?? Nay ngirim screenshot akun pensi, followersnya nambah 1000. Caption-nya: INI GARA GARA KAMU."
+  },
+  {
+   "character": "boss",
+   "closing": "Kamu bangun jam 9. Telat, buat pertama kalinya minggu ini. Nggak apa-apa. Laporan dananya udah kamu kirim semalem. Pas. Nggak kurang. Nay chat: tahun depan kamu ketuanya ya. Kamu bales pake stiker tidur."
+  },
+  {
+   "character": "artisan",
+   "closing": "200 bunga kertas sekarang di kamar kamu, dibawa pulang sekardus. Kinan ngirim foto backdrop yang lagi dibongkar. Caption-nya: sayang ya. Kamu bales: bikin lagi aja, yang lebih bagus. Nay nimbrung: TAHUN DEPAN."
+  },
+  {
+   "character": "deep",
+   "closing": "Jam 2 pagi tadi Kinan ngirim voice note. 7 menit. Kamu dengerin sampe abis sebelum tidur. Paginya Nay chat: aku tau kamu yang bikin dia tetep dateng. Kamu nggak bales. Kamu simpen aja."
+  },
+  {
+   "character": "change",
+   "closing": "Grup kelas 10 yang kamu dimasukin kemaren udah rame dari subuh. Mereka bikin polling: tahun depan kita yang panitia. Nay ngirim foto barisan paling depan semalem. Isinya mereka semua. Caption-nya: ini kerjaan kamu."
+  },
+  {
+   "character": "explorer",
+   "closing": "Sepatu kamu masih bau cat. Rekaman Sasa nyanyi kamu puter sambil sikat gigi. Nay chat: kemaren kamu ke mana aja sih?? Kamu kirim 5 pin lokasi dan 1 kata: semuanya."
+  }
+ ],
+ "welcome": {
+  "kicker": "20 Under 20 · Made to Explore",
+  "title": "H-1",
+  "sub": "Satu hari sebelum pensi. Cerita yang jalannya kamu yang nentuin.",
+  "lead": "Besok sekolah kamu pensi. Nay, sahabat kamu, ketua panitianya. Dan pagi ini semuanya berantakan: IG sepi, panggung belum jadi, dana kurang, band alumni seen doang.",
+  "heart": "Kamu bakal nemenin Nay seharian. Tiap pilihan kamu ngubah ceritanya. Di akhir, kamu bakal tau kamu tipe yang kayak gimana pas temen lagi butuh.",
+  "cta": "Mulai",
+  "fine": "4 menit · 6 akhir yang beda · hasilnya bisa di-share ke Story"
+ },
+ "heroPrompt": "Poster illustration, same flat pastel style: a teenage Indonesian girl seen from behind, school bag on one shoulder, walking toward the wide open doors of a bright school hall glowing candy pink inside, paper flowers and fairy lights visible through the door, early morning light, a small clipboard-holding friend waving from inside. No text, no letters.",
+ "start": "a1_aula",
+ "note": "Kamu belum harus jadi apa-apa. Hari ini aja kamu udah jadi seseorang buat Nay. Yang kayak gitu nggak bisa dipalsuin. Explore terus."
+}

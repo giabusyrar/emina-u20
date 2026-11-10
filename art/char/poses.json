@@ -1,0 +1,82 @@
+[
+{
+"src": "art/char/p00.png",
+"w": 140,
+"h": 211
+},
+{
+"src": "art/char/p01.png",
+"w": 170,
+"h": 219
+},
+{
+"src": "art/char/p02.png",
+"w": 178,
+"h": 217
+},
+{
+"src": "art/char/p03.png",
+"w": 193,
+"h": 217
+},
+{
+"src": "art/char/p04.png",
+"w": 162,
+"h": 205
+},
+{
+"src": "art/char/p05.png",
+"w": 150,
+"h": 206
+},
+{
+"src": "art/char/p06.png",
+"w": 126,
+"h": 216
+},
+{
+"src": "art/char/p07.png",
+"w": 146,
+"h": 217
+},
+{
+"src": "art/char/p08.png",
+"w": 125,
+"h": 217
+},
+{
+"src": "art/char/p09.png",
+"w": 168,
+"h": 208
+},
+{
+"src": "art/char/p10.png",
+"w": 174,
+"h": 217
+},
+{
+"src": "art/char/p11.png",
+"w": 172,
+"h": 217
+},
+{
+"src": "art/char/p12.png",
+"w": 131,
+"h": 218
+},
+{
+"src": "art/char/p13.png",
+"w": 190,
+"h": 218
+},
+{
+"src": "art/char/p14.png",
+"w": 203,
+"h": 217
+},
+{
+"src": "art/char/p15.png",
+"w": 201,
+"h": 229
+}
+]

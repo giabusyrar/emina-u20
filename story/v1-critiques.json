@@ -1,0 +1,286 @@
+[
+ {
+  "jumps": [
+   {
+    "where": "Keseluruhan — field mana yang kebaca pembaca",
+    "problem": "Semua lem cerita diparkir di sceneryDesc dan illustrationDesc, yang isinya prompt gambar dan nggak pernah kebaca pembaca. Nay jongkok di halaman, enam siluet yang berhenti liat, spanduk Born to be Loved, empat bibir atap, cewek yang udah duduk di depan ring light: semua cuma ada di prompt. Yang pembaca dapet cuma narration 2 kalimat + label + transition 1 kalimat. Jadi tiap scene kerasa kosong dan tiap perpindahan kerasa teleport, bukan karena ceritanya lompat, tapi karena narasinya terlalu kurus buat nahan kontinuitas.",
+    "fix": "Aturan baru: apa pun yang pembaca harus tau buat ngerti scene berikutnya WAJIB ada di narration atau transition, bukan di sceneryDesc. Minimal naikin satu fakta per scene dari prompt ke narasi. Contoh a4_halaman narration: \"Nay jongkok di tepi tumpukan dan lima orang lain berhenti di tengah jalan. Kardusnya baru jatuh dan hpnya retak di aspal.\""
+   },
+   {
+    "where": "premise + a1_pintu.narration — Nay hilang 3 babak",
+    "problem": "Premis ngasih satu pertanyaan: Nay ke mana. Pembaca milih pintu karena \"Nay ketawa dari salah satunya\". Habis masuk pintu, Nay nggak pernah disebut lagi sampai Babak 4, dan di situ dia cuma jongkok tanpa ngomong. Satu hook dipasang di kalimat pertama terus dibiarin ngegantung 3 babak. Ini sumber utama rasa patahnya.",
+    "fix": "Bayar hooknya di Babak 2, langsung. a2_suara.narration: \"Yang ketawa tadi bukan Nay. Cewek yang ngegulung kabel ngangkat dagu ke tiga sudut ruangan, 'Nay di atas. Sambil nunggu, pegang satu.'\" Pasang pola yang sama di tiga a2 lain: tiap ruangan ngasih satu petunjuk kecil soal Nay, dan di a5_atap Nay-nya ketemu."
+   },
+   {
+    "where": "endings.stage.closing",
+    "problem": "Ending stage bisa dicapai tanpa pernah nyanyi. Jalur: pintu berdenyut (stage+1) → Naik panggung kecil (stage+2) → Tarik satu orang naik (stage+1) → Ketawa dulu (stage+2) → Arahin ke muka kamu (stage+1) = stage 7, menang. Tapi closingnya nulis \"Kamu ulang satu bait yang semalem bikin orang diem\" padahal yang pembaca lakuin adalah narik orang lain ke atas panggung, bukan nyanyi. Ending ngereferensi kejadian yang nggak pernah terjadi.",
+    "fix": "Ganti ke kalimat yang bener buat semua jalur stage: \"Pagi ini kamu balik ke aula yang kosong sendirian. Kamu berdiri di titik yang sama, ngecek suara kamu masih nyampe pojok apa nggak.\""
+   },
+   {
+    "where": "endings.creator.closing",
+    "problem": "Closingnya nulis \"makasih udah ngerekam bagian yang retak\" — itu cuma bener kalau di a4 pembaca milih \"Rekam yang retak\". Jalur ring light → Pilih yang paling jujur → Beresin satu-satu → Arahin ke muka kamu ngasih creator 9 dan tetep dapet ending ini, padahal pembaca nggak pernah ngerekam apa-apa di halaman.",
+    "fix": "\"Paginya hp kamu udah penuh orang yang nggak kamu kenal. Komen paling atas cuma nulis makasih, nggak dijelasin buat apa, dan kamu baca itu tiga kali.\""
+   },
+   {
+    "where": "endings.artisan.closing",
+    "problem": "\"Pagi-pagi kardus yang jatuh itu udah kamu tambal dan tapenya keliatan\" cuma bener kalau a4 = Beresin satu-satu. Jalur pintu lem → mahkota bunga → Benerin sampe pas → Panggil orang bantuin → Nyalain lampu orang ngasih artisan 8 dan dapet ending ini tanpa pembaca pernah nambal kardus.",
+    "fix": "\"Pagi-pagi tangan kamu udah gerak sebelum kepala kamu nyambung. Kamu mulai yang baru di sebelah yang semalem belum kelar.\""
+   },
+   {
+    "where": "endings.change.closing + a3_change",
+    "problem": "Ending change nulis \"Subuh-subuh Nay ngirim chat panjang dan ujungnya cuma makasih\", tapi di a3_change orang yang pembaca dengerin itu \"dia\" anonim, bukan Nay. Dan ending change kecapai dari jalur yang sama sekali nggak nyentuh orang: pintu lem → Pasang harga dan label → Tanya mau mereka dulu → Panggil orang bantuin → Nyalain lampu orang = change 6, menang. Di jalur itu pembaca nggak pernah ngobrol sama siapa pun, apalagi Nay. Makasihnya nggak kebeli.",
+    "fix": "Jadiin \"dia\" di a3_change itu Nay, eksplisit. a3_change.narration: \"Nay bawa dua gelas air terus duduk di depan kamu sampe dengkul kalian ketemu. Dia cerita sambil nunduk, dan ada satu bagian yang nyangkut di kamu.\" Terus kunci ending change biar cuma kebuka kalau pembaca lewat a3_change atau a4 Panggil orang bantuin."
+   },
+   {
+    "where": "a4_halaman + a5_atap — nggak ada cabang",
+    "problem": "Empat opsi a4 semuanya ke a5_atap, empat opsi a5 semuanya ke ending. Jadi dua babak terakhir identik buat semua pembaca, dan nggak ada satu kalimat pun yang nyebut apa yang pembaca kerjain di Babak 1-3. Pembaca yang abis nyanyi semalem dan pembaca yang abis ngejahit dapet kardus jatuh yang sama persis. Ini alasan strukturalnya kenapa journeynya kerasa patah: tiga babak pertama nol konsekuensi.",
+    "fix": "Isi kardusnya udah ada satu benda per jalur (bunga kertas, kertas lepas, kabel mic, lampu kecil). Sambungin dengan satu kalimat bercabang di a4_halaman.narration: \"Satu kardus jatuh di depan kaki kamu, dan yang paling atas tumpukannya barang kamu.\" Lalu satu baris per jalur: stage → \"Kabel mic yang kamu gulung tadi ikut kelempar.\" artisan → \"Mahkota bunga tadi ketekuk di pinggir kardus.\""
+   },
+   {
+    "where": "a4_halaman.narration",
+    "problem": "Kardusnya jatuh dari ketiadaan. Nggak ada yang njatuhin, nggak ada yang ngomong, nggak ada sebab. Pembaca cuma dikasih \"Satu kardus jatuh di depan kaki kamu\" dan langsung disuruh milih reaksi. Kebetulan dipake buat mancing keputusan terbesar di cerita.",
+    "fix": "\"Satu cewek papasan sama kamu sambil gendong kardus kegedean, tangannya kelepasan, dan isinya nyebar di antara kaki kalian. Dia cuma bilang aduh, terus semua orang di halaman berhenti.\""
+   },
+   {
+    "where": "a1 transition → a2 narration (empat-empatnya)",
+    "problem": "Keempat narasi a2 ngulang beat terakhir transition-nya. Transition: \"bass-nya pindah dari lantai ke dada kamu\" → narasi: \"Bass itu pindah ke dada kamu\". Transition: \"hujannya tinggal netes di kerah kamu\" → narasi: \"Netesan hujan itu masih di kerah kamu\". Transition: \"serpihan kain nempel di sepatu kamu\" → narasi: \"Serpihan kain itu masih nempel di sepatu kamu\". Pembaca baca kejadian yang sama dua kali, jadi waktu nggak jalan dan scene barunya kerasa kosong. Overlap ini yang kebaca sebagai lompat.",
+    "fix": "Transition tetep jadi jembatan, narasi harus maju. a2_tangan.narration: \"Ada yang nunjuk sepatu kamu terus ketawa, 'yang masuk sini selalu bawa kain.' Dia balik ke mejanya dan ninggalin tiga meja setengah jadi buat kamu.\" Hapus semua callback literal di awal narasi a2."
+   },
+   {
+    "where": "a2_suara.narration vs opsi \"Duduk depan ring light\"",
+    "problem": "Narasi bilang \"Tiga sudut kosong, dan belum ada yang pegang satu pun\", tapi ilustrasi opsi pertama nunjukin cewek udah duduk bersila di depan ring light sambil ngerapihin rambut. Kontradiksi langsung antara teks dan gambar di satu layar.",
+    "fix": "\"Tiga sudut ruangan udah ada orangnya, dan ketiganya geser dikit waktu liat kamu.\""
+   },
+   {
+    "where": "a2_suara \"Naik panggung kecil\" → a3_stage",
+    "problem": "Teleport paling keras. a2_suara itu ruang latihan kecil dengan panggung bundar dan bangku kayu. a3_stage itu panggung gelap dengan kerucut lampu, kursi penonton, dan gorden merah muda tua di dua sisi — gedung pertunjukan beneran. Naik dua langkah nggak bisa mindahin pembaca dari ruang latihan ke aula. Lampu \"nyala sendiri\" juga dipake nutupin lompatannya.",
+    "fix": "Pasang pintunya dulu. a2_suara transition: \"Kamu naik dua langkah, dan dari atas sini baru keliatan pintu di belakang panggung kebuka ke aula yang gede.\" Lalu a3_stage.narration: \"Aulanya lebih gede dari ruangan tadi dan lampunya cuma nemu satu titik. Mic di depan kamu masih kosong, tiga orang di belakang panggung udah megang alatnya.\""
+   },
+   {
+    "where": "a2_suara \"Angkat kabel ke mobil\" → a3_explorer",
+    "problem": "Pembaca gendong kabel keluar ke bak mobil, terus kalimat yang sama langsung mentionin \"tangga besi di sebelah pintu kebuka\" dan scene berikutnya udah di bordes dalam gedung. Tugas kabelnya ditinggal tanpa diselesaiin, dan tangganya muncul dari ketiadaan. Pembaca nggak dikasih alasan naik.",
+    "fix": "\"Kamu naro kabelnya di bak mobil, dan yang nerima nunjuk tangga besi di samping pintu, 'naik aja, dari atas keliatan semua ruangan.'\""
+   },
+   {
+    "where": "a3_explorer.narration",
+    "problem": "Geografinya nggak bisa dibayangin. Babak 1 naro empat pintu di satu lorong, dan salah satunya kebuka ke jalanan basah di luar. Sekarang keempatnya jadi ruangan bercahaya yang keliatan dari bordes di tengah gedung. Pintu hujan nggak mungkin jadi ruangan. Pembaca nggak bisa nahan petanya.",
+    "fix": "\"Dari bordes ini tiga pintu keliatan dari atas, satu lagi cuma kedengeran suara jalanannya. Kaki kamu nggak bisa milih satu.\""
+   },
+   {
+    "where": "a2_tangan \"Pasang harga dan label\" → a3_boss",
+    "problem": "Status pembaca naik tanpa satu langkah pun. Di Babak 1 kamu tamu yang baru masuk dengan tas di satu pundak. Di a3_boss ada \"tiga orang yang nungguin kamu ngomong duluan\" soal anggaran. Kenapa mereka nurut sama orang yang baru nyampe satu jam lalu? Dan \"mereka\" di transition (\"mereka nyediain kursi\") itu sebutan pertama, tanpa perkenalan.",
+    "fix": "Kasih alasan mereka dengerin, yaitu notes harga yang baru pembaca bikin. Transition: \"Kamu bawa notes harganya keluar, dan satu cewek baca angkanya terus manggil dua orang lain ke meja panjang.\" Lalu a3_boss.narration: \"Tiga orang itu baca angka kamu dua kali sebelum ada yang ngomong. Di tengah meja amplop kebuka, isinya kurang dari yang kalian butuh.\""
+   },
+   {
+    "where": "a2_teras \"Petik bunga di tangga\" → a3_artisan",
+    "problem": "Pembaca metik bunga di tangga luar, terus tiba-tiba \"kamu bawa ke meja deket jendela\" di dalam ruang kerajinan. Nggak ada alasan pindah, dan pembaca jalur ini belum pernah masuk ruang kerajinan sama sekali, jadi \"meja deket jendela\" itu tempat yang nggak dia kenal.",
+    "fix": "\"Kamu kumpulin bunganya di telapak tangan, dan yang jongkok di sebelah kamu bilang bunga segini harus langsung dirangkai sebelum layu, terus dia nunjuk meja deket jendela di dalem.\""
+   },
+   {
+    "where": "a3_creator \"Balas yang paling sepi\"",
+    "problem": "\"Kamu bales satu komen yang paling nggak keliatan, dan dia nyusul kamu ke halaman.\" Komentator internet tiba-tiba hadir fisik di halaman belakang. Pembaca baca ini sebagai bug, bukan sebagai pindah scene.",
+    "fix": "\"Kamu bales satu komen yang paling nggak keliatan, dan dia ngetik lagi pas kamu udah di tangga belakang.\""
+   },
+   {
+    "where": "a3_explorer \"Bikin yang belum ada\"",
+    "problem": "Ilustrasi dan transition-nya nggambar pintu kelima pakai kuas basah di tembok kosong, terus kalimatnya nutup dengan \"kamu bawa kertasnya ke halaman\". Nggak ada kertas. Pembaca nyari benda yang nggak pernah ada.",
+    "fix": "\"Kamu gambar pintu kelima di tembok kosong, catnya masih netes, terus kamu turun ke halaman sambil tangan kamu bau cat.\""
+   },
+   {
+    "where": "a3_stage \"Ganti lagunya mendadak\"",
+    "problem": "\"Bandnya ngikut kamu ganti lagu\" — band muncul cuma buat ngereaksi. Di sceneryDesc a3_stage nggak ada band sama sekali, cuma mic, kursi penonton, gorden. Pembaca kaget ada band.",
+    "fix": "Pasang mereka di narasi a3_stage (lihat fix a3_stage di atas), lalu: \"Kamu ganti lagu di tengah dan yang di belakang panggung nyusul dalam dua bar.\""
+   },
+   {
+    "where": "a3_boss \"Pitch ke sponsor kecil\"",
+    "problem": "\"terus kamu nunggu balesannya di halaman\" — benang ini nggak pernah ditutup. Babak 4 dan 5 nggak nyebut hp, nggak nyebut sponsor, dan cuma satu dari enam ending nyentuh amplopnya. Pembaca nungguin sesuatu yang nggak pernah dateng.",
+    "fix": "\"Kamu kirim satu pesan ke sponsor, dan hp kamu masih di tangan waktu kamu nyampe halaman.\" Terus tambahin satu beat di a4: hpnya gemeter di tangan kamu pas kardusnya jatuh, dan pembaca harus milih mana yang dipegang."
+   },
+   {
+    "where": "a4 \"Rekam yang retak\" → a5_atap.narration",
+    "problem": "a5 nganggep \"Lampu kecil tadi masih nyala di tangan kamu\", tapi transition \"Rekam yang retak\" naro lampunya dijepit di tas, bukan di tangan. Dan ending explorer nulis \"Lampu kecil semalem kamu jepit di tali tas\" padahal jalur explorer paling umum (Bawa terus, jalan) justru megang lampunya terus.",
+    "fix": "Satuin: semua transition a4 harus nutup dengan lampunya di tangan. \"Kamu rekam retaknya apa adanya, terus lampu kecilnya kamu bawa naik tangga atap.\" Dan ending explorer: \"Pagi berikutnya tas kamu udah siap sebelum kamu mikir mau ke mana. Lampu kecil semalem masih nyala di meja.\""
+   },
+   {
+    "where": "a5_atap.narration vs opsinya",
+    "problem": "Narasi janjiin \"ada empat tempat buat naronya\" — pembaca nyiapin diri milih lokasi. Tapi empat opsinya bukan empat tempat: arahin ke muka kamu, taro nyorot jalan, nyalain lampu orang, bawa terus jalan. Cuma satu yang \"naro\". Janji narasi nggak nyambung ke pilihan.",
+    "fix": "\"Lampu kecil tadi masih nyala di tangan kamu, dan nggak ada satu orang pun di atap ini yang nyuruh kamu mau diapain.\""
+   },
+   {
+    "where": "premise",
+    "problem": "Pembaca nggak dikasih alasan dia ada di situ. Rumah Emina itu apa, siapa Nay, kenapa dia bukain pintu buat kamu. Tanpa itu, empat pintu di Babak 1 cuma jadi tes kepribadian, bukan pilihan yang ada risikonya.",
+    "fix": "\"Nay nemuin kamu di DM dua minggu lalu dan cuma nulis, dateng aja. Hari ini dia bukain pintu Rumah Emina, terus dia ilang ke dalem sebelum kamu nanya mau ngapain. Tas kamu masih nyangkut di satu pundak.\""
+   },
+   {
+    "where": "Keseluruhan — nol dialog",
+    "problem": "Lima babak, 13 scene, 33 transition, dan nggak ada satu orang pun yang ngomong. Nay ketawa dari balik pintu, terus kirim chat di satu ending. Buat cerita yang settingnya rumah penuh orang, semua orang bisu. Ini bikin tiap scene kebaca sebagai still life berisi tiga label, bukan kejadian.",
+    "fix": "Satu kalimat terucap per babak, minimum. Yang paling murah: masukin di narasi a2 (lihat fix di atas), satu di a4 (\"Dia cuma bilang aduh\"), dan satu di a5 dari Nay: \"Nay geser dikit di bibir atap terus bilang, 'telat banget kamu.'\""
+   }
+  ],
+  "slopHits": [
+   "Semua 13 narration persis dua kalimat. Tanpa kecuali. Dan keenam closing juga persis dua kalimat. Ini tell mekanis paling keliatan di draft ini — pembaca yang main dua kali langsung ngerasa mesinnya. Bikin beberapa narasi satu kalimat (a3_artisan: \"Yang di tangan kamu kurang dua senti lagi.\") dan beberapa empat kalimat pendek.",
+   "Keenam narasi a3 buka dengan pola demonstratif yang sama: \"Layar itu...\", \"Meja panjang itu...\", \"Meja deket jendela itu...\", \"Lampu itu...\", \"Kursi plastik itu...\", \"Tangga itu...\". Enam kali berturut-turut. Ganti minimal empat dari enam.",
+   "Keempat sound Babak 1 pakai satu template persis: tiga bunyi + \"Cahaya [warna] [dari mana], baunya [A] campur [B]\". Tiga dari empat pakai kata \"campur\". Pembaca nangkep formulanya di pintu ketiga dan berhenti percaya. Variasiin panjang dan urutannya: pintu berdenyut \"Dum, dum, dum dari bawah lantai. Ada yang nyetem senar, terus satu cewek ketawa kenceng.\" / pintu lem \"Bau lem duluan, baru suaranya. Gunting krek dua kali.\" / pintu kaca \"Spidol nyicit, kursi digeser, dua orang ngomong barengan terus ketawa.\" / pintu hujan \"Hujan nabrak kanopi seng. Dari jauh ada yang nawarin gorengan.\"",
+   "Semua empat transition Babak 1 satu cetakan: \"Kamu [masuk/melangkah masuk/nyelip masuk/keluar ke teras], dan [akibatnya].\" Empat berturut-turut di satu layar. Dan di seluruh cerita 26 dari 33 transition mulai dengan \"Kamu\". Mulai beberapa dari orang lain, dari benda, dari suara.",
+   "Kalimat duplikat harfiah: \"dan lampu di atas kepala kamu nyala sendiri\" muncul dua kali — a2_suara \"Naik panggung kecil\" dan a2_papan \"Cek jadwal acara malam\". Ganti yang kedua: \"Mereka dorong kamu ke panggung buat ngecek, dan yang di booth lampu udah siap sebelum kamu minta.\"",
+   "Frasa duplikat: \"belum ada yang pegang\" dipake di a2_suara dan a2_papan. Dan dua narasi a2 pakai rangka identik \"[benda] itu masih [nempel/di] ... waktu kamu berdiri di ...\".",
+   "Benda mati ngelakuin kerjaan manusia (rule 3): \"Lampu itu nemu kamu\", \"Keempat celah pintu ngirim suara yang beda ke kaki kamu\", \"suara spidol itu berhenti sedetik buat kamu\", \"harinya nutup sendiri\", \"Langitnya nunduk dikit\", \"lampu di atas kepala kamu nyala sendiri\". Sebutin pelakunya: siapa yang nyalain lampunya, siapa yang berhenti ngomong.",
+   "Nada pull-quote, kalimat yang kedengeran kayak kutipan buat dipajang: \"Lampu itu nemu kamu dan sisa ruangan ilang.\", \"Sedetik itu cukup buat kamu masuk ke lingkaran mereka.\", \"dan harinya nutup sendiri\", \"terus kamu turun ke halaman bawa empat suara\". Yang terakhir muncul tepat sebelum babak terakhir, posisi paling kerasa dibikin-bikin.",
+   "Angka tiga jadi tulang yang keliatan: tiap sound Babak 1 tiga item, tiap narasi a2 ngitung \"Tiga sudut / Tiga meja / tiga baris / Tiga orang\", tiap scene a2 dan a3 tiga opsi. Stop-slop: dua lebih baik dari tiga. Pecahin ritmenya — bikin satu scene a2 yang cuma dua pilihan tapi dua-duanya berat, atau satu yang empat.",
+   "Adverb dan pengisi: \"cepet\" (\"mampir empat-empatnya cepet\"), \"sendiri\" tiga kali sebagai penutup kalimat, \"mendadak\" di label, \"barengan\" dua kali. Potong semua.",
+   "Bahasa Indonesia yang goyah dan bikin pembaca berhenti: \"Tiga meja kebuka\" (meja nggak kebuka), \"Papan kecil bertulis\" (bertuliskan), \"ngirim suara ... ke kaki kamu\", \"Netesan hujan\" (tetesan).",
+   "Em dash di draft JSON ini: nol, bersih. Tapi file yang nantinya nerima rewrite ini masih kotor — /Users/jason.suhendroparacorpgroup.com/Documents/Projects/emina/20-under-20-quiz/story-map.html punya 13 em dash dan index.html punya 10, termasuk \"satu label — dan itu kekuatanmu\" dan \"— tapi bukan hari biasa\". Bersihin barengan rewrite-nya biar nggak kebawa."
+  ],
+  "verdict": "Babak 1 udah bener sesuai request: empat pintu kebuka, masing-masing ada suara dan suasana, dan itu bagian terkuat di draft ini. Masalahnya ada di tiga tempat lain, dan dua di antaranya bikin cerita kebaca rusak, bukan cuma kasar.\n\nPertama, dan ini yang paling mahal: semua lem ceritanya diparkir di sceneryDesc dan illustrationDesc, yang nggak pernah kebaca pembaca. Nay jongkok di halaman, enam orang yang berhenti liat, cewek yang udah duduk di ring light, spanduk di atap — semua cuma ada di prompt gambar. Yang pembaca pegang cuma narasi dua kalimat dan transition satu kalimat. Jadi yang kamu rasain sebagai \"journeynya patah\" itu sebetulnya narasinya kekurusan buat nahan kontinuitas. Kamu mau lebih banyak gambar dan lebih sedikit teks, dan itu bener, tapi gambarnya nggak bisa gantiin fakta yang pembaca butuh buat ngerti scene berikutnya. Aturan praktisnya: satu fakta per scene harus naik dari prompt ke narasi.\n\nKedua: tiga dari enam ending ngereferensi kejadian yang nggak pernah terjadi di jalur yang nyampe ke situ. Ending stage bilang kamu nyanyi padahal bisa dicapai tanpa nyanyi. Ending creator bilang kamu ngerekam yang retak padahal bisa dicapai tanpa ngerekam. Ending change bilang Nay kirim chat makasih padahal ada jalur ke ending itu yang nggak nyentuh satu orang pun. Ini bukan soal rasa, ini bug yang bikin pembaca ngerasa dibohongin di kalimat terakhir.\n\nKetiga: Babak 4 dan 5 nol percabangan dan nol callback. Semua jalur ketemu kardus jatuh yang sama dan atap yang sama, dan nggak ada satu kalimat pun yang nyebut apa yang pembaca kerjain tiga babak sebelumnya. Secara struktur, Babak 1 sampai 3 nggak ada konsekuensinya.\n\nDan Nay. Dia dipasang di kalimat pertama sebagai satu-satunya pertanyaan cerita, terus hilang 3 babak, muncul jongkok tanpa ngomong, lalu kirim chat haru di satu ending. Satu hook digantung selama 80 persen cerita.\n\nSoal dialog: lima babak, 13 scene, nol kalimat terucap. Rumah penuh orang dan semua bisu. Ini perbaikan termurah dengan dampak terbesar — satu kalimat terucap per babak langsung ngilangin separo rasa teleportnya, karena orang yang ngomong otomatis ngasih sebab buat pembaca pindah tempat.\n\nOpsi improve, urut dari paling berdampak:\n\n1. Bikin Nay jadi benang merahnya. Tiap ruangan a2 ngasih satu petunjuk kecil soal Nay (\"Nay di atas\", \"Nay yang nyuruh kamu pegang ini\"), terus Nay-nya ketemu di atap Babak 5. Hook kebayar, dan ending change jadi kebeli di semua jalur.\n\n2. Jadiin \"dia\" di a3_change itu Nay, eksplisit. Satu kata, benerin dua jalur sekaligus plus satu ending.\n\n3. Pantulin jalur pembaca ke isi kardus di Babak 4. Kardusnya udah berisi satu benda per jalur — kabel mic, bunga kertas, kertas lepas, lampu. Tambahin satu baris bercabang: \"yang paling atas tumpukannya barang kamu\". Tiga babak pertama langsung punya konsekuensi tanpa nambah scene.\n\n4. Tulis ulang keenam closing jadi path-agnostic, atau kasih tiap ending dua varian yang dipilih dari pilihan Babak 4. Varian lebih bagus, lebih mahal dikit.\n\n5. Ganti satu dari tiga pilihan di satu scene a2 jadi pilihan yang nutup pintu — sesuatu yang bikin pembaca kehilangan akses ke satu a3. Sekarang semua pilihan cuma nambah skor, nggak ada yang ngorbanin apa-apa, jadi nggak ada taruhan.\n\n6. Pindahin suara ke semua babak, bukan cuma Babak 1. Field sound di a2 sampai a5 semuanya masih string kosong. Teksturnya mati habis satu scene. Dua beat suara pendek per scene cukup, dan itu teks yang paling murah per kesan.\n\n7. Buat ilustrasi per jawaban tanpa teks — ini udah kamu minta dan illustrationDesc-nya udah ada semua, 33 biji. Tinggal pastiin ilustrasinya nggak ngelawan narasinya, karena sekarang ada yang ngelawan (narasi bilang tiga sudut kosong, gambarnya ada orangnya).\n\n8. Pertanyaan cuma di atas dan di-bold: di struktur JSON ini nggak ada field question, narasi kalimat kedua yang jadi pertanyaannya. Pisahin jadi field sendiri biar bisa di-bold di atas dan nggak keulang di label — sekarang kalimat kedua narasi dan label pilihan sering ngomong hal yang sama.\n\n9. Beresin geografi gedungnya. Gambar petanya dulu di kertas: lorong, empat pintu, mana yang keluar, di mana tangga ke bordes, di mana aula, di mana halaman belakang, di mana atap. Sekarang pintu hujan kebuka ke jalanan tapi keitung ruangan bercahaya waktu diliat dari bordes, dan ruang latihan kecil berubah jadi aula bergorden dalam dua langkah.\n\n10. Kurangin angka tiga. Tiap sound tiga item, tiap narasi a2 ngitung tiga, tiap scene tiga opsi. Pecahin satu aja — satu scene dua pilihan berat, atau satu scene empat — dan gridnya langsung nggak kerasa."
+ },
+ {
+  "jumps": [
+   {
+    "where": "Babak 3 → Babak 4, all 18 transitions",
+    "problem": "Every single Act 3 transition ends with the narrator pushing you to the backyard (\"terus kamu ke halaman\", \"kalian turun ke halaman\", \"kamu setengah lari ke halaman\"). Nothing causes it. No shout, no crash, no call time. The reader feels the funnel: 18 different scenes all exit through the same unexplained door. This is the biggest break in the whole story.",
+    "fix": "Plant one audible event at the end of Babak 3 that every path hears, then let each transition be a reaction instead of a stage direction. Add to every a3 narration a closing beat, e.g. a3_stage: \"Lampunya nemu kamu dan sisa ruangan ilang. Mic di depan kamu masih kosong, dan dari luar ada bunyi barang jatuh.\" Then a3_creator/\"Pilih yang paling jujur\" transition becomes: \"Kamu kirim yang tengah, terus bunyi tadi kedengeran lagi dan kamu lepas headphone sambil jalan keluar.\""
+   },
+   {
+    "where": "endings → creator, closing line",
+    "problem": "\"Komen paling atas cuma nulis makasih udah ngerekam bagian yang retak\" assumes the reader picked \"Rekam yang retak\" at a4. I reached the creator ending twice without it: pintu 1 → ring light → \"Pilih yang paling jujur\" → \"Beresin satu-satu\" → \"Arahin ke muka kamu\" (creator 9). The payoff cites a video that never existed.",
+    "fix": "Make it prop-agnostic: \"Paginya hp kamu udah penuh orang yang nggak kamu kenal. Komen paling atas cuma nulis makasih, dan kamu nggak tau dia ngomongin bagian yang mana.\""
+   },
+   {
+    "where": "endings → artisan, closing line",
+    "problem": "\"Kardus yang jatuh itu udah kamu tambal dan tapenya keliatan\" assumes \"Beresin satu-satu\" at a4. Reachable without it: pintu 2 → \"Lanjutin mahkota bunga\" → \"Benerin sampe pas\" → \"Ketawa dulu, lanjut\" → \"Nyalain lampu orang\" (artisan 8). You never taped anything.",
+    "fix": "\"Pagi-pagi yang semalem kamu pegang masih di meja, simpulnya udah kering. Kamu mulai yang baru di sebelahnya sebelum mandi.\""
+   },
+   {
+    "where": "endings → boss, closing line",
+    "problem": "\"Amplop semalem udah ada isinya\" assumes you sat at the long table and saw the envelope at a3_boss. Reachable without it: pintu 3 → \"Tanya yang paling diem\" → a3_change → \"Tulis tiga langkahnya\" → \"Beresin satu-satu\" → \"Taro nyorot jalan\" (boss 7). No table, no envelope, and the ending names both.",
+    "fix": "\"Jam enam pagi kamu udah di meja panjang, kopinya masih panas. Tiga orang dateng bawa ide dan kali ini angkanya ketemu.\""
+   },
+   {
+    "where": "a2_teras → \"Petik bunga di tangga\" → a3_artisan",
+    "problem": "Hard teleport. You are crouched outside on wet terrace steps picking white flowers, and the next clause puts you at an indoor window-side table. No door, no walk, no weather change. Then a3_artisan narration says \"yang di tangan kamu kurang dua senti lagi\" — you are holding four loose flowers, not a half-finished thing. Its sceneryDesc also lists a half-sewn cloth and a half-made flower crown you never touched on this path.",
+    "fix": "Transition: \"Kamu kumpulin bunganya di telapak tangan, nyelip lewat pintu samping, terus kamu naro semuanya di meja deket jendela.\" Narration rewritten to fit both entrances: \"Meja deket jendela kebagian cahaya paling akhir, dan yang kamu bawa sekarang ada di situ. Belum kelar, dan sorenya udah mulai turun.\""
+   },
+   {
+    "where": "a2_papan → \"Cek jadwal acara malam\" → a3_stage",
+    "problem": "Teleport from a bright glass-walled planning room with plastic chairs straight into a dark theater with red curtains and audience rows, in half a sentence (\"Mereka dorong kamu ke panggung\"). No corridor, no door, no light change.",
+    "fix": "\"Mereka dorong kamu ke lorong sebelah, dan pintu aula udah kebuka waktu kamu nyampe.\" Then a3_stage narration opens on the dark: \"Aulanya gelap dan cuma satu lampu yang nyala. Lampu itu nemu kamu, dan mic di depan kamu masih kosong.\""
+   },
+   {
+    "where": "a2_suara/\"Naik panggung kecil\" and a2_papan/\"Cek jadwal acara malam\"",
+    "problem": "The clause \"dan lampu di atas kepala kamu nyala sendiri\" is copy-pasted verbatim into two different scenes. Anyone replaying the quiz hits the identical sentence from two unrelated rooms and sees the seam.",
+    "fix": "Keep it once. Rewrite the a2_suara one with a human actor: \"Kamu naik dua langkah, dan ada yang naikin lampunya dari belakang.\""
+   },
+   {
+    "where": "Premise and Nay, across Babak 1 to Babak 3",
+    "problem": "The premise sets one want: Nay opened the door and vanished inside, and the a1 narration says she is laughing behind one of the four doors. No option in the entire story lets you look for her. She is absent for three acts, reappears only inside a4's sceneryDesc (not the narration, so the reader may never notice her), and then carries the entire change ending (\"Nay ngirim chat panjang... kamu nangis dikit\"). The emotional payoff lands on a character the reader has not shared a single beat with.",
+    "fix": "Give her one trace per act. a1 door 1 sound: \"...satu cewek ketawa kenceng, mirip Nay tapi kamu nggak yakin.\" a2_suara narration: \"Scrunchie Nay nyangkut di stand mic, dan dia udah nggak di situ.\" a4 narration must name her: \"Nay jongkok di tepi tumpukan, dan dia ngangkat kepala pas liat kamu.\""
+   },
+   {
+    "where": "a4_halaman, narration vs sceneryDesc",
+    "problem": "Tense collision. The scenery says the box has already fallen and the contents are already scattered with six girls stopped and staring. The narration says it falls at your feet as you arrive. Which happened? The reader gets both in the same breath.",
+    "fix": "\"Halaman belakang udah kena sore waktu kamu nyampe, dan satu kardus udah miring di tanah. Isinya nyebar sampe ke sepatu kamu, dan satu hp ketelungkup dengan layar retak.\""
+   },
+   {
+    "where": "a4_halaman, \"hpnya retak\"",
+    "problem": "Whose phone? It is never said. On the creator path you were just filming with your own phone, so the reader assumes it is yours, which would be the biggest event of the day, and nobody reacts to it. The creator ending then has you waking up to a full phone, cracked or not.",
+    "fix": "Name the owner so it can pay off: \"...dan hp Nay ketelungkup dengan layar retak.\" Then the \"Rekam yang retak\" option means you lend her yours, and the change ending's chat lands."
+   },
+   {
+    "where": "a4_halaman → a5_atap, the roof stairs",
+    "problem": "All four a4 transitions send you up stairs to the roof (\"kamu nemu tangga ke atap\", \"kalian jalan bareng ke tangga atap\"). There are no stairs anywhere in a4's sceneryDesc: box, papers, mic cable, lamp, cracked phone, silhouettes, sky. The staircase exists only in the sentence that uses it.",
+    "fix": "Put it in the scene first. Add to a4 sceneryDesc: \"tangga besi luar nempel di dinding kanan naik ke atap, lampu talinya masih gelap.\" And in the narration: \"Di dinding kanan ada tangga besi yang naik ke atap.\""
+   },
+   {
+    "where": "Babak 3 → Babak 4, every carried prop",
+    "problem": "Each a3 transition hands you something: a finished flower crown, a notebook of three steps, a folded paper flower, a painted fifth door on paper, four rooms' worth of sound. a4 ignores all of it. The scattered box contains generic paper flowers and loose sheets, and no line connects what is in your hands to what spilled. Five acts of accumulation, then a clean slate.",
+    "fix": "One clause in the a4 narration that works for every path: \"Yang kamu bawa dari dalem masih di tangan kamu waktu isi kardusnya nyampe ke sepatu kamu.\""
+   },
+   {
+    "where": "a5_atap narration",
+    "problem": "\"Lampu kecil tadi masih nyala di tangan kamu\" contradicts the \"Rekam yang retak\" path, where you clipped the lamp to your bag. The explorer ending then correctly says it is clipped to the bag strap, so the story contradicts itself twice in two scenes.",
+    "fix": "Drop the location: \"Lampu kecil tadi masih nyala, dan ada empat tempat buat naronya.\""
+   },
+   {
+    "where": "a2_suara → \"Angkat kabel ke mobil\" → a3_explorer",
+    "problem": "You shoulder a coil of cable and head out to load a van. The errand never finishes. A metal staircase opens and you are standing on an interior landing with the cable unaccounted for, and a3_explorer's scenery has a canvas bag hooked on the railing instead.",
+    "fix": "Close the errand in the a3_explorer narration: \"Kabelnya udah kamu taro di bak mobil dan tangganya masih kebuka waktu kamu naik. Dari bordes keempat ruangan kedengeran barengan.\""
+   },
+   {
+    "where": "a3_explorer, geometry",
+    "problem": "The four doors are at the end of a ground-floor corridor in a1. a3_explorer is a landing in the middle of the building, and from there \"empat pintu keliatan dari situ\". You cannot see four ground-floor doors from a mid-building landing. The reader's mental map breaks.",
+    "fix": "Make the landing overlook the corridor: sceneryDesc \"bordes kayu yang ngelewatin atas lorong, keempat pintu kebuka di bawah dan warnanya ketemu di lantai krem.\""
+   },
+   {
+    "where": "a3_explorer, \"Satu tas kanvas nyangkut di pagar\"",
+    "problem": "An unowned prop. The premise makes a point of your bag hanging off one shoulder, and that bag is never mentioned again anywhere in five acts. Here is a canvas bag on a railing that could be it and isn't claimed.",
+    "fix": "\"Tas kamu yang dari tadi nyangkut di satu pundak sekarang nyangkut di pagar bordes.\""
+   },
+   {
+    "where": "Babak 2, all four rooms, narration",
+    "problem": "Zero stakes. Every room is phrased as three empty slots waiting for you: \"Tiga sudut kosong, dan belum ada yang pegang satu pun\" / \"Tiga meja kebuka, dan semuanya setengah jadi\" / \"tiga baris paling bawah belum ada yang pegang\" / \"Tiga orang di situ ngerjain hal yang beda-beda.\" Nobody needs anything, nothing is at risk, no clock runs. The reader is browsing a menu, not inside a day.",
+    "fix": "Give each room one need and one clock. a2_suara: \"Bass itu di dada kamu sekarang, dan ruangannya lebih kecil dari suaranya. Soundcheck empat puluh menit lagi dan tiga sudut ini belum ada yang pegang.\" a2_tangan: \"Serpihan kain itu masih di sepatu kamu. Yang pesen mahkota bunga udah nunggu di depan dan tiga meja ini masih setengah jadi.\""
+   },
+   {
+    "where": "a1 door 4 → a2_teras, the rain",
+    "problem": "The rain hits the zinc canopy hard in the door description, then stops inside one clause (\"hujannya tinggal netes di kerah kamu\"), and a2_teras is already \"abis hujan\". Weather that big should not end in a comma.",
+    "fix": "Keep it raining through Babak 2 and let it thin at the act break. a2_teras narration: \"Hujannya masih turun tipis di luar kanopi waktu kamu berdiri di teras. Tiga orang di situ ngerjain hal yang beda-beda, dan nggak ada yang keganggu.\""
+   },
+   {
+    "where": "a1_pintu, light on doors 3 and 4",
+    "problem": "Door 3 pours \"cahaya putih siang\" (midday) and door 4 opens onto a sky of \"abu kemerahan\" (reads as dusk), in the same corridor at the same minute. Then a4 is late-afternoon amber and a5 is 6:30pm. The day runs midday, dusk, late afternoon, evening.",
+    "fix": "Door 4 sky: \"langit abu terang abis hujan siang\" and its sound line \"Cahaya abu terang dari langit terbuka.\" Save the red for a4 and a5."
+   },
+   {
+    "where": "a5_atap, the four options",
+    "problem": "The four roof edges facing four directions is a lovely rhyme with the four doors, but the options map to creator, boss, change and explorer. A reader who has leaned stage or artisan for four acts reaches the final choice and finds nothing that sounds like them; the score patches it invisibly (creator+3, stage+1). The last beat of the story should let every reader act like themselves.",
+    "fix": "Rebalance so all six are represented: replace \"Arahin ke muka kamu\" scoring with creator+3 only, and add a fifth and sixth edge, \"Taro di depan mic\" (stage+3, creator+1, illustration: lamp propped at the mic base, light climbing the stand) and \"Iket di tiang spanduk\" (artisan+3, change+1, illustration: two hands knotting the lamp cord onto the Born to be Loved banner)."
+   },
+   {
+    "where": "Scoring, reachable ties",
+    "problem": "Pintu 3 → \"Cek jadwal acara malam\" → \"Tarik satu orang naik\" → \"Ketawa dulu, lanjut\" → \"Nyalain lampu orang\" gives stage 5 and change 5. The story gives no tiebreak, so array order decides between \"kamu balik ke aula yang kosong sendirian\" and \"kamu nangis dikit\". Two opposite emotional closings on a coin flip.",
+    "fix": "Add a documented tiebreak that uses the reader's own last act: on a tie, the trait scored by the a5 choice wins. Failing that, make a1 worth +2 so the first door breaks most ties."
+   },
+   {
+    "where": "a4_halaman, \"Enam siluet cewek\"",
+    "problem": "Six girls appear for the first time in the backyard. Across Babak 2 and 3 you met one to three people, most of them silhouettes with no names. Six is a crowd arriving from nowhere at the exact moment the story needs witnesses.",
+    "fix": "Either seed the crowd in Babak 3 (add to each a3 narration: \"Dari luar suara orang makin rame.\") or cut to \"Tiga orang berhenti liat, dan Nay jongkok di tepi tumpukan.\""
+   },
+   {
+    "where": "a2 narrations, all four",
+    "problem": "Each one spends its entire first sentence restating the transition you just read, in the same grammar: \"Bass itu pindah ke dada kamu\" after \"bass-nya pindah dari lantai ke dada kamu\"; \"Serpihan kain itu masih nempel di sepatu kamu\" after \"serpihan kain nempel di sepatu kamu\". The echo is a good instinct, used four times out of four with the same shape, which leaves one sentence for new information.",
+    "fix": "Keep the echo on two doors, drop it on two. a2_papan can open cold on a new detail: \"Es kopinya masih di lantai dan embunnya udah bikin bercak. Papan kacanya penuh sampe ke pinggir, dan tiga baris paling bawah belum ada yang pegang.\""
+   },
+   {
+    "where": "a1_pintu, the options as answers to the narration",
+    "problem": "The narration asks a question the choices cannot answer: Nay laughed from one door and you don't know which. Then the four labels are about what each room smells and sounds like, not about finding her. The reader's stated goal and the reader's available actions point in different directions on the very first screen.",
+    "fix": "Either put her laugh in one door's sound and let the reader gamble, or change the narration to match the choices: \"Keempat celah ngirim suara yang beda ke kaki kamu. Nay udah ilang ke salah satunya, dan kamu cuma bisa milih yang paling kamu pengen.\""
+   },
+   {
+    "where": "Options in Babak 2 to Babak 5, the sound field",
+    "problem": "Every a1 option carries sound, light and smell. Every option after that has an empty sound string. The world is loud and warm for one screen, then goes mute for four acts. If the app renders sound, the reader will feel the drop immediately.",
+    "fix": "Give each option a one-line sound, shorter than a1's so Babak 1 stays the loudest. Example for \"Naik panggung kecil\": \"Papan panggung bunyi dua kali di bawah sepatu kamu, dan mic-nya desis pendek.\" For \"Petik bunga di tangga\": \"Tangkai putus kecil di tangan kamu, dan air masih netes dari kanopi.\""
+   },
+   {
+    "where": "a3_creator narration",
+    "problem": "\"Layar itu nunjukin muka kamu beda dari yang kamu kira. Ada tiga versi dari hal yang sama, dan cuma satu yang mau kamu kasih ke orang.\" The second sentence is a pull-quote, not a scene. It also tells the reader the meaning of the choice before they make it, which drains it.",
+    "fix": "\"Layar itu nunjukin muka kamu beda dari yang kamu kira. Tiga thumbnail sejajar, dan yang tengah bikin kamu diem sebentar.\""
+   }
+  ],
+  "slopHits": [
+   "All four a1 `sound` fields run the identical template: three comma-spliced sound clauses, then \"Cahaya [X], baunya [Y].\" Four for four. Cut one sound clause from two of them and break the light-then-smell lockstep on at least two doors.",
+   "13 of 13 narrations are exactly two sentences, and 11 of them are [callback sentence] + [clause, dan clause]. Give one scene a single short line and one scene four clipped ones.",
+   "Roughly 30 transitions share one grammar: \"Kamu [verb], dan/terus [consequence].\" Nothing reads as a consequence because everything has the shape of a stage direction.",
+   "All 6 endings open with a morning time adverbial: Paginya, Jam enam pagi, Pagi-pagi, Pagi ini, Subuh-subuh, Pagi berikutnya. Six for six.",
+   "Inanimate things doing human verbs, with no actor named: \"Lampu itu nemu kamu\", \"Langitnya nunduk dikit\", \"harinya nutup sendiri\", \"lampu di atas kepala kamu nyala sendiri\" (twice), \"Keempat celah pintu ngirim suara\". Name who did it: \"ada yang naikin lampunya dari belakang\".",
+   "Pull-quote tone: \"Lampu itu nemu kamu dan sisa ruangan ilang.\" / \"Meja deket jendela itu kebagian cahaya paling akhir.\" / \"Ada tiga versi dari hal yang sama, dan cuma satu yang mau kamu kasih ke orang.\" / \"kaki kamu nggak bisa milih satu.\" Each one is a quotable line standing where a scene should be.",
+   "Negation used in place of a statement: \"kamu nggak tau yang mana\", \"kaki kamu nggak bisa milih satu\", \"belum ada yang pegang satu pun\" (verbatim twice, a2_suara and a2_papan). Say the thing: \"tiga sudut ini masih kosong\".",
+   "The number three is the story's only rhythm: tiga sudut, tiga meja, tiga baris, tiga orang, tiga thumbnail, tiga langkah, tiga siluet, tiga warna sticky note, tiga gelembung obrolan, tiga baris lirik. Make two of these pairs so the triples land again.",
+   "\"Setengah\" is the only texture word for incompleteness and it appears 8+ times: setengah jadi (x3), setengah jahit, setengah makan, setengah kelar, setengah kebuka, setengah lari. Swap in: belum keiket, baru separo, tinggal dikit.",
+   "\"Kebuka\" appears 15+ times across scenery and options (pintu kebuka, amplop kebuka, buku kebuka, tiga meja kebuka, bak mobil kebuka, tangan kebuka, tangga besi kebuka). It has become invisible. Replace most with what the thing is actually doing: nganga, nyender, kesingkap, ditinggal nganga.",
+   "\"Nangkring\" four times: headphone nangkring di sandaran, lampu kecil nangkring di meja, hati kecil nangkring di atas thumbnail, kilau kecil nangkring di retakan. One is charming, four is a tic.",
+   "Verbatim duplicated transition clause across two unrelated scenes: \"dan lampu di atas kepala kamu nyala sendiri\" in both a2_suara and a2_papan.",
+   "Clean on em dashes: the story prose has none. Keep it that way, the hyphens in the act labels are fine."
+  ],
+  "verdict": "The scene-to-scene stitching inside Babak 1 and 2 actually works. Each a1 transition plants a sensory object (bass in your chest, fabric on your shoe, a squeaking marker, rain on your collar) and the next narration picks it up. That device is the best thing in the draft. It breaks in three places and the breaks are what makes the journey feel patah: (1) the a2 narrations spend their whole first sentence re-reading the transition in the same grammar four times out of four, so the echo turns mechanical; (2) the a2-to-a3 boundary teleports twice, once from a wet outdoor staircase to an indoor table and once from a bright glass meeting room to a dark theater, both in half a sentence; (3) the a3-to-a4 boundary has no cause at all, with 18 transitions all shoving you to the same backyard for no stated reason, and every prop you carried for three acts vanishing on arrival. Fix the backyard summons first, because one added event repairs 18 transitions at once.\n\nThe deeper problem is that nothing is at stake until the box falls. Babak 2 is four rooms of three unclaimed slots, Babak 3 is three polished options, and the first time anyone needs anything from you is Babak 4. Give each Babak 2 room one person who needs one thing before a clock runs out, and the choices start costing something.\n\nNay is the other structural hole. She is the premise and she is the change ending, and between those she exists in one sceneryDesc line and one a4 option. Right now a reader can finish the change path having never shared a beat with her and get a closing line about crying over her chat. One trace of her per act fixes the whole arc: her laugh behind a door, her scrunchie on the mic stand, her name on a sticky note, then her face lifting when you reach the yard.\n\nThree contradictions are reachable on natural paths and need fixing regardless of anything else: the creator ending cites a recording you may never have made, the artisan ending cites tape you may never have applied, and the boss ending cites an envelope you may never have seen. Make all three closings prop-agnostic or gate them on the a4 choice.\n\nCreative options worth adding, in rough order of payoff:\n\n1. Make the four doors a promise the ending keeps. a5 already has four roof edges facing four directions. Name each edge after the door it looks down on, and let the reader see the room they skipped from above. The path you did not take becomes visible at the exact moment the day closes.\n\n2. Carry one object the whole way instead of resetting at every act. The small lamp already does this from a4 to a5 and it is the most satisfying stretch in the story. Start it earlier: whatever you pick up in Babak 2 stays in your hands through Babak 3, spills in Babak 4, and goes up to the roof. Six different objects, one grammar, and the ending can name yours.\n\n3. Let the cracked phone be Nay's, and let the a4 choice be whether you hand her yours. That single change turns the backyard from an accident into a decision, gives Nay a reason to send the dawn chat, and gives the creator ending its recording honestly.\n\n4. Illustration-only answer cards, no label text, as asked. The illustrationDesc fields are already specific enough to carry a choice without words: a hand placing one petal, a volume slider pulled up, three crossed-out lines, two knees touching. Put the question in bold once at the top, let the four images be the answer, and reveal the label only on hover or after the tap. That alone cuts the text on screen by half.\n\n5. Give each option a one-line sound the way Babak 1 does, but shorter each act, so the world gets quieter as the day gets later. Babak 1 is three sounds, Babak 2 is two, Babak 3 is one, the roof is just wind and a banner. The silence becomes the ending.\n\n6. Let the reader hear the room they are leaving. One clause at the bottom of each a2 and a3 scene carrying sound from another door keeps the other three paths alive in the reader's ear and makes the building feel like one afternoon instead of six corridors."
+ }
+]
