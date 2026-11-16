@@ -41,6 +41,7 @@ SKIP_NAMES = {".DS_Store"}
 TOKEN_CANDIDATES = (
     os.path.join(ROOT, ".vercel-token.local"),
     os.path.normpath(os.path.join(ROOT, "..", "..", "paragon-photobooth", ".vercel-token.local")),
+    os.path.normpath(os.path.join(ROOT, "..", "..", "..", "paragon-photobooth", ".vercel-token.local")),
 )
 
 
