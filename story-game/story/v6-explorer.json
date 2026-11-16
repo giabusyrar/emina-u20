@@ -1,0 +1,1175 @@
+{
+ "title": "Explorer Quiz",
+ "theme": {
+  "id": "What if you live with fearless?",
+  "en": "What if you live with fearless?"
+ },
+ "intro": {
+  "id": "Perjalanan interaktif untuk menemukan hal yang bikin kamu excited, mengatasi keraguan, dan menjelajahi kemungkinan dirimu.",
+  "en": "An interactive journey to discover what excites you, overcome your doubts, and explore what you could become."
+ },
+ "welcome": {
+  "kicker": "Emina 20 Under 20 · Made to Explore",
+  "lead": {
+   "id": "7 chapter, 6 pertanyaan, satu cerita yang jalannya kamu yang nentuin. Di akhir kamu dapet tipe Explorer-mu, kartu buat di-share, dan 3 booth buat mulai jelajah di Explorer Summit.",
+   "en": "7 chapters, 6 questions, one story shaped by your choices. At the end you get your Explorer type, a card to share, and 3 booths to start exploring at the Explorer Summit."
+  },
+  "namePrompt": {
+   "id": "Panggil kamu siapa?",
+   "en": "What should we call you?"
+  },
+  "namePh": {
+   "id": "nama kamu",
+   "en": "your name"
+  },
+  "cta": {
+   "id": "Mulai jelajah",
+   "en": "Start exploring"
+  },
+  "fine": {
+   "id": "4 menit · 6 tipe Explorer · hasilnya bisa di-share",
+   "en": "4 minutes · 6 Explorer types · shareable result"
+  }
+ },
+ "ui": {
+  "tap": {
+   "id": "ketuk buat lanjut",
+   "en": "tap to continue"
+  },
+  "tip": {
+   "id": "<b>Tip:</b> pilih yang paling kamu banget. Nggak ada jawaban yang salah, dan dia bakal gerak sesuai pilihanmu.",
+   "en": "<b>Tip:</b> pick what feels most like you. There are no wrong answers, and she moves the way you choose."
+  },
+  "kamu": {
+   "id": "Kamu",
+   "en": "You"
+  },
+  "youAre": {
+   "id": "Kamu adalah...",
+   "en": "You are..."
+  },
+  "seeCard": {
+   "id": "Lihat kartuku",
+   "en": "See my card"
+  },
+  "page1": {
+   "id": "Kartu Explorer",
+   "en": "Explorer card"
+  },
+  "page2": {
+   "id": "Panduan Summit",
+   "en": "Summit guide"
+  },
+  "save": {
+   "id": "Simpan / Share",
+   "en": "Save / Share"
+  },
+  "again": {
+   "id": "Ulang ceritanya",
+   "en": "Play again"
+  },
+  "reg": {
+   "id": "Daftar 20U20",
+   "en": "Register 20U20"
+  },
+  "identity": "YOUR EXPLORER IDENTITY",
+  "sparks": "YOUR CREATIVE SPARKS",
+  "universe": "YOUR PASSION UNIVERSE",
+  "energy": "MAIN CHARACTER ENERGY",
+  "besties": "YOUR EXPLORER BESTIES",
+  "note": {
+   "id": "PESAN BUAT KAMU",
+   "en": "A NOTE FOR YOU"
+  },
+  "hi": {
+   "id": "Hai",
+   "en": "Hi"
+  },
+  "starts": {
+   "id": "Eksplorasimu mulai dari sini!",
+   "en": "Your Exploration Starts Here!"
+  },
+  "based": {
+   "id": "Berdasarkan rasa penasaranmu, di sini petualanganmu bisa dimulai:",
+   "en": "Based on your curiosity, here is where your adventure could begin:"
+  },
+  "booths": "YOUR SUGGESTED BOOTHS",
+  "stages": "YOUR STAGE PICKS",
+  "free": {
+   "id": "Ini cuma titik awal. Semua booth boleh kamu jelajahi!",
+   "en": "These are just your starting points. Every booth is yours to explore!"
+  },
+  "date": {
+   "id": "Tanggal",
+   "en": "Date"
+  },
+  "loc": {
+   "id": "Lokasi",
+   "en": "Location"
+  },
+  "time": {
+   "id": "Jam",
+   "en": "Time"
+  },
+  "shareText": {
+   "id": "Aku {type} di Emina 20 Under 20 Explorer Quiz. Kamu Explorer yang mana?",
+   "en": "I am {type} in the Emina 20 Under 20 Explorer Quiz. Which Explorer are you?"
+  },
+  "askCta": {
+   "id": "Kamu Explorer yang mana?",
+   "en": "Which Explorer are you?"
+  }
+ },
+ "typeOrder": [
+  "CL",
+  "CR",
+  "AC",
+  "CU",
+  "IP",
+  "ST"
+ ],
+ "boothOrder": [
+  "MUS",
+  "BEA",
+  "ART",
+  "SPO",
+  "STEM",
+  "MOV",
+  "IMP",
+  "FAS",
+  "PSY"
+ ],
+ "types": {
+  "CL": {
+   "name": "The Culture Explorer",
+   "icon": "♪",
+   "c1": "#4FA6E8",
+   "c2": "#C8E3EC",
+   "soft": "#E6F2F8",
+   "desc": {
+    "id": "Terinspirasi dari musik, cerita, dan budaya yang dirasain bareng-bareng.",
+    "en": "Inspired by music, stories & shared culture."
+   },
+   "tag": {
+    "id": "Si yang selalu tau lagu, cerita, dan tren mana yang lagi bikin semua orang nyambung!",
+    "en": "The one who always knows which song, story or trend is bringing everyone together!"
+   },
+   "energy": {
+    "id": "Yang ngerasain beat-nya duluan sebelum orang lain.",
+    "en": "The one who feels the beat before everyone else does."
+   },
+   "sparks": [
+    "#AlwaysOnBeat",
+    "#StoryCollector",
+    "#SharedVibes"
+   ],
+   "booths": [
+    "MUS",
+    "MOV",
+    "ART"
+   ],
+   "besties": [
+    "CR",
+    "AC"
+   ]
+  },
+  "CR": {
+   "name": "The Creative Explorer",
+   "icon": "✦",
+   "c1": "#DA1884",
+   "c2": "#F1BCD5",
+   "soft": "#FBE7F0",
+   "desc": {
+    "id": "Mengubah ide jadi karya yang layak dibagiin.",
+    "en": "Turns ideas into creations worth sharing."
+   },
+   "tag": {
+    "id": "Si paling penuh ide, yang bisa melihat sesuatu biasa jadi luar biasa!",
+    "en": "The one full of ideas, who sees the extraordinary in the ordinary!"
+   },
+   "energy": {
+    "id": "Yang bisa ngubah ide random jadi sesuatu yang keren.",
+    "en": "The one who turns random ideas into something amazing."
+   },
+   "sparks": [
+    "#FullOfIdeas",
+    "#BornToCreate",
+    "#CuriousMind"
+   ],
+   "booths": [
+    "ART",
+    "MOV",
+    "BEA"
+   ],
+   "besties": [
+    "CL",
+    "CU"
+   ]
+  },
+  "AC": {
+   "name": "The Active Explorer",
+   "icon": "↗",
+   "c1": "#F6A24A",
+   "c2": "#FFF3B8",
+   "soft": "#FFF9E3",
+   "desc": {
+    "id": "Selalu siap buat gerak dan tantangan baru.",
+    "en": "Always up for movement & new challenges."
+   },
+   "tag": {
+    "id": "Si yang nggak bisa diem, selalu pertama bilang ayo coba!",
+    "en": "The one who cannot sit still and is always first to say let us try!"
+   },
+   "energy": {
+    "id": "Yang bilang ayo sebelum pertanyaannya selesai.",
+    "en": "The one who says yes before anyone finishes the question."
+   },
+   "sparks": [
+    "#AlwaysMoving",
+    "#TryEverything",
+    "#NoFearMode"
+   ],
+   "booths": [
+    "SPO",
+    "MUS",
+    "IMP"
+   ],
+   "besties": [
+    "CL",
+    "IP"
+   ]
+  },
+  "CU": {
+   "name": "The Curious Explorer",
+   "icon": "?",
+   "c1": "#8A4FD6",
+   "c2": "#DCCBFB",
+   "soft": "#F0EAFB",
+   "desc": {
+    "id": "Suka nanya kenapa, nyoba, dan nemuin hal baru.",
+    "en": "Loves asking why, testing & discovering."
+   },
+   "tag": {
+    "id": "Si tukang nanya, yang nggak puas sebelum tau cara kerjanya!",
+    "en": "The one who keeps asking, and is never satisfied until they know how it works!"
+   },
+   "energy": {
+    "id": "Yang bongkar dulu cuma buat tau cara kerjanya.",
+    "en": "The one who takes things apart just to see how they work."
+   },
+   "sparks": [
+    "#WhyThough",
+    "#TestAndLearn",
+    "#BrainOn"
+   ],
+   "booths": [
+    "STEM",
+    "PSY",
+    "MOV"
+   ],
+   "besties": [
+    "CR",
+    "IP"
+   ]
+  },
+  "IP": {
+   "name": "The Impact Explorer",
+   "icon": "♡",
+   "c1": "#17B6A6",
+   "c2": "#B8E6D6",
+   "soft": "#E3F5EF",
+   "desc": {
+    "id": "Pengin bikin hal kecil jadi berarti.",
+    "en": "Wants to make small things matter."
+   },
+   "tag": {
+    "id": "Si yang mulai dari hal kecil, tapi nggak pernah berhenti di situ!",
+    "en": "The one who starts small, but never stops there!"
+   },
+   "energy": {
+    "id": "Yang sadar siapa yang ketinggalan, terus balik jemput.",
+    "en": "The one who notices who got left behind, and goes back."
+   },
+   "sparks": [
+    "#SmallStepsBigChange",
+    "#ForThePeople",
+    "#PlanetFirst"
+   ],
+   "booths": [
+    "IMP",
+    "PSY",
+    "ART"
+   ],
+   "besties": [
+    "CU",
+    "AC"
+   ]
+  },
+  "ST": {
+   "name": "The Style Explorer",
+   "icon": "✳",
+   "c1": "#E0357D",
+   "c2": "#FFD1E3",
+   "soft": "#FFEAF2",
+   "desc": {
+    "id": "Mengekspresikan diri lewat penampilan dan estetika.",
+    "en": "Expresses identity through looks & aesthetics."
+   },
+   "tag": {
+    "id": "Si yang bisa ngomong tanpa ngomong, lewat warna, gaya, dan detail!",
+    "en": "The one who speaks without speaking, through colour, style and detail!"
+   },
+   "energy": {
+    "id": "Yang outfit-nya aja udah satu cerita.",
+    "en": "The one whose outfit is a whole story."
+   },
+   "sparks": [
+    "#OwnYourLook",
+    "#AestheticMode",
+    "#MainCharacterFit"
+   ],
+   "booths": [
+    "FAS",
+    "BEA",
+    "ART"
+   ],
+   "besties": [
+    "CR",
+    "CL"
+   ]
+  }
+ },
+ "booths": {
+  "MUS": {
+   "name": "Music & Fandom",
+   "tag": {
+    "id": "Nyanyi, jamming, dan fangirling bareng",
+    "en": "Sing, jam, and fan out together"
+   }
+  },
+  "BEA": {
+   "name": "Beauty & Expression",
+   "tag": {
+    "id": "Explore dan ekspresikan beauty & style-mu",
+    "en": "Explore and express your beauty & style"
+   }
+  },
+  "ART": {
+   "name": "Art & Craft",
+   "tag": {
+    "id": "Bikin karya seni versimu sendiri",
+    "en": "Create your own artwork"
+   }
+  },
+  "SPO": {
+   "name": "Sport",
+   "tag": {
+    "id": "Gerak, main, dan coba olahraga baru",
+    "en": "Move, play, and try a new game"
+   }
+  },
+  "STEM": {
+   "name": "STEM World",
+   "tag": {
+    "id": "Utak-atik teknologi, coding, dan eksperimen",
+    "en": "Tinker with tech, code, and experiments"
+   }
+  },
+  "MOV": {
+   "name": "Movie & Stories",
+   "tag": {
+    "id": "Hidupkan ceritamu",
+    "en": "Bring your story to life"
+   }
+  },
+  "IMP": {
+   "name": "Impact & Environment",
+   "tag": {
+    "id": "Mulai hal baik buat orang dan bumi",
+    "en": "Start something good for people and the planet"
+   }
+  },
+  "FAS": {
+   "name": "Fashion & Style",
+   "tag": {
+    "id": "Gaya sesukamu",
+    "en": "Style it your way"
+   }
+  },
+  "PSY": {
+   "name": "Psychology & Wellbeing",
+   "tag": {
+    "id": "Kenali dirimu sedikit lebih dalam",
+    "en": "Understand yourself a little better"
+   }
+  }
+ },
+ "doubts": {
+  "SKILL": {
+   "id": "Kamu nggak harus jago buat mulai. Mulai itu yang bikin kamu jago.",
+   "en": "You do not have to be good to begin. Beginning is how you get good."
+  },
+  "EXPECTATION": {
+   "id": "Nggak semua harus jadi sempurna. Yang penting jadi.",
+   "en": "Not everything has to turn out perfectly. It just has to turn out."
+  },
+  "FAILURE": {
+   "id": "Kesalahan sering jadi jalan ke hal yang nggak kamu duga.",
+   "en": "Mistakes can lead to something unexpected."
+  },
+  "IMPACT": {
+   "id": "Langkah sekecil apa pun tetep bikin beda. Buat kamu dulu, baru buat orang lain.",
+   "en": "Even small steps can make a difference. For you first, then for others."
+  }
+ },
+ "interests": {
+  "PERFORMANCE": "Music / Performance / Expression",
+  "CREATIVITY": "Art / Making / Storytelling",
+  "COURAGE": "Sport / Challenges / Exploration",
+  "PURPOSE": "Impact / Community / Environment"
+ },
+ "scenes": [
+  {
+   "id": "c1",
+   "chapter": "Chapter 01",
+   "place": {
+    "id": "Undangan Misterius",
+    "en": "The Invitation"
+   },
+   "img": "art/explorer/c1.jpg",
+   "floor": 0.86,
+   "tutorial": true,
+   "beats": [
+    {
+     "who": "",
+     "id": "Kamu bangun pagi ini dan nemu sebuah undangan misterius di meja.",
+     "en": "You wake up this morning and find a mysterious invitation on your desk."
+    },
+    {
+     "who": "",
+     "id": "Isinya cuma satu kalimat: Hari ini kamu boleh explore apa pun yang selama ini bikin kamu penasaran.",
+     "en": "It says one thing: Today, you can explore anything you have ever been curious about."
+    },
+    {
+     "who": "",
+     "id": "Di bawahnya, tulisan tangan kecil: Dari mana ceritamu mau dimulai?",
+     "en": "Below it, in small handwriting: Where will your story begin?"
+    }
+   ],
+   "prompt": {
+    "id": "Kalau bisa nyoba satu hal baru hari ini, kamu paling excited buat...",
+    "en": "If you could try one new thing today, what would excite you most?"
+   },
+   "options": [
+    {
+     "label": {
+      "id": "Tampil dan mengekspresikan diri di depan orang banyak",
+      "en": "Performing and expressing yourself in front of a crowd"
+     },
+     "x": 0.2,
+     "move": "mic",
+     "react": [
+      {
+       "who": "",
+       "id": "Kamu langsung kebayang lampu panggung. Deg-degan, tapi senyum kamu nggak bisa ditahan.",
+       "en": "You picture the stage lights right away. Nervous, but you cannot stop smiling."
+      }
+     ],
+     "type": {
+      "CL": 2,
+      "ST": 1
+     },
+     "booth": {
+      "MUS": 2,
+      "FAS": 1
+     },
+     "leadsTo": "c2"
+    },
+    {
+     "label": {
+      "id": "Bikin sesuatu yang belum pernah kamu buat",
+      "en": "Creating something you have never made before"
+     },
+     "x": 0.42,
+     "move": "paint",
+     "react": [
+      {
+       "who": "",
+       "id": "Tangan kamu udah gatel pengin mulai. Entah apa bentuknya nanti, yang penting punya kamu.",
+       "en": "Your hands are itching to start. Whatever it turns into, it will be yours."
+      }
+     ],
+     "type": {
+      "CR": 2,
+      "CU": 1
+     },
+     "booth": {
+      "ART": 2,
+      "MOV": 1
+     },
+     "leadsTo": "c2"
+    },
+    {
+     "label": {
+      "id": "Mencoba challenge yang bikin adrenaline naik",
+      "en": "Trying an adrenaline-pumping challenge"
+     },
+     "x": 0.64,
+     "move": "run",
+     "react": [
+      {
+       "who": "",
+       "id": "Jantung kamu udah lari duluan. Hari ini kayaknya bakal seru.",
+       "en": "Your heart is already racing ahead of you. Today is going to be fun."
+      }
+     ],
+     "type": {
+      "AC": 2,
+      "CL": 1
+     },
+     "booth": {
+      "SPO": 2,
+      "MUS": 1
+     },
+     "leadsTo": "c2"
+    },
+    {
+     "label": {
+      "id": "Menemukan sesuatu yang bisa membawa perubahan",
+      "en": "Discovering something that could make a difference"
+     },
+     "x": 0.86,
+     "move": "wave",
+     "react": [
+      {
+       "who": "",
+       "id": "Kamu kepikiran satu hal kecil yang bisa kamu ubah hari ini. Dari situ aja dulu.",
+       "en": "You think of one small thing you could change today. Start there."
+      }
+     ],
+     "type": {
+      "IP": 2,
+      "CU": 1
+     },
+     "booth": {
+      "IMP": 2,
+      "PSY": 1
+     },
+     "leadsTo": "c2"
+    }
+   ]
+  },
+  {
+   "id": "c2",
+   "chapter": "Chapter 02",
+   "place": {
+    "id": "Jalanan Penuh Pintu",
+    "en": "The First Turn"
+   },
+   "img": "art/explorer/c2.jpg",
+   "floor": 0.88,
+   "beats": [
+    {
+     "who": "",
+     "id": "Kamu keluar rumah dan nemu jalanan yang penuh tempat menarik.",
+     "en": "You step outside onto a street full of exciting places."
+    },
+    {
+     "who": "",
+     "id": "Semua pintunya kebuka. Ada musik dari satu sisi, bau cat dari sisi lain, suara orang ketawa di ujung jalan.",
+     "en": "Every door is open. Music from one side, the smell of paint from another, laughter at the end of the street."
+    },
+    {
+     "who": "",
+     "id": "Tapi satu tempat langsung bikin kamu berhenti.",
+     "en": "But one place instantly makes you stop."
+    }
+   ],
+   "prompt": {
+    "id": "Kamu bakal langsung masuk ke tempat yang...",
+    "en": "Which place would you walk into first?"
+   },
+   "options": [
+    {
+     "label": {
+      "id": "Ada orang lagi jamming dan sing-along bareng",
+      "en": "People are jamming and singing along together"
+     },
+     "x": 0.2,
+     "move": "wave",
+     "react": [
+      {
+       "who": "",
+       "id": "Baru masuk, kamu udah ikut nyanyi bagian reff. Nggak ada yang nanya kamu siapa.",
+       "en": "You are singing the chorus before you even sit down. Nobody asks who you are."
+      }
+     ],
+     "type": {
+      "CL": 2,
+      "AC": 1
+     },
+     "booth": {
+      "MUS": 2,
+      "BEA": 1
+     },
+     "leadsTo": "c3"
+    },
+    {
+     "label": {
+      "id": "Penuh karya seni dan orang lagi DIY",
+      "en": "Artworks and people making DIY creations fill the space"
+     },
+     "x": 0.42,
+     "move": "craft",
+     "react": [
+      {
+       "who": "",
+       "id": "Ada meja kosong dan sekotak bahan. Kamu duduk tanpa mikir dua kali.",
+       "en": "There is an empty table and a box of materials. You sit down without a second thought."
+      }
+     ],
+     "type": {
+      "CR": 2,
+      "ST": 1
+     },
+     "booth": {
+      "ART": 2,
+      "FAS": 1
+     },
+     "leadsTo": "c3"
+    },
+    {
+     "label": {
+      "id": "Ada orang lagi main games dan mini challenges",
+      "en": "People are playing games and trying mini challenges"
+     },
+     "x": 0.64,
+     "move": "run",
+     "react": [
+      {
+       "who": "",
+       "id": "Kamu kalah di ronde pertama, terus langsung minta main lagi.",
+       "en": "You lose the first round and immediately ask for another."
+      }
+     ],
+     "type": {
+      "AC": 2,
+      "IP": 1
+     },
+     "booth": {
+      "SPO": 2,
+      "IMP": 1
+     },
+     "leadsTo": "c3"
+    },
+    {
+     "label": {
+      "id": "Ada teknologi interaktif yang belum pernah kamu coba",
+      "en": "There is interactive technology you have never tried"
+     },
+     "x": 0.86,
+     "move": "phone",
+     "react": [
+      {
+       "who": "",
+       "id": "Kamu pencet semua tombolnya dulu, baru baca petunjuknya.",
+       "en": "You press every button first, then read the instructions."
+      }
+     ],
+     "type": {
+      "CU": 2,
+      "CR": 1
+     },
+     "booth": {
+      "STEM": 2,
+      "PSY": 1
+     },
+     "leadsTo": "c3"
+    }
+   ]
+  },
+  {
+   "id": "c3",
+   "chapter": "Chapter 03",
+   "place": {
+    "id": "Tantangan Dadakan",
+    "en": "The Unexpected Challenge"
+   },
+   "img": "art/explorer/c3.jpg",
+   "floor": 0.88,
+   "beats": [
+    {
+     "who": "",
+     "id": "Tiba-tiba ada pengumuman: challenge dadakan!",
+     "en": "Suddenly, an announcement: a surprise challenge!"
+    },
+    {
+     "who": "",
+     "id": "Kamu dikasih waktu buat bikin sesuatu, dengan cara kamu sendiri. Nggak ada aturan, nggak ada contekan.",
+     "en": "You get some time to create something, your own way. No rules, no template."
+    }
+   ],
+   "prompt": {
+    "id": "Kalau dikasih kebebasan buat bikin sesuatu, kamu pilih...",
+    "en": "If you had total freedom to create something, what would you choose?"
+   },
+   "options": [
+    {
+     "label": {
+      "id": "Mendesain packaging produk beauty versiku sendiri",
+      "en": "Create my own beauty product packaging"
+     },
+     "x": 0.2,
+     "move": "paint",
+     "react": [
+      {
+       "who": "",
+       "id": "Warna pertama yang kamu pilih langsung kerasa kamu banget.",
+       "en": "The first colour you pick already feels like you."
+      }
+     ],
+     "type": {
+      "ST": 2,
+      "CR": 1
+     },
+     "booth": {
+      "BEA": 2,
+      "FAS": 1
+     },
+     "leadsTo": "c4"
+    },
+    {
+     "label": {
+      "id": "Mengubah ide-ideku jadi sebuah film pendek",
+      "en": "Turn my ideas into a short movie"
+     },
+     "x": 0.42,
+     "move": "phone",
+     "react": [
+      {
+       "who": "",
+       "id": "Adegan pertamanya udah ada di kepala kamu dari tadi.",
+       "en": "The first scene has been playing in your head all along."
+      }
+     ],
+     "type": {
+      "CR": 2,
+      "CL": 1
+     },
+     "booth": {
+      "MOV": 2,
+      "ART": 1
+     },
+     "leadsTo": "c4"
+    },
+    {
+     "label": {
+      "id": "Customize aksesori yang bener-bener mencerminkan diriku",
+      "en": "Customize an accessory that screams ME!"
+     },
+     "x": 0.64,
+     "move": "craft",
+     "react": [
+      {
+       "who": "",
+       "id": "Kamu nggak mau yang rapi. Kamu mau yang keliatan punya kamu.",
+       "en": "You do not want it neat. You want it to look like yours."
+      }
+     ],
+     "type": {
+      "ST": 2,
+      "AC": 1
+     },
+     "booth": {
+      "FAS": 2,
+      "ART": 1
+     },
+     "leadsTo": "c4"
+    },
+    {
+     "label": {
+      "id": "Membuat sesuatu yang membantu orang lain atau lingkungan",
+      "en": "Create something that helps people or the planet"
+     },
+     "x": 0.86,
+     "move": "tidy",
+     "react": [
+      {
+       "who": "",
+       "id": "Kamu mulai dari masalah yang kamu liat tiap hari. Kecil, tapi nyata.",
+       "en": "You start from a problem you see every day. Small, but real."
+      }
+     ],
+     "type": {
+      "IP": 2,
+      "CU": 1
+     },
+     "booth": {
+      "IMP": 2,
+      "STEM": 1
+     },
+     "leadsTo": "c4"
+    }
+   ]
+  },
+  {
+   "id": "c4",
+   "chapter": "Chapter 04",
+   "place": {
+    "id": "Ragu Sebentar",
+    "en": "The Moment of Doubt"
+   },
+   "img": "art/explorer/c4.jpg",
+   "floor": 0.9,
+   "beats": [
+    {
+     "who": "",
+     "id": "Kamu udah milih challenge yang mau dicoba. Bahannya ada, waktunya ada.",
+     "en": "You have chosen the challenge you want to try. The materials are there, the time is there."
+    },
+    {
+     "who": "",
+     "id": "Tapi pas mau mulai, tiba-tiba ada satu pikiran yang bikin kamu berhenti.",
+     "en": "But just as you are about to start, one thought creeps in and stops you."
+    }
+   ],
+   "prompt": {
+    "id": "Apa yang paling bikin kamu ragu buat nyoba sesuatu yang baru?",
+    "en": "What makes you hesitate most when trying something new?"
+   },
+   "options": [
+    {
+     "label": {
+      "id": "Takut nggak cukup jago buat mulai.",
+      "en": "What if I am not good enough to start?"
+     },
+     "x": 0.2,
+     "move": "look",
+     "react": [
+      {
+       "who": "",
+       "id": "Kamu nggak harus jago buat mulai. Mulai itu yang bikin kamu jago.",
+       "en": "You do not have to be good to begin. Beginning is how you get good."
+      }
+     ],
+     "doubt": "SKILL",
+     "leadsTo": "c5"
+    },
+    {
+     "label": {
+      "id": "Takut hasilnya nggak sesuai ekspektasi.",
+      "en": "What if it does not turn out as I expected?"
+     },
+     "x": 0.42,
+     "move": "breathe",
+     "react": [
+      {
+       "who": "",
+       "id": "Nggak semua harus jadi sempurna. Yang penting jadi.",
+       "en": "Not everything has to turn out perfectly. It just has to turn out."
+      }
+     ],
+     "doubt": "EXPECTATION",
+     "leadsTo": "c5"
+    },
+    {
+     "label": {
+      "id": "Takut gagal atau bikin kesalahan.",
+      "en": "What if I fail or make mistakes?"
+     },
+     "x": 0.64,
+     "move": "sit",
+     "react": [
+      {
+       "who": "",
+       "id": "Kesalahan sering jadi jalan ke hal yang nggak kamu duga.",
+       "en": "Mistakes can lead to something unexpected."
+      }
+     ],
+     "doubt": "FAILURE",
+     "leadsTo": "c5"
+    },
+    {
+     "label": {
+      "id": "Takut apa yang aku lakuin nggak berarti apa-apa.",
+      "en": "What if what I do does not matter?"
+     },
+     "x": 0.86,
+     "move": "listen",
+     "react": [
+      {
+       "who": "",
+       "id": "Langkah sekecil apa pun tetep bikin beda. Buat kamu dulu, baru buat orang lain.",
+       "en": "Even small steps can make a difference. For you first, then for others."
+      }
+     ],
+     "doubt": "IMPACT",
+     "leadsTo": "c5"
+    }
+   ]
+  },
+  {
+   "id": "c5",
+   "chapter": "Chapter 05",
+   "place": {
+    "id": "Cerita dari Panggung",
+    "en": "The Spotlight Moment"
+   },
+   "img": "art/explorer/c5.jpg",
+   "floor": 0.9,
+   "beats": [
+    {
+     "who": "",
+     "id": "Di tengah ragu, kamu denger seseorang lagi cerita dari atas panggung.",
+     "en": "In the middle of your doubts, you hear someone sharing their story on stage."
+    },
+    {
+     "who": "",
+     "id": "Ternyata mereka juga pernah takut dan ragu, sebelum akhirnya berani nyoba.",
+     "en": "It turns out they were once afraid and uncertain too, before they found the courage to try."
+    },
+    {
+     "who": "",
+     "id": "Kamu dengerin sampai habis. Terus kamu mikir: mungkin aku juga bisa.",
+     "en": "You listen to the end. Then you think: maybe I can do it too."
+    }
+   ],
+   "prompt": {
+    "id": "Cerita mana yang paling bikin kamu berani buat mulai explore?",
+    "en": "Which story makes you feel brave enough to start exploring?"
+   },
+   "options": [
+    {
+     "label": {
+      "id": "Seseorang yang awalnya takut tampil, tapi akhirnya berani nunjukin bakatnya.",
+      "en": "Someone who was afraid to perform, but eventually found the courage to show their talent."
+     },
+     "x": 0.2,
+     "move": "mic",
+     "react": [
+      {
+       "who": "",
+       "id": "Kamu nggak sadar udah tepuk tangan paling kenceng.",
+       "en": "You do not realise you are clapping the loudest."
+      }
+     ],
+     "interest": "PERFORMANCE",
+     "leadsTo": "c6"
+    },
+    {
+     "label": {
+      "id": "Seseorang yang terus nyoba sampai akhirnya berhasil mewujudkan ide kreatifnya.",
+      "en": "Someone who kept trying until they finally brought their creative idea to life."
+     },
+     "x": 0.42,
+     "move": "paint",
+     "react": [
+      {
+       "who": "",
+       "id": "Kamu catet satu kalimatnya di HP, buat dibaca lagi nanti.",
+       "en": "You save one of their lines on your phone, to read again later."
+      }
+     ],
+     "interest": "CREATIVITY",
+     "leadsTo": "c6"
+    },
+    {
+     "label": {
+      "id": "Seseorang yang berani keluar dari comfort zone dan nyoba tantangan baru.",
+      "en": "Someone who stepped out of their comfort zone and embraced a new challenge."
+     },
+     "x": 0.64,
+     "move": "run",
+     "react": [
+      {
+       "who": "",
+       "id": "Kaki kamu udah pengin gerak sebelum ceritanya selesai.",
+       "en": "Your feet want to move before the story even ends."
+      }
+     ],
+     "interest": "COURAGE",
+     "leadsTo": "c6"
+    },
+    {
+     "label": {
+      "id": "Seseorang yang mulai dari hal kecil sampai akhirnya bisa bawa perubahan.",
+      "en": "Someone who started small and eventually made a meaningful difference."
+     },
+     "x": 0.86,
+     "move": "wave",
+     "react": [
+      {
+       "who": "",
+       "id": "Kamu kepikiran orang-orang yang bakal kamu ajak bareng.",
+       "en": "You think of the people you would bring along."
+      }
+     ],
+     "interest": "PURPOSE",
+     "leadsTo": "c6"
+    }
+   ]
+  },
+  {
+   "id": "c6",
+   "chapter": "Chapter 06",
+   "place": {
+    "id": "Pintu Baru",
+    "en": "Beyond Your Comfort Zone"
+   },
+   "img": "art/explorer/c6.jpg",
+   "floor": 0.9,
+   "beats": [
+    {
+     "who": "",
+     "id": "Setelah denger cerita tadi, kamu lanjut jalan.",
+     "en": "After that story, you continue your journey."
+    },
+    {
+     "who": "",
+     "id": "Sekarang ada satu pintu baru yang kebuka, ke sesuatu yang belum pernah kamu bayangin.",
+     "en": "Now a new door opens, to something you have never imagined before."
+    }
+   ],
+   "prompt": {
+    "id": "Mana yang paling bikin kamu penasaran, walaupun belum pernah dicoba?",
+    "en": "Which experience makes you most curious, even if you have never tried it?"
+   },
+   "options": [
+    {
+     "label": {
+      "id": "Menjelajahi dunia coding & AI",
+      "en": "Exploring the world of coding & AI"
+     },
+     "x": 0.2,
+     "move": "phone",
+     "react": [
+      {
+       "who": "",
+       "id": "Kamu ngetik baris pertama. Error. Kamu ketawa, terus coba lagi.",
+       "en": "You type the first line. Error. You laugh and try again."
+      }
+     ],
+     "type": {
+      "CU": 2,
+      "CR": 1
+     },
+     "booth": {
+      "STEM": 2,
+      "MOV": 1
+     },
+     "leadsTo": "c7"
+    },
+    {
+     "label": {
+      "id": "Mencoba olahraga yang bener-bener baru",
+      "en": "Trying an entirely new sport"
+     },
+     "x": 0.42,
+     "move": "run",
+     "react": [
+      {
+       "who": "",
+       "id": "Gerakannya masih kaku, tapi napas kamu belum pernah selega ini.",
+       "en": "The moves are still stiff, but you have never breathed this freely."
+      }
+     ],
+     "type": {
+      "AC": 2,
+      "CL": 1
+     },
+     "booth": {
+      "SPO": 2,
+      "PSY": 1
+     },
+     "leadsTo": "c7"
+    },
+    {
+     "label": {
+      "id": "Menemukan hubungan antara kreativitas dan emosi",
+      "en": "Discovering how creativity and emotions connect"
+     },
+     "x": 0.64,
+     "move": "write",
+     "react": [
+      {
+       "who": "",
+       "id": "Kamu nulis tiga kata tentang hari ini. Ternyata itu udah jadi sesuatu.",
+       "en": "You write three words about today. Somehow, that is already something."
+      }
+     ],
+     "type": {
+      "CU": 2,
+      "ST": 1
+     },
+     "booth": {
+      "PSY": 2,
+      "ART": 1
+     },
+     "leadsTo": "c7"
+    },
+    {
+     "label": {
+      "id": "Mengubah ide sederhana jadi gerakan sosial",
+      "en": "Turning a simple idea into a social movement"
+     },
+     "x": 0.86,
+     "move": "wave",
+     "react": [
+      {
+       "who": "",
+       "id": "Satu orang ikut. Terus dua. Kamu nggak nyangka secepat itu.",
+       "en": "One person joins. Then two. You did not expect it to be this fast."
+      }
+     ],
+     "type": {
+      "IP": 2,
+      "AC": 1
+     },
+     "booth": {
+      "IMP": 2,
+      "STEM": 1
+     },
+     "leadsTo": "c7"
+    }
+   ]
+  },
+  {
+   "id": "c7",
+   "chapter": "Chapter 07",
+   "place": {
+    "id": "Perjalananmu Dimulai",
+    "en": "Your Exploration Begins"
+   },
+   "img": "art/explorer/c7.jpg",
+   "floor": 0.9,
+   "beats": [
+    {
+     "who": "",
+     "id": "Kamu udah sampai di akhir cerita. Tapi ternyata perjalanan kamu baru mau dimulai.",
+     "en": "You have reached the end of the story. But your real adventure is only just beginning."
+    },
+    {
+     "who": "",
+     "id": "Setiap pilihan tadi bawa kamu ke sini. Siap liat ke mana eksplorasimu bakal pergi?",
+     "en": "Every choice you made brought you here. Ready to see where your exploration takes you?"
+    }
+   ],
+   "prompt": {
+    "id": "",
+    "en": ""
+   },
+   "options": [
+    {
+     "label": {
+      "id": "Tampilkan Explorer Journey-ku",
+      "en": "Reveal my Explorer Journey"
+     },
+     "x": 0.5,
+     "move": "walk",
+     "react": [],
+     "leadsTo": "ending"
+    }
+   ]
+  }
+ ]
+}

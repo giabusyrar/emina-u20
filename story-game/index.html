@@ -1,99 +1,85 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#FF4D97">
-<title>H-1 · Emina 20 Under 20</title>
+<meta name="theme-color" content="#DA1884">
+<title>Explorer Quiz · Emina 20 Under 20</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,400..900,0..100;1,9..144,400..900,0..100&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>
-:root{--tapicon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 11V5a2 2 0 0 1 4 0v6m0-2a2 2 0 0 1 4 0v3m0-1a2 2 0 0 1 4 0v4a6 6 0 0 1-6 6h-2a6 6 0 0 1-5-3l-2-4a2 2 0 0 1 3-2l1 1' fill='%23000'/%3E%3C/svg%3E");--serif:Fraunces,Georgia,'Times New Roman',serif;--sans:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;--ink:#43283A;--ink2:#6a4a5a;--pink:#FF4D97;--pink-deep:#E0357D;--cream:#FFF4F9;--panel:#FFF8FB;--line:#FFD7E9;
-  --e-out:cubic-bezier(.25,1,.5,1);--e-move:cubic-bezier(.65,0,.35,1);--e-pop:cubic-bezier(.34,1.56,.64,1)}
+:root{--tapicon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 11V5a2 2 0 0 1 4 0v6m0-2a2 2 0 0 1 4 0v3m0-1a2 2 0 0 1 4 0v4a6 6 0 0 1-6 6h-2a6 6 0 0 1-5-3l-2-4a2 2 0 0 1 3-2l1 1' fill='%23000'/%3E%3C/svg%3E");
+  --serif:Fraunces,Georgia,'Times New Roman',serif;--sans:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+  --ink:#2B1E2A;--ink2:#4A4A4A;--grey:#D9D9D9;--mag:#DA1884;--mag2:#B5126C;--pink:#F1BCD5;--pinkSoft:#FBE7F0;--yellow:#FFF7B2;--blue:#C8E3EC;
+  --panel:#FFFFFF;--line:#F1BCD5;--e-out:cubic-bezier(.25,1,.5,1);--e-move:cubic-bezier(.65,0,.35,1);--e-pop:cubic-bezier(.34,1.56,.64,1)}
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;overflow:hidden;background:#1b1226;font-family:var(--sans);color:var(--ink);
-  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-button{font-family:inherit}
-#app{position:fixed;inset:0;margin:0 auto;max-width:460px;background:#1b1226;overflow:hidden}
+html,body{height:100%;margin:0;overflow:hidden;background:#1b1226;font-family:var(--sans);color:var(--ink);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+button,input{font-family:inherit}
+#app{position:fixed;inset:0;margin:0 auto;max-width:460px;background:#fff;overflow:hidden}
 .screen{position:absolute;inset:0;display:none;flex-direction:column}
 .screen.on{display:flex}
-
+.lang{border:1.5px solid var(--pink);background:#fff;color:var(--mag);font:800 11px/1 var(--sans);letter-spacing:.14em;padding:7px 10px;border-radius:999px;cursor:pointer}
 /* ---------- welcome ---------- */
-#welcome{background:linear-gradient(168deg,#FF8AC0 0%,#FF4D97 48%,#E0357D 100%);color:#fff;overflow:auto;
-  padding:calc(18px + env(safe-area-inset-top,0px)) 22px calc(26px + env(safe-area-inset-bottom,0px))}
-.w-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-.brand{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-style:italic;font-weight:700;font-size:28px;letter-spacing:-.02em;line-height:1}
-.camp{font-family:var(--sans);font-weight:700;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;opacity:.9;text-align:right}
-.w-hero{margin:18px -4px 0;border-radius:22px;overflow:hidden;aspect-ratio:4/3;background:rgba(255,255,255,.14);position:relative;
-  box-shadow:0 18px 40px rgba(120,20,70,.28)}
+#welcome{background:#fff;color:var(--ink);overflow:auto;padding:calc(14px + env(safe-area-inset-top,0px)) 20px calc(26px + env(safe-area-inset-bottom,0px))}
+.w-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.w-emina{height:22px;width:auto;display:block}
+.w-hero{margin:14px -6px 0;border-radius:18px;overflow:hidden;aspect-ratio:2.37/1;background:var(--pinkSoft);box-shadow:0 14px 34px rgba(218,24,132,.14)}
 .w-hero img{width:100%;height:100%;object-fit:cover;display:block}
-.w-hero .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;
-  font-size:84px;letter-spacing:-.03em;color:rgba(255,255,255,.9);text-shadow:0 10px 30px rgba(120,20,70,.3)}
-.w-hero .ph small{position:absolute;bottom:14px;left:0;right:0;text-align:center;font:600 11px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;opacity:.85}
-#welcome h1{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(46px,14vw,64px);line-height:.92;margin:22px 0 0;letter-spacing:-.03em}
-#welcome .w-sub{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-style:italic;font-weight:500;font-size:19px;line-height:1.3;margin:8px 0 0;opacity:.96}
-#welcome .w-lead{font-family:var(--serif);font-variation-settings:'SOFT' 60;font-weight:400;font-size:16.5px;line-height:1.5;margin:16px 0 0;opacity:.97;max-width:34ch}
-.w-heart{margin:18px 0 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);font-family:var(--sans);font-weight:500;font-size:13.5px;line-height:1.5}
-.w-how{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:8px}
-.w-how li{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:10px 12px;font-size:13.5px;line-height:1.35}
-.w-how .n{flex:0 0 28px;height:28px;border-radius:50%;background:#fff;color:var(--pink-deep);display:grid;place-items:center;font:800 13px var(--sans)}
-.w-how b{font-weight:600}
-#startBtn{margin-top:22px;width:100%;border:none;border-radius:999px;padding:17px 20px;background:#fff;color:var(--pink-deep);
-  font:700 17px var(--sans);cursor:pointer;box-shadow:0 14px 30px rgba(120,20,70,.3);transition:transform .15s var(--e-pop)}
+.w-kicker{margin:18px 0 0;font:800 10.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--mag)}
+#welcome h1{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(30px,8.6vw,40px);line-height:1;margin:8px 0 0;letter-spacing:-.02em;color:var(--ink)}
+#welcome h1 em{font-style:italic;color:var(--mag)}
+.w-intro{font-family:var(--serif);font-variation-settings:'SOFT' 60;font-size:16px;line-height:1.5;margin:12px 0 0;color:var(--ink)}
+.w-lead{font-size:13.5px;line-height:1.55;margin:12px 0 0;color:var(--ink2);padding:12px 14px;border-radius:14px;background:var(--pinkSoft)}
+.w-name{display:block;margin:16px 0 0}
+.w-name span{display:block;font:700 11px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mag);margin-bottom:6px}
+.w-name input{width:100%;border:1.5px solid var(--pink);border-radius:14px;padding:13px 14px;font:600 16px var(--sans);color:var(--ink);background:#fff;outline:none}
+.w-name input:focus{border-color:var(--mag);box-shadow:0 0 0 3px rgba(218,24,132,.12)}
+#startBtn{margin-top:16px;width:100%;border:none;border-radius:999px;padding:17px 20px;background:var(--mag);color:#fff;font:800 16px var(--sans);letter-spacing:.02em;cursor:pointer;box-shadow:0 14px 30px rgba(218,24,132,.28);transition:transform .15s var(--e-pop)}
 #startBtn:active{transform:scale(.98)}
-.w-fine{text-align:center;font-size:11.5px;opacity:.85;margin:12px 0 0;letter-spacing:.02em}
-
+.w-fine{text-align:center;font-size:11.5px;color:var(--ink2);margin:12px 0 0}
 /* ---------- game ---------- */
 #game{background:var(--panel)}
-#stage{position:relative;flex:0 0 56%;overflow:hidden;background:var(--fb,#CDBEF2);transition:background .6s}
+#stage{position:relative;flex:0 0 56%;overflow:hidden;background:var(--fb,#F1BCD5);transition:background .6s}
 @media (max-height:700px){#stage{flex-basis:50%}}
+#ground{position:absolute;left:0;right:0;bottom:0;height:16%;background:rgba(43,30,42,.08);pointer-events:none}
 #stage img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .75s var(--e-out)}
 #stage img.bg.on{opacity:1}
 #actorLayer{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
-#chip{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:12px;padding:6px 11px;border-radius:999px;background:rgba(27,18,38,.52);color:#fff;
-  font:500 11px/1 "Plus Jakarta Sans",sans-serif;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  opacity:0;transform:translateY(-4px);transition:opacity .5s,transform .5s var(--e-out)}
+#chip{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:12px;padding:6px 11px;border-radius:999px;background:rgba(43,30,42,.55);color:#fff;font:500 11px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;transform:translateY(-4px);transition:opacity .5s,transform .5s var(--e-out)}
 #chip.on{opacity:1;transform:none}
-#chip b{font-weight:600;color:#FFD7E9;margin-right:6px}
-#tutBadge{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;display:none;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:var(--pink);color:#fff;font:800 10.5px/1 var(--sans);letter-spacing:.14em;box-shadow:0 8px 18px rgba(224,53,125,.28)}
-#tutBadge.on{display:inline-flex;animation:tutpop .4s var(--e-pop)}
-#tutBadge .dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:blink 1.1s ease-in-out infinite}
-@keyframes tutpop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+#chip b{font-weight:800;color:var(--pink);margin-right:6px}
 #fade{position:absolute;inset:0;background:#1b1226;opacity:0;transition:opacity .45s;pointer-events:none}
 #fade.on{opacity:1}
-#stage::after{content:'';position:absolute;left:0;right:0;bottom:0;height:36px;background:linear-gradient(to top,var(--panel),rgba(255,248,251,0));pointer-events:none}
+#stage::after{content:'';position:absolute;left:0;right:0;bottom:0;height:36px;background:linear-gradient(to top,var(--panel),rgba(255,255,255,0));pointer-events:none}
 #panel{flex:1;display:flex;flex-direction:column;min-height:0;padding:12px 18px calc(14px + env(safe-area-inset-bottom,0px));position:relative}
 #box{flex:0 0 auto;position:relative;padding-right:18px}
-#who{display:inline-block;font-family:var(--sans);font-weight:700;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
-  padding:4px 10px 3px;border-radius:999px;color:#fff;background:var(--who,#9B9BB5);margin:0 0 7px;opacity:0;transform:translateY(4px);transition:opacity .22s,transform .22s var(--e-out)}
+#who{display:inline-block;font:800 11.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;padding:4px 10px 3px;border-radius:999px;color:#fff;background:var(--who,#9B9BB5);margin:0 0 7px;opacity:0;transform:translateY(4px);transition:opacity .22s,transform .22s var(--e-out)}
 #who.on{opacity:1;transform:none}
 #txt{margin:0;font-family:var(--sans);font-size:clamp(15px,4.2vw,17px);line-height:1.5;font-weight:500;min-height:4.5em;text-wrap:pretty}
 #txt.narr{font-family:var(--serif);font-variation-settings:'SOFT' 60;font-weight:400;font-size:clamp(16.5px,4.6vw,18.5px);line-height:1.48;color:var(--ink2)}
-#txt.echo{font-weight:600;color:var(--pink-deep)}
+#txt.echo{font-weight:700;color:var(--mag)}
 #next{position:absolute;right:0;bottom:4px;width:12px;height:12px;opacity:0;transition:opacity .3s}
 #next.on{opacity:.8;animation:nod 1.1s ease-in-out infinite}
-#hint{position:absolute;left:0;right:0;bottom:-18px;margin:0;font-size:11px;color:#b08a9c;letter-spacing:.04em;opacity:0;transition:opacity .4s}
+#hint{position:absolute;left:0;right:0;bottom:-18px;margin:0;font-size:11px;color:#9b7f8e;letter-spacing:.04em;opacity:0;transition:opacity .4s}
 #hint.on{opacity:1}
-#hint.tut{bottom:-32px;font-family:var(--sans);font-weight:700;font-size:12.5px;color:#fff;background:var(--pink);display:inline-flex;align-items:center;gap:6px;left:auto;right:0;padding:7px 12px 7px 10px;border-radius:999px;animation:nod 1.1s ease-in-out infinite;box-shadow:0 8px 18px rgba(224,53,125,.25)}
+#hint.tut{bottom:-32px;font:700 12.5px var(--sans);color:#fff;background:var(--mag);display:inline-flex;align-items:center;gap:6px;left:auto;right:0;padding:7px 12px 7px 10px;border-radius:999px;animation:nod 1.1s ease-in-out infinite;box-shadow:0 8px 18px rgba(218,24,132,.25)}
 #hint.tut::before{content:'';width:13px;height:16px;background:#fff;-webkit-mask:var(--tapicon) center/contain no-repeat;mask:var(--tapicon) center/contain no-repeat}
-#ground{position:absolute;left:0;right:0;bottom:0;height:16%;background:rgba(67,40,58,.08);pointer-events:none}
 @keyframes nod{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
 #choices{margin-top:auto;display:flex;flex-direction:column;gap:7px;opacity:0;transform:translateY(10px);transition:opacity .3s,transform .3s var(--e-out);pointer-events:none;overflow:auto;padding-top:10px}
 #choices.on{opacity:1;transform:none;pointer-events:auto}
 #choices.tut #optList{border-radius:16px;animation:tutring 1.4s ease-in-out infinite}
-@keyframes tutring{0%,100%{box-shadow:0 0 0 0 rgba(255,77,151,0)}50%{box-shadow:0 0 0 4px rgba(255,77,151,.22)}}
-
-#tip{margin:0 0 8px;padding:9px 12px;border-radius:12px;background:#FFF0F6;border:1.5px solid var(--line);font:500 12.5px/1.45 var(--sans);color:var(--ink2);display:none}
+@keyframes tutring{0%,100%{box-shadow:0 0 0 0 rgba(218,24,132,0)}50%{box-shadow:0 0 0 4px rgba(218,24,132,.2)}}
+#tip{margin:0 0 8px;padding:9px 12px;border-radius:12px;background:var(--pinkSoft);border:1.5px solid var(--line);font:500 12.5px/1.45 var(--sans);color:var(--ink2);display:none}
 #tip.on{display:block}
-#tip b{color:var(--pink-deep);font-weight:700}
-#ask{font-family:var(--sans);font-weight:700;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--pink-deep);margin:0 0 2px}
-.opt{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:10px 12px 10px 32px;font:600 14px/1.35 var(--sans);color:var(--ink);
-  position:relative;cursor:pointer;transition:transform .15s var(--e-out),background .2s,opacity .3s,border-color .2s;opacity:0;transform:translateX(8px)}
+#tip b{color:var(--mag);font-weight:700}
+#ask{font:800 11.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mag);margin:0 0 2px}
+.opt{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:10px 12px 10px 32px;font:600 14px/1.35 var(--sans);color:var(--ink);position:relative;cursor:pointer;transition:transform .15s var(--e-out),background .2s,opacity .3s,border-color .2s;opacity:0;transform:translateX(8px)}
 .opt.in{opacity:1;transform:none}
-.opt::before{content:'\203A';position:absolute;left:13px;top:6px;font:700 21px/1 var(--serif);color:var(--pink)}
-.opt:active{transform:scale(.985);background:#FFF0F6}
-.opt.pick{background:var(--pink);color:#fff;border-color:var(--pink)}
+.opt::before{content:'\203A';position:absolute;left:13px;top:6px;font:700 21px/1 var(--serif);color:var(--mag)}
+.opt:active{transform:scale(.985);background:var(--pinkSoft)}
+.opt.pick{background:var(--mag);color:#fff;border-color:var(--mag)}
 .opt.pick::before{color:#fff}
 .opt.dim{opacity:.3}
+.opt.single{text-align:center;padding:14px 16px;background:var(--mag);color:#fff;border-color:var(--mag);font-weight:800}
+.opt.single::before{content:''}
 /* actor rig */
 #actor{transition:transform 1.1s cubic-bezier(.3,0,.22,1)}
 #lean,#squash,#actorBob,#head,.arm,.lg,.eye,#mouth,#shadow,#emote{transform-box:fill-box}
@@ -215,70 +201,83 @@ button{font-family:inherit}
 .act-look #armL{transform:rotate(-56deg)}.act-look #armR{transform:rotate(56deg)}.act-look #pItem{opacity:1}
 .act-look #emQ{display:block;animation:floaty 1.2s ease-in-out infinite alternate}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01s!important}}
-
 /* ---------- reveal ---------- */
-#reveal{position:absolute;inset:0;z-index:50;display:none;align-items:center;justify-content:center;flex-direction:column;
-  background:#1b1226;color:#FFF4F9;text-align:center;padding:24px}
+#reveal{position:absolute;inset:0;z-index:50;display:none;align-items:center;justify-content:center;flex-direction:column;background:#1b1226;color:#fff;text-align:center;padding:24px}
 #reveal.on{display:flex}
-#flame{width:18px;height:18px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:#FFE08A;
-  box-shadow:0 0 24px 8px rgba(255,224,138,.55);transform:scale(0);transition:transform .9s var(--e-out)}
+#flame{width:18px;height:18px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:#FFE08A;box-shadow:0 0 24px 8px rgba(255,224,138,.55);transform:scale(0);transition:transform .9s var(--e-out)}
 #flame.on{transform:scale(1)}
-#flood{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,var(--c2) 0,var(--c1) 48%,#1b1226 100%);
-  opacity:0;transform:scale(.2);transition:opacity .52s,transform .52s var(--e-move)}
+#flood{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,var(--c2) 0,var(--c1) 48%,#1b1226 100%);opacity:0;transform:scale(.2);transition:opacity .52s,transform .52s var(--e-move)}
 #flood.on{opacity:1;transform:scale(1)}
-#rvKick{position:relative;font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:0;transition:opacity .4s}
-#rvKick.on{opacity:.8}
-#rvType{position:relative;font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(38px,11.5vw,58px);line-height:1.02;margin:8px 0 0;letter-spacing:-.01em;min-height:1.1em}
-#rvType span{opacity:0;display:inline-block;transform:translateY(10px);transition:opacity .22s,transform .22s var(--e-out)}
-#rvType span.on{opacity:1;transform:none}
-#rvEn{position:relative;font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:0;margin:8px 0 0;transition:opacity .4s .1s}
-#rvEn.on{opacity:.75}
+#rvKick{position:relative;font:700 12px var(--sans);letter-spacing:.2em;text-transform:uppercase;opacity:0;transition:opacity .4s}
+#rvKick.on{opacity:.85}
+#rvIcon{position:relative;font:400 44px/1 var(--serif);margin:10px 0 0;opacity:0;transform:scale(.6);transition:opacity .4s,transform .5s var(--e-pop)}
+#rvIcon.on{opacity:1;transform:none}
+#rvType{position:relative;font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(34px,10.5vw,54px);line-height:1.02;margin:8px 0 0;letter-spacing:-.01em;min-height:1.1em}
+#rvType .w{display:inline-block;white-space:nowrap}
+#rvType .w span{opacity:0;display:inline-block;transform:translateY(10px);transition:opacity .22s,transform .22s var(--e-out)}
+#rvType .w span.on{opacity:1;transform:none}
+#rvEn{position:relative;font:700 12px var(--sans);letter-spacing:.14em;text-transform:uppercase;opacity:0;margin:8px 0 0;transition:opacity .4s .1s}
+#rvEn.on{opacity:.8}
 #rvLine{position:relative;font-family:var(--serif);font-variation-settings:'SOFT' 60;font-weight:400;font-size:clamp(16px,4.4vw,19px);line-height:1.5;max-width:30ch;margin:22px 0 0;opacity:0;transform:translateY(8px);transition:opacity .4s,transform .4s var(--e-out)}
-#rvLine.on{opacity:.92;transform:none}
-#rvGo{position:relative;margin-top:34px;border:none;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:15px;
-  padding:14px 26px;border-radius:999px;background:#FFF4F9;color:var(--pink-deep);opacity:0;transition:opacity .5s .3s}
+#rvLine.on{opacity:.95;transform:none}
+#rvGo{position:relative;margin-top:34px;border:none;cursor:pointer;font:800 15px var(--sans);padding:14px 26px;border-radius:999px;background:#fff;color:var(--mag);opacity:0;transition:opacity .5s .3s}
 #rvGo.on{opacity:1}
-
-/* ---------- result + share ---------- */
-#result{position:absolute;inset:0;z-index:55;display:none;overflow:auto;background:var(--cream);color:var(--ink);
-  padding:calc(18px + env(safe-area-inset-top,0px)) 18px calc(28px + env(safe-area-inset-bottom,0px))}
+/* ---------- result ---------- */
+#result{position:absolute;inset:0;z-index:55;display:none;overflow:auto;background:#fff;color:var(--ink);padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(28px + env(safe-area-inset-bottom,0px))}
 #result.on{display:block}
-.r-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
-.r-top .brand{color:var(--pink-deep);font-size:20px}
-.r-top .camp{color:var(--ink2)}
-.hero{border-radius:28px;padding:18px 20px 22px;text-align:center;box-shadow:0 18px 40px rgba(67,40,58,.14)}
-.hero .m{width:170px;margin:0 auto}
-.hero h1{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(28px,8vw,36px);margin:4px 0 0;line-height:1.02}
-.hero .en{font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.6;margin-top:4px}
-.hero .tag{margin:12px auto 0;max-width:30ch;font-family:var(--serif);font-variation-settings:'SOFT' 60;font-size:15.5px;line-height:1.5;font-weight:400}
-.closing{margin:16px 0 0;font-family:var(--serif);font-variation-settings:'SOFT' 60;font-weight:400;font-size:16px;line-height:1.6}
-.note{margin:14px 0 0;padding:12px 14px;border-radius:14px;background:#fff;border:1.5px solid var(--line);font-family:var(--serif);font-variation-settings:'SOFT' 60;font-style:italic;font-size:14.5px;line-height:1.5;color:var(--ink2)}
-.note b{font-style:normal;font-family:var(--sans);font-weight:700;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--pink-deep);display:block;margin-bottom:4px}
-.closing b{display:block;font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--pink-deep);margin-bottom:6px}
-.trail{display:flex;gap:6px;margin:18px 0 0;justify-content:center;flex-wrap:wrap}
-.trail img{width:54px;height:68px;object-fit:cover;border-radius:10px;background:#FFE4F0}
-.btns{display:flex;flex-direction:column;gap:10px;margin-top:22px}
-.btn{font-family:var(--sans);font-weight:700;font-size:16px;border:none;border-radius:999px;padding:15px 20px;min-height:52px;
-  cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--pink),#FF77B0);box-shadow:0 14px 30px rgba(224,53,125,.22)}
-.btn.ghost{background:#fff;color:var(--pink-deep);border:2px solid var(--line);box-shadow:none}
+.r-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.r-top .camp{font:800 10px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink2);flex:1}
+.tabs{display:flex;gap:6px;background:var(--pinkSoft);padding:4px;border-radius:999px;margin-bottom:12px}
+.tab{flex:1;border:none;background:transparent;border-radius:999px;padding:10px 8px;font:800 12px var(--sans);letter-spacing:.04em;color:var(--mag);cursor:pointer}
+.tab.on{background:var(--mag);color:#fff;box-shadow:0 6px 16px rgba(218,24,132,.25)}
+.pg{display:none}.pg.on{display:block}
+.card{border-radius:22px;padding:18px 18px 20px;box-shadow:0 18px 40px rgba(43,30,42,.12)}
+.lbl{font:800 10.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--mag);margin:0 0 6px}
+.c-kick{font-family:var(--serif);font-variation-settings:'SOFT' 60;font-size:17px;color:var(--ink2);margin:10px 0 0}
+.c-name{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(26px,7.6vw,34px);line-height:1.05;margin:2px 0 0;letter-spacing:-.01em}
+.c-tag{font-family:var(--serif);font-variation-settings:'SOFT' 60;font-size:15.5px;line-height:1.5;margin:8px 0 0;color:var(--ink2)}
+.c-head{display:grid;grid-template-columns:1fr 112px;gap:12px;align-items:center}
+.c-m{width:112px;height:112px;border-radius:22px;background:rgba(255,255,255,.7);display:grid;place-items:center;overflow:hidden}
+.c-m img{width:92%;height:92%;object-fit:contain}
+.hr{height:1.5px;background:rgba(43,30,42,.1);margin:14px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:rgba(255,255,255,.75);border-radius:999px;padding:6px 10px;font:700 12.5px var(--sans);color:var(--ink)}
+.c-line{font:600 15px/1.45 var(--sans);margin:0;color:var(--ink)}
+.c-note{font-family:var(--serif);font-variation-settings:'SOFT' 60;font-style:italic;font-size:14.5px;line-height:1.5;margin:0;color:var(--ink2)}
+.g-hi{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(24px,7vw,30px);line-height:1.1;margin:0;color:var(--mag)}
+.g-sub{display:inline-block;margin:8px 0 0;padding:6px 12px;border-radius:999px;background:#fff;font-family:var(--serif);font-style:italic;font-size:15px;color:var(--mag)}
+.ev{margin:14px 0 0;background:#fff;border:1.5px solid var(--pink);border-radius:16px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:8px 14px;align-items:center}
+.ev b{font-family:var(--serif);font-variation-settings:'SOFT' 80;font-weight:700;font-size:16px;color:var(--mag);line-height:1.2}
+.ev .meta{font:600 12px/1.6 var(--sans);color:var(--ink2);white-space:nowrap}
+.ev .meta span{color:var(--mag);font-weight:800;margin-right:6px}
+.g-based{font:500 14px/1.5 var(--sans);margin:14px 0 0;color:var(--ink2)}
+.g-based b{color:var(--ink)}
+.ol{margin:6px 0 0;padding:0 0 0 20px;font:500 14.5px/1.5 var(--sans)}
+.ol li{margin:4px 0}.ol b{font-weight:800}
+.ol small{display:block;color:var(--ink2);font-size:12.5px}
+.g-free{margin:14px 0 0;padding:12px 14px;border-radius:14px;background:#fff;text-align:center;font-family:var(--serif);font-style:italic;font-size:14px;color:var(--mag)}
+.btns{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.btn{font:800 15px var(--sans);border:none;border-radius:999px;padding:15px 20px;min-height:52px;cursor:pointer;color:#fff;background:var(--mag);box-shadow:0 14px 30px rgba(218,24,132,.22)}
+.btn.ghost{background:#fff;color:var(--mag);border:2px solid var(--pink);box-shadow:none}
 .row{display:flex;gap:10px}.row .btn{flex:1}
-.fine{text-align:center;font-size:11.5px;color:#8A6678;margin:12px 0 0}
+.fine{text-align:center;font-size:11.5px;color:var(--ink2);margin:12px 0 0}
 #modal{position:absolute;inset:0;z-index:60;display:none;background:rgba(27,18,38,.6);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:18px}
 #modal.on{display:flex}
-#modal .in{background:var(--cream);border-radius:24px;padding:16px;max-width:380px;width:100%;max-height:94vh;overflow:auto;position:relative}
-#cardImg{width:100%;border-radius:14px;display:block;aspect-ratio:9/16;background:#FFE9F3}
-.mx{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;border:none;background:#fff;cursor:pointer;color:var(--pink-deep);font-size:16px}
+#modal .in{background:#fff;border-radius:24px;padding:16px;max-width:380px;width:100%;max-height:94vh;overflow:auto;position:relative}
+#cardImg{width:100%;border-radius:14px;display:block;aspect-ratio:9/16;background:var(--pinkSoft)}
+.mx{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;border:none;background:var(--pinkSoft);cursor:pointer;color:var(--mag);font-size:16px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 
 <div id="app">
   <section id="welcome" class="screen on">
-    <div class="w-top"><span class="brand">emina</span><span class="camp" id="wKick"></span></div>
-    <div class="w-hero"><div class="ph"><span id="wPh"></span><small>pensi · besok</small></div><img id="heroImg" alt=""></div>
+    <div class="w-top"><img class="w-emina" src="art/kv/emina.png" alt="Emina"><button class="lang" id="langBtn" type="button">EN</button></div>
+    <div class="w-hero"><img id="heroImg" src="art/kv/hero.jpg" alt=""></div>
+    <div class="w-kicker" id="wKick"></div>
     <h1 id="wTitle"></h1>
-    <p class="w-sub" id="wSub"></p>
+    <p class="w-intro" id="wIntro"></p>
     <p class="w-lead" id="wLead"></p>
-    <p class="w-heart" id="wHeart"></p>
+    <label class="w-name"><span id="wNameLbl"></span><input id="nameIn" maxlength="24" autocomplete="given-name" placeholder=""></label>
     <button id="startBtn" type="button"></button>
     <p class="w-fine" id="wFine"></p>
   </section>
@@ -288,15 +287,14 @@ button{font-family:inherit}
       <div id="ground"></div><img class="bg" id="bgA" alt=""><img class="bg" id="bgB" alt="">
       <svg id="actorLayer" viewBox="0 0 360 440" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="chip"><b id="chipT"></b><span id="chipP"></span></div>
-      <div id="tutBadge"><span class="dot"></span>TUTORIAL</div>
       <div id="fade"></div>
     </div>
     <div id="panel">
       <div id="box">
         <span id="who"></span>
         <p id="txt"></p>
-        <p id="hint">ketuk buat lanjut</p>
-        <svg id="next" viewBox="0 0 12 12"><path d="M1 3l5 6 5-6" fill="none" stroke="#E0357D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <p id="hint"></p>
+        <svg id="next" viewBox="0 0 12 12"><path d="M1 3l5 6 5-6" fill="none" stroke="#DA1884" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div id="choices"><p id="tip"></p><p id="ask"></p><div id="optList"></div></div>
     </div>
@@ -305,125 +303,74 @@ button{font-family:inherit}
   <div id="reveal">
     <div id="flood"></div>
     <div id="flame"></div>
-    <div id="rvKick">kamu tuh</div>
+    <div id="rvKick"></div>
+    <div id="rvIcon"></div>
     <h2 id="rvType"></h2>
     <div id="rvEn"></div>
     <p id="rvLine"></p>
-    <button id="rvGo" type="button">Lihat kartuku &#10024;</button>
+    <button id="rvGo" type="button"></button>
   </div>
 
   <div id="result">
-    <div class="r-top"><span class="brand">emina</span><span class="camp">20 Under 20 · Made to Explore</span></div>
-    <div class="hero" id="hero"><div class="m" id="rM"></div><h1 id="rNick"></h1><div class="en" id="rEn"></div><p class="tag" id="rTag"></p></div>
-    <p class="closing"><b>Besok paginya</b><span id="rClose"></span></p>
-    <p class="note" id="rNote"></p>
-    <div class="trail" id="rTrail"></div>
+    <div class="r-top"><img class="w-emina" src="art/kv/emina.png" alt="Emina"><span class="camp">20 Under 20 · Explorer Quiz</span><button class="lang" id="langBtn2" type="button">EN</button></div>
+    <div class="tabs"><button class="tab on" id="tab1" type="button"></button><button class="tab" id="tab2" type="button"></button></div>
+    <section id="pg1" class="pg on"><div class="card" id="card1">
+      <p class="lbl" id="l-identity"></p>
+      <div class="c-head"><div><p class="c-kick" id="r-kick"></p><h1 class="c-name" id="r-name"></h1></div><div class="c-m"><img id="r-m" alt=""></div></div>
+      <p class="c-tag" id="r-tag"></p>
+      <div class="hr"></div>
+      <p class="lbl" id="l-sparks"></p><div class="chips" id="r-sparks"></div>
+      <p class="lbl" id="l-universe" style="margin-top:12px"></p><p class="c-line" id="r-universe"></p>
+      <div class="hr"></div>
+      <p class="lbl" id="l-energy"></p><p class="c-line" id="r-energy"></p>
+      <p class="lbl" id="l-besties" style="margin-top:12px"></p><div class="chips" id="r-besties"></div>
+      <div class="hr"></div>
+      <p class="lbl" id="l-note"></p><p class="c-note" id="r-note"></p>
+    </div></section>
+    <section id="pg2" class="pg"><div class="card" id="card2">
+      <h2 class="g-hi" id="g-hi"></h2>
+      <span class="g-sub" id="g-sub"></span>
+      <div class="ev"><b id="g-ev"></b><div class="meta" id="g-meta"></div></div>
+      <p class="g-based" id="g-based"></p>
+      <p class="lbl" id="l-booths" style="margin-top:14px"></p><ol class="ol" id="g-booths"></ol>
+      <p class="lbl" id="l-stages" style="margin-top:14px"></p><ol class="ol" id="g-stages"></ol>
+      <p class="g-free" id="g-free"></p>
+    </div></section>
     <div class="btns">
-      <button class="btn" id="share" type="button">Bikin Story Card &#128242;</button>
-      <div class="row"><button class="btn ghost" id="again" type="button">Ulang harinya &#8617;</button>
-        <button class="btn ghost" id="reg" type="button">Daftar 20U20 &#10022;</button></div>
+      <button class="btn" id="share" type="button"></button>
+      <div class="row"><button class="btn ghost" id="again" type="button"></button><button class="btn ghost" id="reg" type="button"></button></div>
     </div>
     <p class="fine" id="fine"></p>
   </div>
 
   <div id="modal"><div class="in"><button class="mx" id="mx" type="button" aria-label="Tutup">&#10005;</button>
     <img id="cardImg" alt="Story card">
-    <div class="btns" style="margin-top:12px"><button class="btn" id="saveCard" type="button">Simpan / Share &#128190;</button></div>
-    <p class="fine">Tekan &amp; tahan gambarnya buat simpan</p></div></div>
+    <div class="btns" style="margin-top:12px"><button class="btn" id="saveCard" type="button"></button></div>
+    <p class="fine" id="m-fine"></p></div></div>
 </div>
 <canvas id="cardCanvas" width="1080" height="1920" class="sr" aria-hidden="true"></canvas>
 
 <script>
-const spark=(x,y,s,f)=>`<path transform="translate(${x},${y})" d="M0 ${-s} Q${s*0.2} ${-s*0.2} ${s} 0 Q${s*0.2} ${s*0.2} 0 ${s} Q${-s*0.2} ${s*0.2} ${-s} 0 Q${-s*0.2} ${-s*0.2} 0 ${-s} Z" fill="${f}"/>`;
-const heart=(x,y,s)=>{const u=s/16;return `M${x} ${y+6*u} C ${x-2*u} ${y+2*u} ${x-10*u} ${y-2*u} ${x-10*u} ${y-9*u} C ${x-10*u} ${y-14*u} ${x-4*u} ${y-16*u} ${x} ${y-11*u} C ${x+4*u} ${y-16*u} ${x+10*u} ${y-14*u} ${x+10*u} ${y-9*u} C ${x+10*u} ${y-2*u} ${x+2*u} ${y+2*u} ${x} ${y+6*u} Z`;};
-
-function mascotBase(halo,topper,prop){
-  const haloC=halo?`<circle cx="110" cy="116" r="106" fill="${halo}" opacity=".18"/>`:'';
-  return `<svg class="mascot" width="220" height="236" viewBox="0 0 220 236" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
-    ${haloC}
-    <ellipse cx="110" cy="214" rx="56" ry="13" fill="#43283a" opacity=".06"/>
-    <ellipse cx="60" cy="158" rx="13" ry="20" fill="#fff"/>
-    <ellipse cx="160" cy="158" rx="13" ry="20" fill="#fff"/>
-    <rect x="63" y="126" width="94" height="84" rx="45" fill="#fff"/>
-    <ellipse cx="92" cy="208" rx="15" ry="10" fill="#fff"/>
-    <ellipse cx="128" cy="208" rx="15" ry="10" fill="#fff"/>
-    <circle cx="110" cy="94" r="57" fill="#fff"/>
-    ${topper||''}
-    <ellipse cx="91" cy="98" rx="6.5" ry="8.6" fill="#43283a"/>
-    <ellipse cx="129" cy="98" rx="6.5" ry="8.6" fill="#43283a"/>
-    <circle cx="93.4" cy="94.6" r="2.3" fill="#fff"/>
-    <circle cx="131.4" cy="94.6" r="2.3" fill="#fff"/>
-    <ellipse cx="72" cy="113" rx="9.5" ry="6" fill="#FF9DC0" opacity=".75"/>
-    <ellipse cx="148" cy="113" rx="9.5" ry="6" fill="#FF9DC0" opacity=".75"/>
-    <path d="M101 114 Q110 122 119 114" stroke="#43283a" stroke-width="3.3" fill="none" stroke-linecap="round"/>
-    ${prop||''}
-  </svg>`;
-}
-const MASCOT={
-  creator:{halo:'#FF8FC0',
-    topper:`<g transform="translate(110,41)"><path d="M0 0 L-27 -14 L-27 16 Z" fill="#FF5BA3"/><path d="M0 0 L27 -14 L27 16 Z" fill="#FF5BA3"/><circle r="8.5" fill="#E0357D"/></g>`,
-    prop:`<g transform="translate(160,150) rotate(10)"><rect x="-13" y="-22" width="26" height="42" rx="7" fill="#FF5BA3"/><rect x="-9" y="-16" width="18" height="28" rx="4" fill="#fff"/><path d="${heart(0,-1,9)}" fill="#FF5BA3"/></g>`},
-  boss:{halo:'#C9A7FF',
-    topper:`<g transform="translate(110,30)"><path d="M-28 12 L-28 -9 L-14 3 L0 -15 L14 3 L28 -9 L28 12 Z" fill="#FFC24B" stroke="#EDA62F" stroke-width="2.5" stroke-linejoin="round"/><circle cx="0" cy="-3" r="3.6" fill="#fff"/><circle cx="-28" cy="-9" r="3" fill="#FFE39A"/><circle cx="28" cy="-9" r="3" fill="#FFE39A"/></g>`,
-    prop:`<g transform="translate(161,150)"><rect x="-2.6" y="-6" width="5.2" height="42" rx="2.6" fill="#C9A7FF"/>${spark(0,-12,13,'#FFC24B')}</g>`},
-  artisan:{halo:'#FFC2A8',
-    topper:`<g transform="translate(110,33)"><g fill="#FF9DB4"><circle cx="0" cy="-11" r="8.4"/><circle cx="10.5" cy="-4" r="8.4"/><circle cx="6.5" cy="8.5" r="8.4"/><circle cx="-6.5" cy="8.5" r="8.4"/><circle cx="-10.5" cy="-4" r="8.4"/></g><circle r="7" fill="#FFD86B"/></g>`,
-    prop:`<g transform="translate(160,150)"><path d="M0 27 L-7 2 M0 27 L0 -2 M0 27 L7 2" stroke="#4FCF96" stroke-width="3.2" fill="none" stroke-linecap="round"/><circle cx="-7" cy="-1" r="6.6" fill="#FF8FB0"/><circle cx="0" cy="-5" r="6.6" fill="#FFB3C6"/><circle cx="7" cy="-1" r="6.6" fill="#FFD86B"/></g>`},
-  deep:{halo:'#C9D4FF',
-    topper:`<path d="M56 96 Q110 -30 164 96" stroke="#6B7FD7" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="56" cy="98" r="13" fill="#6B7FD7"/><circle cx="164" cy="98" r="13" fill="#6B7FD7"/><circle cx="56" cy="98" r="7" fill="#C9D4FF"/><circle cx="164" cy="98" r="7" fill="#C9D4FF"/>`,
-    prop:`<g transform="translate(160,152)"><rect x="-13" y="-10" width="24" height="22" rx="6" fill="#C9D4FF"/><path d="M11 -4 Q20 -4 20 4 Q20 12 11 12" stroke="#6B7FD7" stroke-width="3.5" fill="none"/><path d="M-6 -16 Q-3 -22 -6 -28" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".8"/><path d="M2 -16 Q5 -22 2 -28" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".8"/></g>`},
-  change:{halo:'#86E3C6',
-    topper:`<g transform="translate(110,34)"><rect x="-2.5" y="-5" width="5" height="13" rx="2.5" fill="#2EA27E"/><ellipse cx="-11" cy="-7" rx="11" ry="6.5" fill="#4FCF96" transform="rotate(-28 -11 -7)"/><ellipse cx="11" cy="-7" rx="11" ry="6.5" fill="#4FCF96" transform="rotate(28 11 -7)"/></g>`,
-    prop:`<g transform="translate(160,150)"><path d="${heart(0,0,17)}" fill="#17B6A6"/></g>`},
-  explorer:{halo:'#8FD0FF',
-    topper:`<g transform="translate(110,36)"><path d="M-32 5 Q0 -34 32 5 Z" fill="#4FA6E8"/><rect x="-37" y="3" width="74" height="9" rx="4.5" fill="#3A8FD0"/><circle cx="0" cy="-20" r="4" fill="#BFE2FF"/></g>`,
-    prop:`<g transform="translate(160,150)"><circle r="14" fill="#4FA6E8"/><circle r="9.5" fill="#EAF4FF"/><path d="M0 -8 L3.5 0 L0 8 L-3.5 0 Z" fill="#FF5B6E"/><circle r="2" fill="#3A8FD0"/></g>`},
-};
-const mascotSVG=k=>mascotBase(MASCOT[k].halo,MASCOT[k].topper,MASCOT[k].prop);
-const blankMascot=()=>mascotBase('#FFD1E6','',`<g transform="translate(150,60)">${spark(0,0,11,'#FFD36E')}</g><g transform="translate(66,78)">${spark(0,0,8,'#C9A7FF')}</g>`);
-const ARCH={
-  creator:{nick:'Si Main Character',en:'Main Character Energy',c1:'#FF5BA3',c2:'#FFB0D4',soft:'#FFE2EF',
-    tag:'Kamu nggak minta disorot. Sorotannya aja yang betah di kamu.',
-    str:['Pede ✨','Nular 💡','Punya selera 🔥'],
-    paths:['Di depan kamera','Pas nyusun feed','Pas jadi yang pertama nyoba','Di tengah circle']},
-  boss:{nick:'Si Ambis Santuy',en:'Big dreams, low pressure',c1:'#8A4FD6',c2:'#C9A7FF',soft:'#ECE3FF',
-    tag:'Mau banyak itu boleh. Santai sambil ngejarnya juga boleh.',
-    str:['Visioner 🎯','Tenang 🌿','Gercep ⚡'],
-    paths:['Pas bikin rencana','Pas yang lain bingung','Di notes HP kamu','Pas ngomong duluan']},
-  artisan:{nick:'Si Soft Life',en:'Slow hands, full heart',c1:'#FF7E9D',c2:'#FFC2A8',soft:'#FFE7DE',
-    tag:'Bikin satu hal pelan-pelan sampe bener itu juga prestasi.',
-    str:['Telaten 🎀','Hangat 💗','Sabar 🌸'],
-    paths:['Pas tangan kamu sibuk','Di meja yang rapi','Pas bikin hadiah','Di pagi yang pelan']},
-  deep:{nick:'Si Deep Talk',en:'Feels it first, says it best',c1:'#6B7FD7',c2:'#C9D4FF',soft:'#E8ECFF',
-    tag:'Overthinking kamu itu kedalaman. Makanya orang nyari kamu jam 2 pagi.',
-    str:['Peka 🌙','Dalem 💭','Setia dengerin 🎧'],
-    paths:['Jam dua pagi','Di voice note panjang','Pas temen butuh didengerin','Di jurnal kamu']},
-  change:{nick:'Si Penjaga Circle',en:'The one who holds everyone together',c1:'#17B6A6',c2:'#8FE3C8',soft:'#D8F5EE',
-    tag:'Kamu paling cepet sadar kalau ada yang ketinggalan. Terus kamu balik jemput.',
-    str:['Setia 💞','Berani ⚖️','Ngayomi 🌱'],
-    paths:['Pas ada yang digangguin','Di grup chat yang butuh ditenangin','Pas bagi-bagi','Di barisan paling depan']},
-  explorer:{nick:'Si Serba Penasaran',en:'Curious about everything, sorry about nothing',c1:'#4FA6E8',c2:'#FFD86B',soft:'#E3F0FF',
-    tag:'Belum milih bukan berarti bingung. Kamu lagi ngumpulin dulu.',
-    str:['Penasaran 🔭','Luwes 🦋','Berani nyoba 🌈'],
-    paths:['Di tab browser yang kebuka semua','Pas kelas baru','Di jalan yang belum pernah','Pas bilang "coba dulu"']},
-};
-const STORY={"title":"H-1","subtitle":"Besok pensi. Hari ini kacau. Kamu di tengahnya.","cast":{"nay":{"name":"Nay","color":"#FF4D97"},"rara":{"name":"Rara","color":"#8A4FD6"},"kinan":{"name":"Kinan","color":"#17B6A6"},"dimas":{"name":"Dimas","color":"#4FA6E8"},"sasa":{"name":"Sasa","color":"#F6A24A"},"alya":{"name":"Kak Alya","color":"#B14BD1"}},"welcome":{"kicker":"20 Under 20 · Made to Explore","title":"H-1","sub":"Satu hari sebelum pensi. Cerita yang jalannya kamu yang nentuin.","lead":"Besok sekolah kamu pensi. Nay, sahabat kamu, ketua panitianya. Dan pagi ini semuanya berantakan: IG sepi, panggung belum jadi, dana kurang, band alumni seen doang.","heart":"Kamu bakal nemenin Nay seharian. Tiap pilihan kamu ngubah ceritanya. Di akhir, kamu bakal tau kamu tipe yang kayak gimana pas temen lagi butuh.","cta":"Mulai","fine":"4 menit · 6 akhir yang beda · hasilnya bisa di-share ke Story"},"endings":[{"character":"creator","closing":"Notif kamu nggak berhenti dari jam 6. Video pensinya nyebar sampe sekolah sebelah. Komen paling atas: ini sekolah mana?? Nay ngirim screenshot akun pensi, followersnya nambah 1000. Caption-nya: INI GARA GARA KAMU."},{"character":"boss","closing":"Kamu bangun jam 9. Telat, buat pertama kalinya minggu ini. Nggak apa-apa. Laporan dananya udah kamu kirim semalem. Pas. Nggak kurang. Nay chat: tahun depan kamu ketuanya ya. Kamu bales pake stiker tidur."},{"character":"artisan","closing":"200 bunga kertas sekarang di kamar kamu, dibawa pulang sekardus. Kinan ngirim foto backdrop yang lagi dibongkar. Caption-nya: sayang ya. Kamu bales: bikin lagi aja, yang lebih bagus. Nay nimbrung: TAHUN DEPAN."},{"character":"deep","closing":"Jam 2 pagi tadi Kinan ngirim voice note. 7 menit. Kamu dengerin sampe abis sebelum tidur. Paginya Nay chat: aku tau kamu yang bikin dia tetep dateng. Kamu nggak bales. Kamu simpen aja."},{"character":"change","closing":"Grup kelas 10 yang kamu dimasukin kemaren udah rame dari subuh. Mereka bikin polling: tahun depan kita yang panitia. Nay ngirim foto barisan paling depan semalem. Isinya mereka semua. Caption-nya: ini kerjaan kamu."},{"character":"explorer","closing":"Sepatu kamu masih bau cat. Rekaman Sasa nyanyi kamu puter sambil sikat gigi. Nay chat: kemaren kamu ke mana aja sih?? Kamu kirim 5 pin lokasi dan 1 kata: semuanya."}],"start":"a1_aula","note":"Kamu belum harus jadi apa-apa. Hari ini aja kamu udah jadi seseorang buat Nay. Yang kayak gitu nggak bisa dipalsuin. Explore terus.","scenes":[{"id":"a0_gerbang","act":0,"tutorial":true,"place":"Gerbang sekolah","time":"06.50","floor":0.86,"beats":[{"who":"","text":"Jam 7 kurang 10. Gerbang sekolah baru kebuka setengah, udaranya masih dingin."},{"who":"","text":"HP kamu geter. Tiga chat dari Nay, semuanya huruf gede."},{"who":"nay","text":"KAMU DI MANA. CEPETAN. AKU SENDIRIAN DI AULA."}],"prompt":"Kamu...","options":[{"label":"Lari masuk, Nay udah teriak","x":0.72,"leadsTo":"a1_aula","scores":"","react":[{"who":"","text":"Kamu lari. Tas goyang-goyang, Pak Satpam ngeliatin. Di ujung koridor, pintu aula udah kebuka."}],"move":"run"},{"label":"Tarik napas dulu. Bentar","x":0.3,"leadsTo":"a1_aula","scores":"","react":[{"who":"","text":"Satu tarikan napas. Nggak apa-apa kalau deg-degan, Nay juga, dia cuma lebih berisik."},{"who":"","text":"Terus kamu jalan masuk."}],"move":"breathe"}],"after":[{"who":"","text":"Suara Nay udah kedengeran dari koridor."}],"tip":"<b>Tip:<\/b> pilih yang paling kamu banget. Nggak ada jawaban yang salah, dan dia bakal gerak sesuai pilihanmu."},{"id":"a1_aula","act":1,"place":"Aula sekolah","time":"07.10","floor":0.84,"beats":[{"who":"","text":"Jam 7 pagi. H-1 pensi. Aula masih bau cat, backdrop-nya baru jadi setengah."},{"who":"","text":"Di grup panitia, Dimas baru kirim screenshot BMKG. Hujan sore. Nay bales: TIDAK."},{"who":"nay","text":"Kamu dateng juga. Oke. Duduk. Jangan ngomong dulu, aku lagi mikir."},{"who":"nay","text":"Jadi gini. Masalah kita ada 4. IG pensi sepi, panggung belum kelar, dana kurang 2 juta, terus band alumni seen doang dari kemaren."},{"who":"nay","text":"Pilih satu buat kamu pegang pagi ini. Sisanya biar aku yang panik."}],"prompt":"Pagi ini kamu pegang yang mana?","options":[{"label":"Cek IG pensi, kok bisa sepi","x":0.2,"leadsTo":"a2_medsos","scores":"creator+1,deep+1","react":[{"who":"","text":"Kamu buka akunnya. Post terakhir 3 minggu lalu. Fotonya blur, caption-nya titik tiga doang."},{"who":"nay","text":"Tuh kan. Tuh kan."}],"move":"phone"},{"label":"Naik ke panggung, liat yang belum kelar","x":0.5,"leadsTo":"a2_panggung","scores":"artisan+1,explorer+1","react":[{"who":"","text":"Backdrop-nya setengah pink, setengah masih kardus. Kaleng cat tinggal 2, dua-duanya udah mau abis."}],"move":"climb"},{"label":"Duduk, itung ulang dananya bareng Nay","x":0.72,"leadsTo":"a2_dana","scores":"boss+1,change+1","react":[{"who":"","text":"Di bukunya ada angka yang dicoret 3 kali. Sound system: 3 juta. Dana: 1 koma 2."},{"who":"nay","text":"Jangan dibaca kenceng-kenceng, nanti aku denger."}],"move":"sit"},{"label":"Chat band alumni yang seen doang","x":0.88,"leadsTo":"a2_band","scores":"explorer+1,boss+1","react":[{"who":"","text":"Kamu ngetik, hapus, ngetik lagi. Kirim. Centang 2. Biru. Diem."}],"move":"phone"}]},{"id":"a2_medsos","act":2,"place":"Ruang OSIS","time":"08.30","floor":0.85,"beats":[{"who":"","text":"Ruang OSIS. Kipas anginnya bunyi kretek-kretek. Rara, sie publikasi, ngeliatin kamu dari balik laptop kayak kamu mau ngerebut kerjaannya."},{"who":"rara","text":"Aku udah nyoba ya. Nggak ada yang nge-like. Anak-anak lebih sibuk sama drama kelas sebelah."},{"who":"","text":"Kamu scroll. Yang bilang dateng: 80. Dari 800 murid. DM-nya ada 12, belum dibaca satu pun."}],"prompt":"Mulai dari mana nih?","options":[{"label":"Pinjem HP Rara, bikin konten sekarang","x":0.3,"leadsTo":"a3_creator","scores":"creator+2","react":[{"who":"","text":"Rara nyerahin HP-nya pelan banget, kayak nyerahin bayi."},{"who":"rara","text":"Kalau jelek, nama kamu yang aku tulis di caption ya."}],"move":"phone"},{"label":"Buka DM yang numpuk","x":0.62,"leadsTo":"a3_deep","scores":"deep+2","react":[{"who":"","text":"11 DM nanya tiket. 1 DM dari Kinan, sie dekor. Dikirim jam 2 pagi."},{"who":"kinan","text":"aku boleh nggak dateng aja ya besok"}],"move":"phone"},{"label":"Cek kenapa kelas 10 nggak ada yang daftar","x":0.85,"leadsTo":"a3_change","scores":"change+2","react":[{"who":"","text":"Di list hadir, kolom kelas 10 kosong melompong. Rara angkat bahu."},{"who":"rara","text":"Mereka bilang tiketnya buat anak kelas 12 doang. Katanya sih."}],"move":"look"}]},{"id":"a2_panggung","act":2,"place":"Panggung aula","time":"09.15","floor":0.86,"beats":[{"who":"","text":"Dari atas panggung, aulanya keliatan lebih gede. Dan lebih kosong. Kinan jongkok di pojok, ngelem bunga kertas satu-satu. Nggak ngomong."},{"who":"","text":"Dimas nongol dari balik tirai bawa kabel segulung."},{"who":"","text":"Dia liat kamu dulu, baru kabelnya. Kinan ngeliatin itu. Tetep nggak komentar."},{"who":"dimas","text":"Cat tinggal segini, Bos. Bunga kertasnya baru 30 dari 200. Mau mulai dari mana?"}],"prompt":"Panggung ini kamu apain dulu?","options":[{"label":"Duduk sebelah Kinan, bantu ngelem","x":0.22,"leadsTo":"a3_artisan","scores":"artisan+2","react":[{"who":"","text":"Kinan geser dikit. Nggak nengok, tapi geser. Lem tembaknya anget. Bunga ke-31 jadi di tangan kamu."}],"move":"craft"},{"label":"Keluar beli cat sama bahan, pake uang jajan","x":0.85,"leadsTo":"a3_explorer","scores":"explorer+2","react":[{"who":"","text":"Kamu catet: cat pink, kain, lampu tumblr. Dimas nitip es teh."},{"who":"dimas","text":"Jangan nyasar ya, Bos."}],"move":"run"},{"label":"Rekam proses dekornya buat IG","x":0.55,"leadsTo":"a3_creator","scores":"creator+2","react":[{"who":"","text":"Kamera kamu arahin ke tangan Kinan yang lagi ngelem. Dia pura-pura nggak liat. Tapi tangannya langsung lebih rapi."}],"move":"phone"}]},{"id":"a2_dana","act":2,"place":"Ruang OSIS","time":"10.00","floor":0.85,"beats":[{"who":"","text":"Nay ngegelar bukunya di meja. Pemasukan tiket: 1 koma 2 juta. Sound system: 3 juta. Di antara dua angka itu dia gambar awan. Awannya sedih."},{"who":"nay","text":"Bu Ratih bilang sekolah nggak bisa nambah. Terus gimana dong? Pensi tanpa sound? Pensi bisik-bisik?"},{"who":"","text":"Di luar, Bu Kantin lagi nurunin galon. Nggak peduli."}],"prompt":"Dananya kamu gimanain?","options":[{"label":"Ambil spidol, coret yang nggak penting","x":0.4,"leadsTo":"a3_boss","scores":"boss+2","react":[{"who":"","text":"Kamu coret 3 baris. Nay mau protes, liat angkanya, terus diem."},{"who":"nay","text":"Oke. Oke. Lanjut."}],"move":"write"},{"label":"Turunin harga tiket biar semua bisa masuk","x":0.6,"leadsTo":"a3_change","scores":"change+2","react":[{"who":"nay","text":"Turun?? Kita lagi KURANG lho."},{"who":"","text":"Kamu nunjuk angka yang dateng. 80 dari 800. Yang kurang itu orangnya, bukan duitnya, kata kamu."}],"move":"talk"},{"label":"Bikin yang bisa dijual besok. Bunga kertas, pin, apa aja","x":0.82,"leadsTo":"a3_artisan","scores":"artisan+2","react":[{"who":"","text":"Kamu ngitung. 200 bunga kertas kali 5 ribu. Nay ngeliatin kamu kayak kamu baru nemuin api."}],"move":"craft"}]},{"id":"a2_band","act":2,"place":"Koridor depan ruang guru","time":"10.40","floor":0.86,"beats":[{"who":"","text":"Katanya di koridor sinyalnya paling bagus. Kamu berdiri deket jendela, ngeliatin centang 2 biru yang nggak dibales-bales."},{"who":"nay","text":"Kak Alya bales? Belum?? Dia alumni lho. Dia JANJI. Namanya udah aku tulis di poster."},{"who":"","text":"Dari lapangan ada suara gitar. Anak kelas 10, latihan sendirian di tribun."}],"prompt":"Sekarang gimana?","options":[{"label":"Samperin anak gitar di tribun","x":0.85,"leadsTo":"a3_explorer","scores":"explorer+2","react":[{"who":"","text":"Dia berhenti main pas kamu dateng. Jarinya masih di senar."},{"who":"","text":"Namanya Sasa. Dia belum pernah manggung. Sama sekali."}],"move":"walk"},{"label":"Telepon Kak Alya sekarang, nggak usah chat","x":0.25,"leadsTo":"a3_boss","scores":"boss+2","react":[{"who":"","text":"Nada sambung 3 kali. Diangkat."},{"who":"alya","text":"Halo? Duh, sori sori, aku lupa bales. Besok ya? Hmm. Besok ya."}],"move":"call"},{"label":"Tarik Nay duduk dulu di tangga","x":0.55,"leadsTo":"a3_deep","scores":"deep+2","react":[{"who":"","text":"Nay duduk. Baru napasnya keluar semua."},{"who":"nay","text":"Kalau besok gagal, itu namaku di poster. Aku pindah sekolah. Ke Mars."}],"move":"sit"}]},{"id":"a3_creator","act":3,"place":"Belakang panggung","time":"11.30","floor":0.86,"beats":[{"who":"","text":"HP-nya sekarang di tangan kamu. Backstage berantakan, tapi cahayanya bagus banget. Satu jendela, debu, backdrop pink setengah jadi."},{"who":"","text":"Kamu udah rekam 3 klip. Kinan ngelem. Dimas kesetrum dikit. Nay teriak ke tirai."},{"who":"","text":"Tinggal pilih mana yang di-post duluan. Jempol kamu ngambang di atas tombol."}],"prompt":"Post yang mana dulu?","options":[{"label":"Klip Nay teriak. Mentah, tanpa edit","x":0.5,"leadsTo":"a4_gelap","scores":"creator+3","react":[{"who":"","text":"Post. 3 menit, 200 views. Komen pertama: INI KETUA PANITIA KITA??"},{"who":"nay","text":"Hapus. Jangan. Eh. Berapa views?"}],"move":"phone"},{"label":"Klip tangan Kinan ngelem, pelan, lagunya sedih","x":0.22,"leadsTo":"a4_gelap","scores":"deep+2,creator+1","react":[{"who":"","text":"Klipnya sepi. Tapi yang nonton, nontonnya sampe abis. Satu DM masuk: itu kinan ya? bilangin bunganya bagus."}],"move":"phone"},{"label":"Bikin story: tag semua kelas, siapa yang paling rame","x":0.8,"leadsTo":"a4_gelap","scores":"change+2,creator+1","react":[{"who":"","text":"Story-nya dibuka 300 kali dalam 10 menit. Kelas 10 mulai bales: kak emang boleh?"}],"move":"phone"}]},{"id":"a3_boss","act":3,"place":"Ruang OSIS, papan tulis","time":"12.30","floor":0.85,"beats":[{"who":"","text":"Papan tulis udah penuh tulisan kamu. 3 vendor sound, 3 harga, 1 yang mau nego."},{"who":"dimas","text":"Pak Yudi mau turun ke 2 juta, Bos. Syaratnya kita angkut sendiri. Sama dibayar hari ini."},{"who":"","text":"Dana di tangan: 1 koma 2. Jam udah 12 lewat."}],"prompt":"Langkah kamu?","options":[{"label":"Bayar DP sekarang, sisanya dari tiket besok","x":0.35,"leadsTo":"a4_gelap","scores":"boss+3","react":[{"who":"","text":"Kamu telepon Pak Yudi. Deal. Tangan kamu gemeter pas transfer. Suaranya nggak."},{"who":"dimas","text":"Bos."}],"move":"call"},{"label":"Minta kantin jadi sponsor, nama mereka di backdrop","x":0.8,"leadsTo":"a4_gelap","scores":"explorer+2,boss+1","react":[{"who":"","text":"Bu Kantin ketawa dulu. Terus nanya logonya mau segede apa. 500 ribu plus 2 kardus air."}],"move":"talk"},{"label":"Kumpulin semua sie, bagi beban rata","x":0.55,"leadsTo":"a4_gelap","scores":"change+2,boss+1","react":[{"who":"","text":"12 orang duduk melingkar. Yang biasanya diem ikut ngomong. 20 menit, kurangnya tinggal 300 ribu."}],"move":"wave"}]},{"id":"a3_artisan","act":3,"place":"Pojok dekor, lantai aula","time":"13.00","floor":0.87,"beats":[{"who":"","text":"Lantai aula jadi meja. Lem tembak, kertas krep, gunting yang tumpul sebelah. Kinan udah ngomong 4 kalimat hari ini. Semuanya ke kamu."},{"who":"kinan","text":"Yang ini kelopaknya dilipet 2 kali. Jangan ditarik."},{"who":"","text":"Bunga ke-100. Tangan kamu lengket semua. Dan kamu nggak mau berhenti."}],"prompt":"Sorenya dihabisin buat?","options":[{"label":"Bikin sampe 200. Rapi, satu-satu","x":0.4,"leadsTo":"a4_gelap","scores":"artisan+3","react":[{"who":"","text":"Jam 3. 200 bunga di lantai kayak karpet. Kinan ngeliatin lama, moto, terus nyimpen HP-nya. Nggak dikirim ke siapa-siapa."}],"move":"craft"},{"label":"Ajarin anak kelas 10 yang nongol di pintu","x":0.8,"leadsTo":"a4_gelap","scores":"change+2,artisan+1","react":[{"who":"","text":"3 anak kelas 10 duduk. Awalnya canggung. Setengah jam kemudian bunga mereka lebih rapi dari punya kamu."}],"move":"talk"},{"label":"Foto flatlay bunganya, post","x":0.2,"leadsTo":"a4_gelap","scores":"creator+2,artisan+1","react":[{"who":"","text":"Dari atas, bunganya kayak permen. Kamu post tanpa caption."},{"who":"rara","text":"FINALLY ada yang bagus di akun ini."}],"move":"phone"}]},{"id":"a3_deep","act":3,"place":"Tangga belakang sekolah","time":"13.30","floor":0.88,"beats":[{"who":"","text":"Tangga belakang. Tempat orang kabur dari upacara. Kinan duduk di anak tangga ketiga, meluk lutut."},{"who":"","text":"Kamu duduk satu anak tangga di bawahnya. Nggak ngomong dulu."},{"who":"kinan","text":"Aku yang bikin semua dekornya. Tapi di grup, yang dibilang keren posternya Rara. Aku capek nggak keliatan."},{"who":"","text":"Angin lewat. Di bawah, Dimas lagi ngetes mic. Cek, cek."}],"prompt":"Kamu...","options":[{"label":"Diem. Dengerin sampe dia selesai","x":0.35,"leadsTo":"a4_gelap","scores":"deep+3","react":[{"who":"","text":"Kinan ngomong 15 menit. Kamu cuma ngangguk."},{"who":"kinan","text":"Makasih ya udah nggak nyuruh aku semangat."}],"move":"listen"},{"label":"Tulis gede-gede di rundown: Dekor by Kinan","x":0.7,"leadsTo":"a4_gelap","scores":"change+2,deep+1","react":[{"who":"","text":"Kamu foto rundown-nya, kirim ke grup. 30 detik, Nay bales: ASLI IYA. Kinan nunduk. Ujung bibirnya naik dikit."}],"move":"write"},{"label":"Bikinin dia playlist buat besok","x":0.2,"leadsTo":"a4_gelap","scores":"artisan+2,deep+1","react":[{"who":"","text":"9 lagu. Judulnya: buat yang bikin bunganya. Kinan dengerin satu lagu sampe abis sebelum berdiri."}],"move":"phone"}]},{"id":"a3_change","act":3,"place":"Kantin","time":"14.00","floor":0.86,"beats":[{"who":"","text":"Kantin sepi, jam kosong. Di meja pojok ada 5 anak kelas 10 ngeliatin poster pensi di HP. Kayak ngeliatin sesuatu yang bukan buat mereka."},{"who":"","text":"Yang bawa gitar, Sasa, nanya pelan."},{"who":"sasa","text":"Kak. Kelas 10 boleh dateng nggak sih? Katanya ini acaranya kakak kelas."},{"who":"","text":"Nay di telepon lagi ngomel soal harga tiket. Kamu tutup dulu teleponnya."}],"prompt":"Kamu jawab apa?","options":[{"label":"Boleh. Terus anter mereka beli tiket sekarang","x":0.5,"leadsTo":"a4_gelap","scores":"change+3","react":[{"who":"","text":"5 anak jadi 30 dalam sejam. Kelas 10 bikin grup chat sendiri. Kamu dimasukin."}],"move":"wave"},{"label":"Bikin tiket kelas 10 setengah harga, umumin di story","x":0.25,"leadsTo":"a4_gelap","scores":"boss+2,change+1","react":[{"who":"","text":"Nay telepon lagi. Kamu udah siap sama angkanya."},{"who":"nay","text":"...oke. Pinter. Nyebelin, tapi pinter."}],"move":"phone"},{"label":"Tanya Sasa mau nggak main satu lagu besok","x":0.8,"leadsTo":"a4_gelap","scores":"explorer+2,change+1","react":[{"who":"","text":"Sasa ngeliatin gitarnya. Kayak gitarnya yang harus jawab. Terus dia ngangguk. Kecil banget."}],"move":"talk"}]},{"id":"a3_explorer","act":3,"place":"Depan gerbang sekolah","time":"14.30","floor":0.87,"beats":[{"who":"","text":"Kamu udah keluar gerbang 2 kali hari ini. Toko cat yang buka cuma 1. Yang jual lampu tumblr adanya di pasar sebelah."},{"who":"","text":"HP kamu 15 persen. Nay chat: KAMU DI MANA. Sasa chat: kak lagu yang mana ya"},{"who":"","text":"Angkot lewat. Nggak kamu stop. Belum."}],"prompt":"Yang kamu kejar?","options":[{"label":"Semuanya. Cat, lampu, sekalian dengerin Sasa latihan","x":0.5,"leadsTo":"a4_gelap","scores":"explorer+3","react":[{"who":"","text":"Jam 5 kamu balik bawa 2 kaleng cat, 3 meter lampu, sama rekaman Sasa nyanyi di tribun. HP kamu mati pas di gerbang."}],"move":"run"},{"label":"Lampunya dulu. Nawar sampe dapet bonus","x":0.2,"leadsTo":"a4_gelap","scores":"boss+2,explorer+1","react":[{"who":"","text":"3 meter jadi 5 meter, harganya tetep. Bapaknya bilang kamu mirip ibunya."}],"move":"talk"},{"label":"Catnya dulu, terus ikut ngecat sampe penuh","x":0.8,"leadsTo":"a4_gelap","scores":"artisan+2,explorer+1","react":[{"who":"","text":"Kamu balik bau cat. Backdrop-nya akhirnya satu warna. Kinan ngasih kamu kuas yang lebih bagus. Tanpa ngomong."}],"move":"paint"}]},{"id":"a4_gelap","act":4,"place":"Aula, mati lampu","time":"17.15","floor":0.85,"beats":[{"who":"","text":"Jam 5 lewat. Hujan turun kayak dituang. Pas kamu lagi ngeliatin backdrop, aula jadi gelap. Semuanya."},{"who":"","text":"Senter HP nyala satu-satu. 12 titik kecil di aula yang gede."},{"who":"nay","text":"...kalau besok listriknya gini juga gimana?"},{"who":"","text":"Nay berdiri di tengah aula, nggak gerak. HT di tangannya kresek-kresek. Dimas teriak dari belakang: MCB-nya jatuh, nggak mau naik!"}],"prompt":"Dalam gelap, kamu...","options":[{"label":"Nyalain senter, beresin yang bisa dibereskan","x":0.3,"leadsTo":"a5_malam","scores":"artisan+2,boss+1","react":[{"who":"","text":"Kamu nyusun kursi, gulung kabel. Satu-satu orang ikutan. Pas lampu nyala lagi jam 6, aulanya udah rapi."}],"move":"torch"},{"label":"Kumpulin semuanya ke tengah, bagi tugas","x":0.55,"leadsTo":"a5_malam","scores":"change+2,boss+1","react":[{"who":"","text":"12 senter ngumpul. Kamu bagi: 2 cari satpam, 3 jaga alat, sisanya nyanyi biar nggak panik. Nay akhirnya ketawa."}],"move":"wave"},{"label":"Rekam gelapnya. Caption: besok kita nyala","x":0.78,"leadsTo":"a5_malam","scores":"creator+2,deep+1","react":[{"who":"","text":"Video gelap, 12 senter, suara hujan. Caption: besok kita nyala. 1000 views sebelum lampunya balik."}],"move":"phone"},{"label":"Lari ke pos satpam, cari genset","x":0.92,"leadsTo":"a5_malam","scores":"explorer+2,boss+1","react":[{"who":"","text":"Kamu balik basah kuyup bareng Pak Satpam dan 1 genset tua. Nyala di tarikan ketiga. Satu aula tepuk tangan."}],"move":"run"}],"after":[{"who":"","text":"Lampu balik jam 6 lewat. Nay nyamperin kamu, naroin HT-nya di tangan kamu."},{"who":"nay","text":"Besok kamu pegang HT satu. Kalau aku pingsan, kamu yang ngomong."}]},{"id":"a5_malam","act":5,"place":"Aula, malam pensi","time":"Besoknya, 18.45","floor":0.84,"beats":[{"who":"","text":"Besoknya. Jam 7 kurang 15. Aula penuh. Bau parfum campur cat yang belum kering total."},{"who":"","text":"Backdrop pink nyala dari belakang. Sound-nya hidup. Kelas 10 duduk paling depan, rame sendiri."},{"who":"nay","text":"5 menit lagi. Kamu mau di mana pas lampunya nyala?"},{"who":"","text":"HT di tangan kamu kresek sekali. Nay nunggu."}],"prompt":"Pas lampu pertama nyala, kamu ada di...","options":[{"label":"Depan panggung. Pegang mic, buka acaranya","x":0.5,"leadsTo":"ending","scores":"creator+3","react":[{"who":"","text":"Lampu nyala. Yang pertama keliatan: kamu. Kamu bilang selamat malam, 800 orang bales."}],"move":"mic"},{"label":"Samping panggung. Pegang rundown, siap lari ke mana aja","x":0.15,"leadsTo":"ending","scores":"boss+2,explorer+2","react":[{"who":"","text":"Kamu liat semuanya dari pinggir. Kabel, waktu, muka orang. Acaranya jalan. Kalau ada yang meleset, cuma kamu yang tau."}],"move":"look"},{"label":"Di tengah penonton, sebelah yang dateng sendirian","x":0.82,"leadsTo":"ending","scores":"change+3","react":[{"who":"","text":"Kamu nemu anak kelas 10 yang duduk sendiri. Kamu duduk di sebelahnya. Pas lampu nyala, dia nggak sendirian lagi."}],"move":"sit"},{"label":"Tangga belakang bareng Nay, semenit sebelum mulai","x":0.3,"leadsTo":"ending","scores":"deep+2,artisan+2","react":[{"who":"","text":"Kalian duduk sebentar di tangga yang sama kayak kemaren. Nay nggak ngomong. Kamu juga."},{"who":"nay","text":"Makasih ya udah dateng kemaren."},{"who":"","text":"Terus lampunya nyala."}],"move":"sit"}]}]};
-const FB={"a0_gerbang":"#CFE2FB","a1_aula":"#E6DEF8","a2_medsos":"#EDF5FF","a2_panggung":"#FFEAD9","a2_dana":"#EFE6FF","a2_band":"#E3F1FF","a3_creator":"#FFE4F0","a3_boss":"#EFE6FF","a3_artisan":"#FFF3D6","a3_deep":"#E8ECFF","a3_change":"#DFF6EC","a3_explorer":"#BFE2FF","a4_gelap":"#2A1F45","a5_malam":"#FF9DC0"};
+const STORY={"title":"Explorer Quiz","theme":{"id":"What if you live with fearless?","en":"What if you live with fearless?"},"intro":{"id":"Perjalanan interaktif untuk menemukan hal yang bikin kamu excited, mengatasi keraguan, dan menjelajahi kemungkinan dirimu.","en":"An interactive journey to discover what excites you, overcome your doubts, and explore what you could become."},"welcome":{"kicker":"Emina 20 Under 20 · Made to Explore","lead":{"id":"7 chapter, 6 pertanyaan, satu cerita yang jalannya kamu yang nentuin. Di akhir kamu dapet tipe Explorer-mu, kartu buat di-share, dan 3 booth buat mulai jelajah di Explorer Summit.","en":"7 chapters, 6 questions, one story shaped by your choices. At the end you get your Explorer type, a card to share, and 3 booths to start exploring at the Explorer Summit."},"namePrompt":{"id":"Panggil kamu siapa?","en":"What should we call you?"},"namePh":{"id":"nama kamu","en":"your name"},"cta":{"id":"Mulai jelajah","en":"Start exploring"},"fine":{"id":"4 menit · 6 tipe Explorer · hasilnya bisa di-share","en":"4 minutes · 6 Explorer types · shareable result"}},"ui":{"tap":{"id":"ketuk buat lanjut","en":"tap to continue"},"tip":{"id":"<b>Tip:<\/b> pilih yang paling kamu banget. Nggak ada jawaban yang salah, dan dia bakal gerak sesuai pilihanmu.","en":"<b>Tip:<\/b> pick what feels most like you. There are no wrong answers, and she moves the way you choose."},"kamu":{"id":"Kamu","en":"You"},"youAre":{"id":"Kamu adalah...","en":"You are..."},"seeCard":{"id":"Lihat kartuku","en":"See my card"},"page1":{"id":"Kartu Explorer","en":"Explorer card"},"page2":{"id":"Panduan Summit","en":"Summit guide"},"save":{"id":"Simpan / Share","en":"Save / Share"},"again":{"id":"Ulang ceritanya","en":"Play again"},"reg":{"id":"Daftar 20U20","en":"Register 20U20"},"identity":"YOUR EXPLORER IDENTITY","sparks":"YOUR CREATIVE SPARKS","universe":"YOUR PASSION UNIVERSE","energy":"MAIN CHARACTER ENERGY","besties":"YOUR EXPLORER BESTIES","note":{"id":"PESAN BUAT KAMU","en":"A NOTE FOR YOU"},"hi":{"id":"Hai","en":"Hi"},"starts":{"id":"Eksplorasimu mulai dari sini!","en":"Your Exploration Starts Here!"},"based":{"id":"Berdasarkan rasa penasaranmu, di sini petualanganmu bisa dimulai:","en":"Based on your curiosity, here is where your adventure could begin:"},"booths":"YOUR SUGGESTED BOOTHS","stages":"YOUR STAGE PICKS","free":{"id":"Ini cuma titik awal. Semua booth boleh kamu jelajahi!","en":"These are just your starting points. Every booth is yours to explore!"},"date":{"id":"Tanggal","en":"Date"},"loc":{"id":"Lokasi","en":"Location"},"time":{"id":"Jam","en":"Time"},"shareText":{"id":"Aku {type} di Emina 20 Under 20 Explorer Quiz. Kamu Explorer yang mana?","en":"I am {type} in the Emina 20 Under 20 Explorer Quiz. Which Explorer are you?"},"askCta":{"id":"Kamu Explorer yang mana?","en":"Which Explorer are you?"}},"typeOrder":["CL","CR","AC","CU","IP","ST"],"boothOrder":["MUS","BEA","ART","SPO","STEM","MOV","IMP","FAS","PSY"],"types":{"CL":{"name":"The Culture Explorer","icon":"♪","c1":"#4FA6E8","c2":"#C8E3EC","soft":"#E6F2F8","desc":{"id":"Terinspirasi dari musik, cerita, dan budaya yang dirasain bareng-bareng.","en":"Inspired by music, stories & shared culture."},"tag":{"id":"Si yang selalu tau lagu, cerita, dan tren mana yang lagi bikin semua orang nyambung!","en":"The one who always knows which song, story or trend is bringing everyone together!"},"energy":{"id":"Yang ngerasain beat-nya duluan sebelum orang lain.","en":"The one who feels the beat before everyone else does."},"sparks":["#AlwaysOnBeat","#StoryCollector","#SharedVibes"],"booths":["MUS","MOV","ART"],"besties":["CR","AC"]},"CR":{"name":"The Creative Explorer","icon":"✦","c1":"#DA1884","c2":"#F1BCD5","soft":"#FBE7F0","desc":{"id":"Mengubah ide jadi karya yang layak dibagiin.","en":"Turns ideas into creations worth sharing."},"tag":{"id":"Si paling penuh ide, yang bisa melihat sesuatu biasa jadi luar biasa!","en":"The one full of ideas, who sees the extraordinary in the ordinary!"},"energy":{"id":"Yang bisa ngubah ide random jadi sesuatu yang keren.","en":"The one who turns random ideas into something amazing."},"sparks":["#FullOfIdeas","#BornToCreate","#CuriousMind"],"booths":["ART","MOV","BEA"],"besties":["CL","CU"]},"AC":{"name":"The Active Explorer","icon":"↗","c1":"#F6A24A","c2":"#FFF3B8","soft":"#FFF9E3","desc":{"id":"Selalu siap buat gerak dan tantangan baru.","en":"Always up for movement & new challenges."},"tag":{"id":"Si yang nggak bisa diem, selalu pertama bilang ayo coba!","en":"The one who cannot sit still and is always first to say let us try!"},"energy":{"id":"Yang bilang ayo sebelum pertanyaannya selesai.","en":"The one who says yes before anyone finishes the question."},"sparks":["#AlwaysMoving","#TryEverything","#NoFearMode"],"booths":["SPO","MUS","IMP"],"besties":["CL","IP"]},"CU":{"name":"The Curious Explorer","icon":"?","c1":"#8A4FD6","c2":"#DCCBFB","soft":"#F0EAFB","desc":{"id":"Suka nanya kenapa, nyoba, dan nemuin hal baru.","en":"Loves asking why, testing & discovering."},"tag":{"id":"Si tukang nanya, yang nggak puas sebelum tau cara kerjanya!","en":"The one who keeps asking, and is never satisfied until they know how it works!"},"energy":{"id":"Yang bongkar dulu cuma buat tau cara kerjanya.","en":"The one who takes things apart just to see how they work."},"sparks":["#WhyThough","#TestAndLearn","#BrainOn"],"booths":["STEM","PSY","MOV"],"besties":["CR","IP"]},"IP":{"name":"The Impact Explorer","icon":"♡","c1":"#17B6A6","c2":"#B8E6D6","soft":"#E3F5EF","desc":{"id":"Pengin bikin hal kecil jadi berarti.","en":"Wants to make small things matter."},"tag":{"id":"Si yang mulai dari hal kecil, tapi nggak pernah berhenti di situ!","en":"The one who starts small, but never stops there!"},"energy":{"id":"Yang sadar siapa yang ketinggalan, terus balik jemput.","en":"The one who notices who got left behind, and goes back."},"sparks":["#SmallStepsBigChange","#ForThePeople","#PlanetFirst"],"booths":["IMP","PSY","ART"],"besties":["CU","AC"]},"ST":{"name":"The Style Explorer","icon":"✳","c1":"#E0357D","c2":"#FFD1E3","soft":"#FFEAF2","desc":{"id":"Mengekspresikan diri lewat penampilan dan estetika.","en":"Expresses identity through looks & aesthetics."},"tag":{"id":"Si yang bisa ngomong tanpa ngomong, lewat warna, gaya, dan detail!","en":"The one who speaks without speaking, through colour, style and detail!"},"energy":{"id":"Yang outfit-nya aja udah satu cerita.","en":"The one whose outfit is a whole story."},"sparks":["#OwnYourLook","#AestheticMode","#MainCharacterFit"],"booths":["FAS","BEA","ART"],"besties":["CR","CL"]}},"booths":{"MUS":{"name":"Music & Fandom","tag":{"id":"Nyanyi, jamming, dan fangirling bareng","en":"Sing, jam, and fan out together"}},"BEA":{"name":"Beauty & Expression","tag":{"id":"Explore dan ekspresikan beauty & style-mu","en":"Explore and express your beauty & style"}},"ART":{"name":"Art & Craft","tag":{"id":"Bikin karya seni versimu sendiri","en":"Create your own artwork"}},"SPO":{"name":"Sport","tag":{"id":"Gerak, main, dan coba olahraga baru","en":"Move, play, and try a new game"}},"STEM":{"name":"STEM World","tag":{"id":"Utak-atik teknologi, coding, dan eksperimen","en":"Tinker with tech, code, and experiments"}},"MOV":{"name":"Movie & Stories","tag":{"id":"Hidupkan ceritamu","en":"Bring your story to life"}},"IMP":{"name":"Impact & Environment","tag":{"id":"Mulai hal baik buat orang dan bumi","en":"Start something good for people and the planet"}},"FAS":{"name":"Fashion & Style","tag":{"id":"Gaya sesukamu","en":"Style it your way"}},"PSY":{"name":"Psychology & Wellbeing","tag":{"id":"Kenali dirimu sedikit lebih dalam","en":"Understand yourself a little better"}}},"doubts":{"SKILL":{"id":"Kamu nggak harus jago buat mulai. Mulai itu yang bikin kamu jago.","en":"You do not have to be good to begin. Beginning is how you get good."},"EXPECTATION":{"id":"Nggak semua harus jadi sempurna. Yang penting jadi.","en":"Not everything has to turn out perfectly. It just has to turn out."},"FAILURE":{"id":"Kesalahan sering jadi jalan ke hal yang nggak kamu duga.","en":"Mistakes can lead to something unexpected."},"IMPACT":{"id":"Langkah sekecil apa pun tetep bikin beda. Buat kamu dulu, baru buat orang lain.","en":"Even small steps can make a difference. For you first, then for others."}},"interests":{"PERFORMANCE":"Music / Performance / Expression","CREATIVITY":"Art / Making / Storytelling","COURAGE":"Sport / Challenges / Exploration","PURPOSE":"Impact / Community / Environment"},"scenes":[{"id":"c1","chapter":"Chapter 01","place":{"id":"Undangan Misterius","en":"The Invitation"},"img":"art/explorer/c1.jpg","floor":0.86,"tutorial":true,"beats":[{"who":"","id":"Kamu bangun pagi ini dan nemu sebuah undangan misterius di meja.","en":"You wake up this morning and find a mysterious invitation on your desk."},{"who":"","id":"Isinya cuma satu kalimat: Hari ini kamu boleh explore apa pun yang selama ini bikin kamu penasaran.","en":"It says one thing: Today, you can explore anything you have ever been curious about."},{"who":"","id":"Di bawahnya, tulisan tangan kecil: Dari mana ceritamu mau dimulai?","en":"Below it, in small handwriting: Where will your story begin?"}],"prompt":{"id":"Kalau bisa nyoba satu hal baru hari ini, kamu paling excited buat...","en":"If you could try one new thing today, what would excite you most?"},"options":[{"label":{"id":"Tampil dan mengekspresikan diri di depan orang banyak","en":"Performing and expressing yourself in front of a crowd"},"x":0.2,"move":"mic","react":[{"who":"","id":"Kamu langsung kebayang lampu panggung. Deg-degan, tapi senyum kamu nggak bisa ditahan.","en":"You picture the stage lights right away. Nervous, but you cannot stop smiling."}],"type":{"CL":2,"ST":1},"booth":{"MUS":2,"FAS":1},"leadsTo":"c2"},{"label":{"id":"Bikin sesuatu yang belum pernah kamu buat","en":"Creating something you have never made before"},"x":0.42,"move":"paint","react":[{"who":"","id":"Tangan kamu udah gatel pengin mulai. Entah apa bentuknya nanti, yang penting punya kamu.","en":"Your hands are itching to start. Whatever it turns into, it will be yours."}],"type":{"CR":2,"CU":1},"booth":{"ART":2,"MOV":1},"leadsTo":"c2"},{"label":{"id":"Mencoba challenge yang bikin adrenaline naik","en":"Trying an adrenaline-pumping challenge"},"x":0.64,"move":"run","react":[{"who":"","id":"Jantung kamu udah lari duluan. Hari ini kayaknya bakal seru.","en":"Your heart is already racing ahead of you. Today is going to be fun."}],"type":{"AC":2,"CL":1},"booth":{"SPO":2,"MUS":1},"leadsTo":"c2"},{"label":{"id":"Menemukan sesuatu yang bisa membawa perubahan","en":"Discovering something that could make a difference"},"x":0.86,"move":"wave","react":[{"who":"","id":"Kamu kepikiran satu hal kecil yang bisa kamu ubah hari ini. Dari situ aja dulu.","en":"You think of one small thing you could change today. Start there."}],"type":{"IP":2,"CU":1},"booth":{"IMP":2,"PSY":1},"leadsTo":"c2"}]},{"id":"c2","chapter":"Chapter 02","place":{"id":"Jalanan Penuh Pintu","en":"The First Turn"},"img":"art/explorer/c2.jpg","floor":0.88,"beats":[{"who":"","id":"Kamu keluar rumah dan nemu jalanan yang penuh tempat menarik.","en":"You step outside onto a street full of exciting places."},{"who":"","id":"Semua pintunya kebuka. Ada musik dari satu sisi, bau cat dari sisi lain, suara orang ketawa di ujung jalan.","en":"Every door is open. Music from one side, the smell of paint from another, laughter at the end of the street."},{"who":"","id":"Tapi satu tempat langsung bikin kamu berhenti.","en":"But one place instantly makes you stop."}],"prompt":{"id":"Kamu bakal langsung masuk ke tempat yang...","en":"Which place would you walk into first?"},"options":[{"label":{"id":"Ada orang lagi jamming dan sing-along bareng","en":"People are jamming and singing along together"},"x":0.2,"move":"wave","react":[{"who":"","id":"Baru masuk, kamu udah ikut nyanyi bagian reff. Nggak ada yang nanya kamu siapa.","en":"You are singing the chorus before you even sit down. Nobody asks who you are."}],"type":{"CL":2,"AC":1},"booth":{"MUS":2,"BEA":1},"leadsTo":"c3"},{"label":{"id":"Penuh karya seni dan orang lagi DIY","en":"Artworks and people making DIY creations fill the space"},"x":0.42,"move":"craft","react":[{"who":"","id":"Ada meja kosong dan sekotak bahan. Kamu duduk tanpa mikir dua kali.","en":"There is an empty table and a box of materials. You sit down without a second thought."}],"type":{"CR":2,"ST":1},"booth":{"ART":2,"FAS":1},"leadsTo":"c3"},{"label":{"id":"Ada orang lagi main games dan mini challenges","en":"People are playing games and trying mini challenges"},"x":0.64,"move":"run","react":[{"who":"","id":"Kamu kalah di ronde pertama, terus langsung minta main lagi.","en":"You lose the first round and immediately ask for another."}],"type":{"AC":2,"IP":1},"booth":{"SPO":2,"IMP":1},"leadsTo":"c3"},{"label":{"id":"Ada teknologi interaktif yang belum pernah kamu coba","en":"There is interactive technology you have never tried"},"x":0.86,"move":"phone","react":[{"who":"","id":"Kamu pencet semua tombolnya dulu, baru baca petunjuknya.","en":"You press every button first, then read the instructions."}],"type":{"CU":2,"CR":1},"booth":{"STEM":2,"PSY":1},"leadsTo":"c3"}]},{"id":"c3","chapter":"Chapter 03","place":{"id":"Tantangan Dadakan","en":"The Unexpected Challenge"},"img":"art/explorer/c3.jpg","floor":0.88,"beats":[{"who":"","id":"Tiba-tiba ada pengumuman: challenge dadakan!","en":"Suddenly, an announcement: a surprise challenge!"},{"who":"","id":"Kamu dikasih waktu buat bikin sesuatu, dengan cara kamu sendiri. Nggak ada aturan, nggak ada contekan.","en":"You get some time to create something, your own way. No rules, no template."}],"prompt":{"id":"Kalau dikasih kebebasan buat bikin sesuatu, kamu pilih...","en":"If you had total freedom to create something, what would you choose?"},"options":[{"label":{"id":"Mendesain packaging produk beauty versiku sendiri","en":"Create my own beauty product packaging"},"x":0.2,"move":"paint","react":[{"who":"","id":"Warna pertama yang kamu pilih langsung kerasa kamu banget.","en":"The first colour you pick already feels like you."}],"type":{"ST":2,"CR":1},"booth":{"BEA":2,"FAS":1},"leadsTo":"c4"},{"label":{"id":"Mengubah ide-ideku jadi sebuah film pendek","en":"Turn my ideas into a short movie"},"x":0.42,"move":"phone","react":[{"who":"","id":"Adegan pertamanya udah ada di kepala kamu dari tadi.","en":"The first scene has been playing in your head all along."}],"type":{"CR":2,"CL":1},"booth":{"MOV":2,"ART":1},"leadsTo":"c4"},{"label":{"id":"Customize aksesori yang bener-bener mencerminkan diriku","en":"Customize an accessory that screams ME!"},"x":0.64,"move":"craft","react":[{"who":"","id":"Kamu nggak mau yang rapi. Kamu mau yang keliatan punya kamu.","en":"You do not want it neat. You want it to look like yours."}],"type":{"ST":2,"AC":1},"booth":{"FAS":2,"ART":1},"leadsTo":"c4"},{"label":{"id":"Membuat sesuatu yang membantu orang lain atau lingkungan","en":"Create something that helps people or the planet"},"x":0.86,"move":"tidy","react":[{"who":"","id":"Kamu mulai dari masalah yang kamu liat tiap hari. Kecil, tapi nyata.","en":"You start from a problem you see every day. Small, but real."}],"type":{"IP":2,"CU":1},"booth":{"IMP":2,"STEM":1},"leadsTo":"c4"}]},{"id":"c4","chapter":"Chapter 04","place":{"id":"Ragu Sebentar","en":"The Moment of Doubt"},"img":"art/explorer/c4.jpg","floor":0.9,"beats":[{"who":"","id":"Kamu udah milih challenge yang mau dicoba. Bahannya ada, waktunya ada.","en":"You have chosen the challenge you want to try. The materials are there, the time is there."},{"who":"","id":"Tapi pas mau mulai, tiba-tiba ada satu pikiran yang bikin kamu berhenti.","en":"But just as you are about to start, one thought creeps in and stops you."}],"prompt":{"id":"Apa yang paling bikin kamu ragu buat nyoba sesuatu yang baru?","en":"What makes you hesitate most when trying something new?"},"options":[{"label":{"id":"Takut nggak cukup jago buat mulai.","en":"What if I am not good enough to start?"},"x":0.2,"move":"look","react":[{"who":"","id":"Kamu nggak harus jago buat mulai. Mulai itu yang bikin kamu jago.","en":"You do not have to be good to begin. Beginning is how you get good."}],"doubt":"SKILL","leadsTo":"c5"},{"label":{"id":"Takut hasilnya nggak sesuai ekspektasi.","en":"What if it does not turn out as I expected?"},"x":0.42,"move":"breathe","react":[{"who":"","id":"Nggak semua harus jadi sempurna. Yang penting jadi.","en":"Not everything has to turn out perfectly. It just has to turn out."}],"doubt":"EXPECTATION","leadsTo":"c5"},{"label":{"id":"Takut gagal atau bikin kesalahan.","en":"What if I fail or make mistakes?"},"x":0.64,"move":"sit","react":[{"who":"","id":"Kesalahan sering jadi jalan ke hal yang nggak kamu duga.","en":"Mistakes can lead to something unexpected."}],"doubt":"FAILURE","leadsTo":"c5"},{"label":{"id":"Takut apa yang aku lakuin nggak berarti apa-apa.","en":"What if what I do does not matter?"},"x":0.86,"move":"listen","react":[{"who":"","id":"Langkah sekecil apa pun tetep bikin beda. Buat kamu dulu, baru buat orang lain.","en":"Even small steps can make a difference. For you first, then for others."}],"doubt":"IMPACT","leadsTo":"c5"}]},{"id":"c5","chapter":"Chapter 05","place":{"id":"Cerita dari Panggung","en":"The Spotlight Moment"},"img":"art/explorer/c5.jpg","floor":0.9,"beats":[{"who":"","id":"Di tengah ragu, kamu denger seseorang lagi cerita dari atas panggung.","en":"In the middle of your doubts, you hear someone sharing their story on stage."},{"who":"","id":"Ternyata mereka juga pernah takut dan ragu, sebelum akhirnya berani nyoba.","en":"It turns out they were once afraid and uncertain too, before they found the courage to try."},{"who":"","id":"Kamu dengerin sampai habis. Terus kamu mikir: mungkin aku juga bisa.","en":"You listen to the end. Then you think: maybe I can do it too."}],"prompt":{"id":"Cerita mana yang paling bikin kamu berani buat mulai explore?","en":"Which story makes you feel brave enough to start exploring?"},"options":[{"label":{"id":"Seseorang yang awalnya takut tampil, tapi akhirnya berani nunjukin bakatnya.","en":"Someone who was afraid to perform, but eventually found the courage to show their talent."},"x":0.2,"move":"mic","react":[{"who":"","id":"Kamu nggak sadar udah tepuk tangan paling kenceng.","en":"You do not realise you are clapping the loudest."}],"interest":"PERFORMANCE","leadsTo":"c6"},{"label":{"id":"Seseorang yang terus nyoba sampai akhirnya berhasil mewujudkan ide kreatifnya.","en":"Someone who kept trying until they finally brought their creative idea to life."},"x":0.42,"move":"paint","react":[{"who":"","id":"Kamu catet satu kalimatnya di HP, buat dibaca lagi nanti.","en":"You save one of their lines on your phone, to read again later."}],"interest":"CREATIVITY","leadsTo":"c6"},{"label":{"id":"Seseorang yang berani keluar dari comfort zone dan nyoba tantangan baru.","en":"Someone who stepped out of their comfort zone and embraced a new challenge."},"x":0.64,"move":"run","react":[{"who":"","id":"Kaki kamu udah pengin gerak sebelum ceritanya selesai.","en":"Your feet want to move before the story even ends."}],"interest":"COURAGE","leadsTo":"c6"},{"label":{"id":"Seseorang yang mulai dari hal kecil sampai akhirnya bisa bawa perubahan.","en":"Someone who started small and eventually made a meaningful difference."},"x":0.86,"move":"wave","react":[{"who":"","id":"Kamu kepikiran orang-orang yang bakal kamu ajak bareng.","en":"You think of the people you would bring along."}],"interest":"PURPOSE","leadsTo":"c6"}]},{"id":"c6","chapter":"Chapter 06","place":{"id":"Pintu Baru","en":"Beyond Your Comfort Zone"},"img":"art/explorer/c6.jpg","floor":0.9,"beats":[{"who":"","id":"Setelah denger cerita tadi, kamu lanjut jalan.","en":"After that story, you continue your journey."},{"who":"","id":"Sekarang ada satu pintu baru yang kebuka, ke sesuatu yang belum pernah kamu bayangin.","en":"Now a new door opens, to something you have never imagined before."}],"prompt":{"id":"Mana yang paling bikin kamu penasaran, walaupun belum pernah dicoba?","en":"Which experience makes you most curious, even if you have never tried it?"},"options":[{"label":{"id":"Menjelajahi dunia coding & AI","en":"Exploring the world of coding & AI"},"x":0.2,"move":"phone","react":[{"who":"","id":"Kamu ngetik baris pertama. Error. Kamu ketawa, terus coba lagi.","en":"You type the first line. Error. You laugh and try again."}],"type":{"CU":2,"CR":1},"booth":{"STEM":2,"MOV":1},"leadsTo":"c7"},{"label":{"id":"Mencoba olahraga yang bener-bener baru","en":"Trying an entirely new sport"},"x":0.42,"move":"run","react":[{"who":"","id":"Gerakannya masih kaku, tapi napas kamu belum pernah selega ini.","en":"The moves are still stiff, but you have never breathed this freely."}],"type":{"AC":2,"CL":1},"booth":{"SPO":2,"PSY":1},"leadsTo":"c7"},{"label":{"id":"Menemukan hubungan antara kreativitas dan emosi","en":"Discovering how creativity and emotions connect"},"x":0.64,"move":"write","react":[{"who":"","id":"Kamu nulis tiga kata tentang hari ini. Ternyata itu udah jadi sesuatu.","en":"You write three words about today. Somehow, that is already something."}],"type":{"CU":2,"ST":1},"booth":{"PSY":2,"ART":1},"leadsTo":"c7"},{"label":{"id":"Mengubah ide sederhana jadi gerakan sosial","en":"Turning a simple idea into a social movement"},"x":0.86,"move":"wave","react":[{"who":"","id":"Satu orang ikut. Terus dua. Kamu nggak nyangka secepat itu.","en":"One person joins. Then two. You did not expect it to be this fast."}],"type":{"IP":2,"AC":1},"booth":{"IMP":2,"STEM":1},"leadsTo":"c7"}]},{"id":"c7","chapter":"Chapter 07","place":{"id":"Perjalananmu Dimulai","en":"Your Exploration Begins"},"img":"art/explorer/c7.jpg","floor":0.9,"beats":[{"who":"","id":"Kamu udah sampai di akhir cerita. Tapi ternyata perjalanan kamu baru mau dimulai.","en":"You have reached the end of the story. But your real adventure is only just beginning."},{"who":"","id":"Setiap pilihan tadi bawa kamu ke sini. Siap liat ke mana eksplorasimu bakal pergi?","en":"Every choice you made brought you here. Ready to see where your exploration takes you?"}],"prompt":{"id":"","en":""},"options":[{"label":{"id":"Tampilkan Explorer Journey-ku","en":"Reveal my Explorer Journey"},"x":0.5,"move":"walk","react":[],"leadsTo":"ending"}]}]};
+const EVENT={"name":"Emina 20 Under 20 · Explorer Summit","date":"[To confirm]","location":"[To confirm]","time":"[To confirm]","register":"https://bit.ly/Emina20Under20","stages":{"MUS":{"title":"Music & Fandom","speaker":"[To confirm]"},"BEA":{"title":"Beauty & Expression","speaker":"Shaquila / Deana"},"ART":{"title":"Art & Craft","speaker":"Owiliunic"},"SPO":{"title":"Sport","speaker":"[To confirm]"},"STEM":{"title":"STEM World","speaker":"[To confirm]"},"MOV":{"title":"Movie & Stories","speaker":"Wregas Bhanuteja"},"IMP":{"title":"Impact & Environment","speaker":"[To confirm]"},"FAS":{"title":"Fashion & Style","speaker":"[To confirm]"},"PSY":{"title":"Psychology & Wellbeing","speaker":"[To confirm]"}},"interestStage":{"PERFORMANCE":"MUS","CREATIVITY":"ART","COURAGE":"SPO","PURPOSE":"IMP"}};
+const FB={"c1":"#FFE9D6","c2":"#DCEFFF","c3":"#FFF1E6","c4":"#2E3A2E","c5":"#3A2535","c6":"#E6E0FF","c7":"#D8E4FF"};
 const SPRITES=[{"src":"art/char/p00.png","w":140,"h":211},{"src":"art/char/p01.png","w":170,"h":219},{"src":"art/char/p02.png","w":178,"h":217},{"src":"art/char/p03.png","w":193,"h":217},{"src":"art/char/p04.png","w":162,"h":205},{"src":"art/char/p05.png","w":150,"h":206},{"src":"art/char/p06.png","w":126,"h":216},{"src":"art/char/p07.png","w":146,"h":217},{"src":"art/char/p08.png","w":125,"h":217},{"src":"art/char/p09.png","w":168,"h":208},{"src":"art/char/p10.png","w":174,"h":217},{"src":"art/char/p11.png","w":172,"h":217},{"src":"art/char/p12.png","w":131,"h":218},{"src":"art/char/p13.png","w":190,"h":218},{"src":"art/char/p14.png","w":203,"h":217},{"src":"art/char/p15.png","w":201,"h":229}];const SPR_H=62;
+const TYPEIMG={};
+const VER='798022';
 const POSE={idle:0,walkA:1,walkB:2,run:3,sit:4,listen:5,craft:4,phone:6,call:7,write:8,tidy:9,wave:10,mic:11,look:12,talk:13,torch:14,paint:15,breathe:0,climb:0};
-const VER='214925';
 const $=s=>document.querySelector(s);
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const SC={};STORY.scenes.forEach(s=>SC[s.id]=s);
-const END={};STORY.endings.forEach(e=>END[e.character]=e);
-const KEYS=['creator','boss','artisan','deep','change','explorer'];
-const CAST=Object.assign({kamu:{name:'Kamu',color:'#E0357D'}},STORY.cast||{});
-const FIRST=STORY.scenes[0].id;const START=STORY.start||FIRST;
+const ORDER=STORY.scenes.map(s=>s.id);
+const TYPES=STORY.types,BOOTHS=STORY.booths,UI=STORY.ui;
+const CAST={kamu:{name:'',color:'#DA1884'}};
+let LANG='id';try{LANG=localStorage.getItem('eq_lang')||'id';}catch(e){}
+const T=v=>v==null?'':(typeof v==='string'?v:(v[LANG]||v.id||v.en||''));
+function fmt(s,o){return String(s).replace(/\{(\w+)\}/g,(m,k)=>o[k]==null?m:o[k]);}
 
 /* ---------------- state ---------------- */
 let G;
-function fresh(){G={node:FIRST,score:{},trail:[],lock:false,hasHT:false};}
-
+function fresh(){G={node:ORDER[0],type:{},booth:{},doubt:null,interest:null,trail:[],lock:false,hasHT:false,name:''};}
 /* ---------------- sound (synth only) ---------------- */
 const SFX={ctx:null,ambGain:null,
   unlock(){if(this.ctx)return;try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();this.ambient();}catch(e){}},
@@ -449,16 +396,21 @@ const SFX={ctx:null,ambGain:null,
 };
 const haptic=p=>{try{navigator.vibrate&&navigator.vibrate(p);}catch(e){}};
 
-/* ---------------- welcome ---------------- */
-(function welcome(){
-  const w=STORY.welcome||{};$('#wKick').textContent=w.kicker||'';$('#wPh').textContent=w.title||'';$('#wTitle').textContent=w.title||'';
-  $('#wSub').textContent=w.sub||'';$('#wLead').textContent=w.lead||'';$('#startBtn').textContent=w.cta||'Mulai';$('#wFine').textContent=w.fine||'';
-  $('#wHeart').textContent=w.heart||'';
-  const hi=$('#heroImg');hi.onload=()=>{hi.style.opacity='1';const ph=document.querySelector('.w-hero .ph');if(ph)ph.style.display='none';};hi.onerror=()=>{hi.remove();};hi.src='art/hero.jpg?v='+VER;
-})();
-if(SPRITES)SPRITES.forEach(p=>{const im=new Image();im.src=p.src+'?v='+VER;});
-$('#startBtn').addEventListener('click',()=>{SFX.unlock();haptic(10);$('#welcome').classList.remove('on');$('#game').classList.add('on');fresh();enter(FIRST,true);});
 
+/* ---------------- welcome + language ---------------- */
+function renderWelcome(){const w=STORY.welcome;CAST.kamu.name=T(UI.kamu);
+  $('#wKick').textContent=w.kicker;$('#wTitle').innerHTML=T(STORY.theme).replace(/fearless\??/i,m=>'<em>'+m+'</em>');
+  $('#wIntro').textContent=T(STORY.intro);$('#wLead').textContent=T(w.lead);$('#wNameLbl').textContent=T(w.namePrompt);$('#nameIn').placeholder=T(w.namePh);
+  $('#startBtn').textContent=T(w.cta);$('#wFine').textContent=T(w.fine);
+  document.querySelectorAll('.lang').forEach(b=>b.textContent=LANG==='id'?'EN':'ID');
+  $('#hint').textContent=T(UI.tap);$('#rvGo').textContent=T(UI.seeCard)+' ✨';$('#tab1').textContent=T(UI.page1);$('#tab2').textContent=T(UI.page2);
+  $('#share').textContent=T(UI.save)+' 📲';$('#again').textContent=T(UI.again)+' ↩';$('#reg').textContent=T(UI.reg)+' ✦';$('#saveCard').textContent=T(UI.save)+' 💾';
+  $('#m-fine').textContent=LANG==='id'?'Tekan & tahan gambarnya buat simpan':'Press and hold the image to save';}
+function setLang(l){LANG=l;try{localStorage.setItem('eq_lang',l);}catch(e){}renderWelcome();if($('#result').classList.contains('on'))showResult();}
+document.querySelectorAll('.lang').forEach(b=>b.addEventListener('click',()=>setLang(LANG==='id'?'en':'id')));
+renderWelcome();
+if(SPRITES)SPRITES.forEach(p=>{const im=new Image();im.src=p.src+'?v='+VER;});
+$('#startBtn').addEventListener('click',()=>{SFX.unlock();haptic(10);fresh();G.name=($('#nameIn').value||'').trim().slice(0,24);$('#welcome').classList.remove('on');$('#game').classList.add('on');enter(ORDER[0],true);});
 /* ---------------- stage: picture + actor ---------------- */
 const stage=$('#stage'),layer=$('#actorLayer'),imgs=[$('#bgA'),$('#bgB')];let cur=0,vbH=440;
 function fitLayer(){const r=stage.getBoundingClientRect();if(!r.width)return;vbH=Math.round(360*r.height/r.width);layer.setAttribute('viewBox','0 0 360 '+vbH);}
@@ -467,7 +419,7 @@ function setImage(id){
   const nxt=imgs[1-cur],prev=imgs[cur];stage.style.setProperty('--fb',FB[id]||'#CDBEF2');
   nxt.onload=()=>{nxt.classList.add('on');prev.classList.remove('on');cur=1-cur;$('#ground').style.display='none';};
   nxt.onerror=()=>{prev.classList.remove('on');nxt.removeAttribute('src');$('#ground').style.display='';};
-  nxt.src='art/'+id+'.jpg?v='+VER;
+  nxt.src=(SC[id].img||('art/'+id+'.jpg'))+'?v='+VER;
 }
 function emoteMarkup(x,y){
   return '<g transform="translate('+x+','+y+')"><g id="emoteWrap"><g id="emote">'
@@ -580,20 +532,22 @@ $('#panel').addEventListener('click',tapAdvance);stage.addEventListener('click',
 document.addEventListener('keydown',e=>{if(!$('#game').classList.contains('on'))return;if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!choicesOpen)advance(false);}
   if(choicesOpen&&/^[1-4]$/.test(e.key)){const b=document.querySelectorAll('.opt')[+e.key-1];b&&b.click();}});
 
+
 /* ---------------- scenes ---------------- */
 async function enter(id,first){
   const s=SC[id];G.node=id;G.lock=true;choicesOpen=false;$('#choices').classList.remove('on');showWho('');txt.textContent='';nextI.classList.remove('on');
   if(!first){$('#fade').classList.add('on');SFX.swoosh();await wait(480);}
-  fitLayer();setImage(id);$('#chipT').textContent=s.time;$('#chipP').textContent=s.place;$('#chip').classList.add('on');$('#tutBadge').classList.toggle('on',!!s.tutorial);
-  mountActor(s.floor||.85);
+  fitLayer();setImage(id);$('#chipT').textContent=s.chapter;$('#chipP').textContent=T(s.place);$('#chip').classList.add('on');
+  mountActor(s.floor||.86);
   $('#fade').classList.remove('on');await wait(first?500:380);
-  await walkTo(.42,s.floor||.85);      // she walks into the room
+  await walkTo(.42,s.floor||.86);
   G.lock=false;
-  playBeats(s.beats,()=>showChoices(s));
+  playBeats(s.beats.map(b=>({who:b.who,text:T(b)})),()=>showChoices(s));
 }
 function showChoices(s){
-  $('#ask').textContent=s.prompt||'';const tp=$('#tip');if(s.tip){tp.innerHTML=s.tip;tp.classList.add('on');}else{tp.classList.remove('on');}const L=$('#optList');
-  L.innerHTML=s.options.map((o,i)=>'<button class="opt" type="button" data-i="'+i+'">'+o.label+'</button>').join('');
+  $('#ask').textContent=T(s.prompt);const tp=$('#tip');if(s.tutorial){tp.innerHTML=T(UI.tip);tp.classList.add('on');}else tp.classList.remove('on');
+  const L=$('#optList');const single=s.options.length===1;
+  L.innerHTML=s.options.map((o,i)=>'<button class="opt'+(single?' single':'')+'" type="button" data-i="'+i+'">'+T(o.label)+'</button>').join('');
   showWho('');txt.textContent='';$('#choices').classList.toggle('tut',!!s.tutorial);$('#choices').classList.add('on');choicesOpen=true;
   [...L.children].forEach((b,i)=>{setTimeout(()=>b.classList.add('in'),80+i*70);b.addEventListener('click',()=>choose(i));});
 }
@@ -602,86 +556,135 @@ async function choose(i){
   const s=SC[G.node],o=s.options[i];haptic(12);SFX.pick();
   [...document.querySelectorAll('.opt')].forEach((b,j)=>b.classList.add(j===i?'pick':'dim'));
   await wait(380);$('#choices').classList.remove('on');
-  showWho('kamu');txt.className='echo';txt.textContent='› '+o.label;   // what she decided, in her head
-  await walkTo(o.x==null?.5:o.x,s.floor||.85,o.move);await act(o.move);  // travel like the choice, then do the thing
-  (o.scores||'').split(/[,\s]+/).forEach(p=>{const m=/^([a-z]+)\+(\d+)$/.exec(p);if(m)G.score[m[1]]=(G.score[m[1]]||0)+ +m[2];});
+  if(s.options.length>1){showWho('kamu');txt.className='echo';txt.textContent='› '+T(o.label);}
+  await walkTo(o.x==null?.5:o.x,s.floor||.86,o.move);await act(o.move);
+  for(const k in (o.type||{}))G.type[k]=(G.type[k]||0)+o.type[k];
+  for(const k in (o.booth||{}))G.booth[k]=(G.booth[k]||0)+o.booth[k];
+  if(o.doubt)G.doubt=o.doubt;if(o.interest)G.interest=o.interest;
   G.trail.push({node:G.node,i});
-  const beats=(o.react||[]).concat(s.after||[]);
   G.lock=false;
-  playBeats(beats,()=>{
-    if(s.id==='a4_gelap'&&!G.hasHT){G.hasHT=true;const h=$('#ht');if(h)h.style.opacity='1';SFX.lamp();}
-    if(o.leadsTo==='ending')reveal();else enter(o.leadsTo,false);
-  });
+  const beats=(o.react||[]).map(b=>({who:b.who,text:T(b)}));
+  const done=()=>{if(o.leadsTo==='ending')reveal();else enter(o.leadsTo,false);};
+  if(beats.length)playBeats(beats,done);else done();
+}
+
+/* ---------------- scoring (deck: sum, rank, recency tie-break, stable code order) ---------------- */
+const RECENCY=['c6','c3','c2','c1'];
+function contrib(kind,code,node){const t=G.trail.find(x=>x.node===node);if(!t)return 0;const o=SC[node].options[t.i];return (o[kind]||{})[code]||0;}
+function rank(kind,order){
+  const sc=G[kind];const codes=order.slice();
+  codes.sort((a,b)=>{const d=(sc[b]||0)-(sc[a]||0);if(d)return d;
+    for(const n of RECENCY){const e=contrib(kind,b,n)-contrib(kind,a,n);if(e)return e;}
+    return order.indexOf(a)-order.indexOf(b);});
+  return codes;
+}
+function outcome(){
+  const types=rank('type',STORY.typeOrder);const win=types[0];
+  let booths=rank('booth',STORY.boothOrder).filter(b=>(G.booth[b]||0)>0);
+  TYPES[win].booths.forEach(b=>{if(booths.indexOf(b)<0)booths.push(b);});
+  booths=booths.slice(0,3);
+  const picks=[];const first=EVENT.interestStage[G.interest];
+  if(first&&EVENT.stages[first])picks.push(first);
+  booths.forEach(b=>{if(picks.length<3&&picks.indexOf(b)<0&&EVENT.stages[b])picks.push(b);});
+  return {win,booths,picks};
 }
 
 /* ---------------- reveal ceremony ---------------- */
-function winner(){let mx=-1;KEYS.forEach(k=>{if((G.score[k]||0)>mx)mx=G.score[k]||0;});let top=KEYS.filter(k=>(G.score[k]||0)===mx);
-  if(top.length===1)return top[0];
-  for(let t=G.trail.length-1;t>=0;t--){const o=SC[G.trail[t].node].options[G.trail[t].i];const sc={};(o.scores||'').split(/[,\s]+/).forEach(p=>{const m=/^([a-z]+)\+(\d+)$/.exec(p);if(m)sc[m[1]]=+m[2];});
-    let best=0;top.forEach(k=>{if((sc[k]||0)>best)best=sc[k]||0;});if(best>0){const c=top.filter(k=>(sc[k]||0)===best);if(c.length===1)return c[0];top=c;}}
-  return top[0];}
-let currentKey=null;
+let R=null;
 async function reveal(){
-  const k=winner();currentKey=k;const a=ARCH[k];G.lock=true;
+  R=outcome();const a=TYPES[R.win];G.lock=true;
   $('#fade').classList.add('on');await wait(900);
   const rv=$('#reveal');rv.style.setProperty('--c1',a.c1);rv.style.setProperty('--c2',a.c2);rv.classList.add('on');$('#game').classList.remove('on');$('#fade').classList.remove('on');
   await wait(400);$('#flame').classList.add('on');SFX.lamp();await wait(900);
   $('#flood').classList.add('on');SFX.chord();await wait(520);
-  $('#rvKick').classList.add('on');
-  const T=$('#rvType');T.innerHTML='';[...a.nick].forEach(ch=>{const s=document.createElement('span');s.textContent=ch===' '?' ':ch;T.appendChild(s);});
-  const spans=T.querySelectorAll('span');for(let i=0;i<spans.length;i++){spans[i].classList.add('on');await wait(28);}
-  $('#rvEn').textContent=a.en;$('#rvEn').classList.add('on');
-  await wait(300);$('#rvLine').textContent=a.tag||'';$('#rvLine').classList.add('on');
+  $('#rvKick').textContent=T(UI.youAre);$('#rvKick').classList.add('on');$('#rvIcon').textContent=a.icon;$('#rvIcon').classList.add('on');
+  const Tn=$('#rvType');Tn.innerHTML='';const wds=a.name.split(' ');wds.forEach((wd,wi)=>{const w=document.createElement('span');w.className='w';[...wd].forEach(ch=>{const s=document.createElement('span');s.textContent=ch;w.appendChild(s);});Tn.appendChild(w);if(wi<wds.length-1)Tn.appendChild(document.createTextNode(' '));});
+  const spans=Tn.querySelectorAll('span');for(let i=0;i<spans.length;i++){spans[i].classList.add('on');await wait(26);}
+  $('#rvEn').textContent=T(a.desc);$('#rvEn').classList.add('on');
+  await wait(300);$('#rvLine').textContent=T(a.tag);$('#rvLine').classList.add('on');
   await wait(800);$('#rvGo').classList.add('on');
 }
 $('#rvGo').addEventListener('click',()=>{$('#reveal').classList.remove('on');showResult();});
 
-/* ---------------- result ---------------- */
+/* ---------------- result: two shareable pages ---------------- */
+let PAGE=1;
+function typeImg(k){return (TYPEIMG&&TYPEIMG[k])||(SPRITES&&SPRITES[0]&&SPRITES[0].src)||'';}
 function showResult(){
-  const k=currentKey,a=ARCH[k],e=END[k]||{closing:''};
-  $('#rM').innerHTML=mascotSVG(k);$('#rNick').textContent=a.nick;$('#rEn').textContent=a.en;$('#rTag').textContent=a.tag||'';$('#rClose').textContent=e.closing;
-  $('#hero').style.background='linear-gradient(160deg,#fff 0%,'+a.soft+' 42%,'+a.c2+' 100%)';
-  $('#rTrail').innerHTML=G.trail.map(t=>'<img src="art/'+t.node+'.jpg?v='+VER+'" alt="" onerror="this.style.visibility=\'hidden\'">').join('');
-  const t1=G.trail.find(t=>t.node===START)||G.trail[0];const first=SC[t1.node].options[t1.i].label,last=SC[G.trail[G.trail.length-1].node].options[G.trail[G.trail.length-1].i].label;$('#rNote').innerHTML='<b>dari emina</b>'+(STORY.note||'');
-  $('#fine').textContent='1 dari 6 akhir · pagi itu kamu: '+first.toLowerCase()+' · malamnya kamu: '+last.toLowerCase();
-  $('#result').classList.add('on');buildCard(k);
+  if(!R)R=outcome();const k=R.win,a=TYPES[k];
+  const c1=$('#card1');c1.style.background='linear-gradient(160deg,#fff 0%,'+a.soft+' 40%,'+a.c2+' 100%)';
+  $('#l-identity').textContent=UI.identity;$('#r-kick').textContent=T(UI.youAre);$('#r-name').textContent=a.name+' '+a.icon;$('#r-tag').textContent=T(a.tag);
+  const im=$('#r-m');im.src=typeImg(k)?typeImg(k)+'?v='+VER:'';im.style.display=typeImg(k)?'':'none';
+  $('#l-sparks').textContent=UI.sparks;$('#r-sparks').innerHTML=a.sparks.map(s=>'<span class="chip">'+s+'</span>').join('');
+  $('#l-universe').textContent=UI.universe;$('#r-universe').textContent=R.booths.map(b=>BOOTHS[b].name).join(' · ');
+  $('#l-energy').textContent=UI.energy;$('#r-energy').textContent=T(a.energy);
+  $('#l-besties').textContent=UI.besties;$('#r-besties').innerHTML=a.besties.map(b=>'<span class="chip">'+TYPES[b].name+'</span>').join('');
+  $('#l-note').textContent=T(UI.note);$('#r-note').textContent=G.doubt?T(STORY.doubts[G.doubt]):'';
+  const c2=$('#card2');c2.style.background='linear-gradient(160deg,#fff 0%,var(--pinkSoft) 45%,var(--pink) 100%)';
+  $('#g-hi').textContent=T(UI.hi)+', '+(G.name?G.name+'! ':'')+a.name+' 👋';$('#g-sub').textContent=T(UI.starts);
+  $('#g-ev').textContent=EVENT.name;$('#g-meta').innerHTML='<div><span>'+T(UI.date)+'</span>'+EVENT.date+'</div><div><span>'+T(UI.loc)+'</span>'+EVENT.location+'</div><div><span>'+T(UI.time)+'</span>'+EVENT.time+'</div>';
+  $('#g-based').innerHTML=T(UI.based);
+  $('#l-booths').textContent=UI.booths;$('#g-booths').innerHTML=R.booths.map(b=>'<li><b>'+BOOTHS[b].name+'</b><small>'+T(BOOTHS[b].tag)+'</small></li>').join('');
+  $('#l-stages').textContent=UI.stages;$('#g-stages').innerHTML=R.picks.map(p=>'<li><b>'+EVENT.stages[p].title+'</b><small>'+EVENT.stages[p].speaker+'</small></li>').join('');
+  $('#g-free').textContent=T(UI.free);
+  $('#fine').textContent=(LANG==='id'?'1 dari 6 tipe Explorer':'1 of 6 Explorer types')+' · '+(G.interest?STORY.interests[G.interest]:'');
+  $('#result').classList.add('on');setPage(PAGE);
 }
-$('#again').addEventListener('click',()=>{fresh();G.node=START;$('#result').classList.remove('on');$('#reveal').classList.remove('on');
-  ['flame','flood','rvKick','rvEn','rvLine','rvGo'].forEach(id=>$('#'+id).classList.remove('on'));$('#game').classList.add('on');enter(START,true);});
-$('#reg').addEventListener('click',()=>window.open('https://bit.ly/Emina20Under20','_blank','noopener'));
+function setPage(p){PAGE=p;$('#tab1').classList.toggle('on',p===1);$('#tab2').classList.toggle('on',p===2);$('#pg1').classList.toggle('on',p===1);$('#pg2').classList.toggle('on',p===2);}
+$('#tab1').addEventListener('click',()=>setPage(1));$('#tab2').addEventListener('click',()=>setPage(2));
+$('#again').addEventListener('click',()=>{fresh();G.name=($('#nameIn').value||'').trim().slice(0,24);R=null;$('#result').classList.remove('on');$('#reveal').classList.remove('on');
+  ['flame','flood','rvKick','rvIcon','rvEn','rvLine','rvGo'].forEach(id=>$('#'+id).classList.remove('on'));$('#game').classList.add('on');enter(ORDER[0],true);});
+$('#reg').addEventListener('click',()=>window.open(EVENT.register,'_blank','noopener'));
 
-/* ---------------- share card ---------------- */
+/* ---------------- share cards (1080x1920) ---------------- */
 const canvas=$('#cardCanvas'),cx=canvas.getContext('2d');
 function rr(c,x,y,w,h,r){if(c.roundRect){c.beginPath();c.roundRect(x,y,w,h,r);return;}c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
-function svgImg(inner,vb,w,h){return new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);
-  i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'" viewBox="'+vb+'">'+inner+'</svg>');});}
-function wrapT(t,x,y,mw,lh){const w=t.split(' ');let l='',yy=y;w.forEach(q=>{const s=l+q+' ';if(cx.measureText(s).width>mw&&l){cx.fillText(l.trim(),x,yy);l=q+' ';yy+=lh;}else l=s;});cx.fillText(l.trim(),x,yy);return yy;}
-async function buildCard(k){
-  const a=ARCH[k],e=END[k]||{closing:''};
-  let m=null;try{await document.fonts.ready;await Promise.all(['800 40px Fraunces','italic 700 40px Fraunces','400 40px Fraunces','700 30px "Plus Jakarta Sans"'].map(f=>document.fonts.load(f)));m=await svgImg(mascotSVG(k).replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,''),'0 0 220 236',220,236);}catch(err){}
-  const W=1080,H=1920;const g=cx.createLinearGradient(0,0,W*.3,H);g.addColorStop(0,a.c1);g.addColorStop(1,a.c2);cx.fillStyle=g;cx.fillRect(0,0,W,H);
-  cx.save();cx.globalAlpha=.18;cx.fillStyle='#fff';cx.beginPath();cx.arc(150,300,300,0,7);cx.fill();cx.beginPath();cx.arc(960,1700,340,0,7);cx.fill();cx.restore();
-  cx.textAlign='center';cx.fillStyle='rgba(255,255,255,.92)';cx.font='600 30px "Plus Jakarta Sans",sans-serif';cx.fillText('H-1 · SATU HARI SEBELUM PENSI',W/2,170);
-  cx.font='italic 700 30px Fraunces,serif';cx.fillStyle='rgba(255,255,255,.8)';cx.fillText('emina · 20 under 20',W/2,218);
-  if(m){cx.drawImage(m,W/2-190,330,380,408);}
-  cx.fillStyle='rgba(255,255,255,.92)';cx.font='italic 500 40px Fraunces,serif';cx.fillText('H-1 pensi, aku ternyata',W/2,840);
-  let ns=132;cx.font='800 '+ns+'px Fraunces,serif';while(cx.measureText(a.nick).width>W-120&&ns>70){ns-=6;cx.font='800 '+ns+'px Fraunces,serif';}
-  cx.fillStyle='#fff';cx.fillText(a.nick,W/2,845+ns);
-  cx.font='600 30px "Plus Jakarta Sans",sans-serif';cx.fillStyle='rgba(255,255,255,.9)';cx.fillText(a.en.toUpperCase(),W/2,845+ns+52);
-  cx.font='400 40px Fraunces,serif';cx.fillStyle='#fff';const yEnd=wrapT(a.tag||e.closing,W/2,845+ns+140,W-220,54);
-  const t1=G.trail.find(t=>t.node===START)||G.trail[0];const first=SC[t1.node].options[t1.i].label.toLowerCase();
-  cx.font='400 28px "Plus Jakarta Sans",sans-serif';cx.fillStyle='rgba(255,255,255,.82)';wrapT('pagi itu aku: '+first,W/2,Math.max(yEnd+90,1480),W-200,38);
-  cx.fillStyle='rgba(255,255,255,.95)';rr(cx,90,1560,W-180,160,36);cx.fill();
-  cx.fillStyle=a.c1;cx.font='800 40px Fraunces,serif';cx.fillText('Kamu bakal milih apa? ✨',W/2,1620);
-  cx.fillStyle='#6a4a5a';cx.font='500 28px "Plus Jakarta Sans",sans-serif';cx.fillText('1 dari 6  ·  @eminacosmetics  ·  #Emina20Under20',W/2,1672);
+function loadImg(src){return new Promise(res=>{if(!src)return res(null);const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src;});}
+function wrapT(t,x,y,mw,lh,align){cx.textAlign=align||'center';const w=String(t).split(' ');let l='',yy=y;w.forEach(q=>{const s=l+q+' ';if(cx.measureText(s).width>mw&&l){cx.fillText(l.trim(),x,yy);l=q+' ';yy+=lh;}else l=s;});cx.fillText(l.trim(),x,yy);return yy;}
+function label(t,x,y,col){cx.textAlign='left';cx.fillStyle=col;cx.font='800 24px "Plus Jakarta Sans",sans-serif';cx.fillText(String(t).toUpperCase().split('').join(String.fromCharCode(8202)),x,y);}
+async function buildCard(page){
+  const a=TYPES[R.win];const W=1080,H=1920;
+  try{await document.fonts.ready;await Promise.all(['800 60px Fraunces','italic 500 40px Fraunces','400 36px Fraunces','800 30px "Plus Jakarta Sans"','600 30px "Plus Jakarta Sans"'].map(f=>document.fonts.load(f)));}catch(e){}
+  if(page===1){
+    const g=cx.createLinearGradient(0,0,W*.3,H);g.addColorStop(0,'#FFFFFF');g.addColorStop(.35,a.soft);g.addColorStop(1,a.c2);cx.fillStyle=g;cx.fillRect(0,0,W,H);
+    cx.textAlign='center';cx.fillStyle=a.c1;cx.font='800 26px "Plus Jakarta Sans",sans-serif';cx.fillText('EMINA 20 UNDER 20  ·  EXPLORER QUIZ',W/2,120);
+    cx.fillStyle='#4A4A4A';cx.font='italic 500 40px Fraunces,serif';cx.fillText(T(UI.youAre),W/2,330);
+    let ns=120;cx.font='800 '+ns+'px Fraunces,serif';while(cx.measureText(a.name).width>W-140&&ns>70){ns-=6;cx.font='800 '+ns+'px Fraunces,serif';}
+    cx.fillStyle=a.c1;cx.fillText(a.name,W/2,330+ns+20);
+    cx.fillStyle='#2B1E2A';cx.font='400 38px Fraunces,serif';const yT=wrapT(T(a.tag),W/2,330+ns+100,W-220,52);
+    const m=await loadImg(typeImg(R.win)?typeImg(R.win)+'?v='+VER:'');
+    if(m){const h=560,w=h*m.width/m.height;cx.drawImage(m,W/2-w/2,yT+50,w,h);}
+    let y=yT+50+600;
+    label(UI.sparks,120,y,a.c1);y+=70;cx.textAlign='left';
+    let x=120;cx.font='700 30px "Plus Jakarta Sans",sans-serif';a.sparks.forEach(s=>{const w=cx.measureText(s).width+48;if(x+w>W-120){x=120;y+=66;}cx.fillStyle='rgba(255,255,255,.85)';rr(cx,x,y-40,w,58,29);cx.fill();cx.fillStyle='#2B1E2A';cx.fillText(s,x+24,y);x+=w+14;});
+    y+=90;label(UI.universe,120,y,a.c1);y+=56;cx.fillStyle='#2B1E2A';cx.font='600 34px "Plus Jakarta Sans",sans-serif';y=wrapT(R.booths.map(b=>BOOTHS[b].name).join('  ·  '),120,y,W-240,46,'left');
+    y+=90;label(UI.energy,120,y,a.c1);y+=56;cx.font='600 34px "Plus Jakarta Sans",sans-serif';cx.fillStyle='#2B1E2A';y=wrapT(T(a.energy),120,y,W-240,46,'left');
+    y+=90;label(UI.besties,120,y,a.c1);y+=56;cx.font='600 32px "Plus Jakarta Sans",sans-serif';cx.fillStyle='#2B1E2A';cx.fillText(a.besties.map(b=>TYPES[b].name).join('   ·   '),120,y);
+    cx.fillStyle='rgba(255,255,255,.95)';rr(cx,90,1690,W-180,150,36);cx.fill();
+    cx.textAlign='center';cx.fillStyle=a.c1;cx.font='800 40px Fraunces,serif';cx.fillText(T(UI.askCta)+' ✨',W/2,1750);
+    cx.fillStyle='#4A4A4A';cx.font='600 26px "Plus Jakarta Sans",sans-serif';cx.fillText('@eminacosmetics  ·  #Emina20Under20  ·  #MadeToExplore',W/2,1800);
+  }else{
+    const g=cx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#FFFFFF');g.addColorStop(.5,'#FBE7F0');g.addColorStop(1,'#F1BCD5');cx.fillStyle=g;cx.fillRect(0,0,W,H);
+    cx.textAlign='center';cx.fillStyle='#DA1884';cx.font='800 26px "Plus Jakarta Sans",sans-serif';cx.fillText('EMINA 20 UNDER 20  ·  EXPLORER SUMMIT',W/2,120);
+    cx.fillStyle='#DA1884';cx.font='800 72px Fraunces,serif';let y=wrapT(T(UI.hi)+', '+(G.name?G.name+'! ':'')+a.name+' 👋',W/2,300,W-160,84);
+    cx.fillStyle='#B5126C';cx.font='italic 500 40px Fraunces,serif';cx.fillText(T(UI.starts),W/2,y+80);y+=150;
+    cx.fillStyle='rgba(255,255,255,.95)';rr(cx,90,y,W-180,250,32);cx.fill();
+    cx.textAlign='left';cx.fillStyle='#DA1884';cx.font='700 40px Fraunces,serif';wrapT(EVENT.name,130,y+70,W-300,48,'left');
+    cx.fillStyle='#4A4A4A';cx.font='600 28px "Plus Jakarta Sans",sans-serif';cx.fillText(T(UI.date)+':  '+EVENT.date,130,y+150);cx.fillText(T(UI.loc)+':  '+EVENT.location,130,y+190);cx.fillText(T(UI.time)+':  '+EVENT.time,130,y+230);
+    y+=330;cx.fillStyle='#2B1E2A';cx.font='500 32px "Plus Jakarta Sans",sans-serif';y=wrapT(T(UI.based),120,y,W-240,44,'left');
+    y+=80;label(UI.booths,120,y,'#DA1884');y+=66;
+    R.booths.forEach((b,i)=>{cx.fillStyle='#2B1E2A';cx.font='800 36px "Plus Jakarta Sans",sans-serif';cx.textAlign='left';cx.fillText((i+1)+'.  '+BOOTHS[b].name,120,y);cx.fillStyle='#4A4A4A';cx.font='500 28px "Plus Jakarta Sans",sans-serif';cx.fillText(T(BOOTHS[b].tag),172,y+40);y+=100;});
+    y+=30;label(UI.stages,120,y,'#DA1884');y+=66;
+    R.picks.forEach((p,i)=>{cx.fillStyle='#2B1E2A';cx.font='800 36px "Plus Jakarta Sans",sans-serif';cx.textAlign='left';cx.fillText((i+1)+'.  '+EVENT.stages[p].title,120,y);cx.fillStyle='#4A4A4A';cx.font='500 28px "Plus Jakarta Sans",sans-serif';cx.fillText(EVENT.stages[p].speaker,172,y+40);y+=100;});
+    cx.fillStyle='rgba(255,255,255,.95)';rr(cx,90,1700,W-180,140,32);cx.fill();cx.textAlign='center';cx.fillStyle='#DA1884';cx.font='italic 500 34px Fraunces,serif';wrapT(T(UI.free)+' ✨',W/2,1760,W-260,42);
+  }
   try{$('#cardImg').src=canvas.toDataURL('image/png');}catch(err){}
 }
 let _dl;async function getDL(){if(_dl!==undefined)return _dl;try{_dl=(window.claude&&window.claude.use)?await window.claude.use('downloads'):null;}catch(e){_dl=null;}return _dl;}
-$('#share').addEventListener('click',()=>$('#modal').classList.add('on'));
+$('#share').addEventListener('click',()=>{$('#cardImg').removeAttribute('src');$('#modal').classList.add('on');buildCard(PAGE);});
 $('#mx').addEventListener('click',()=>$('#modal').classList.remove('on'));
 $('#modal').addEventListener('click',e=>{if(e.target===$('#modal'))$('#modal').classList.remove('on');});
-$('#saveCard').addEventListener('click',()=>{const a=ARCH[currentKey],name='emina-h1-'+currentKey+'.png';
-  canvas.toBlob(async b=>{if(!b)return;try{const f=new File([b],name,{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Emina 20 Under 20',text:'H-1 pensi, aku ternyata '+a.nick+'. Kalau kamu, milih apa? #Emina20Under20'});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+$('#saveCard').addEventListener('click',()=>{const a=TYPES[R.win],name='emina-explorer-'+R.win.toLowerCase()+'-p'+PAGE+'.png';const text=fmt(T(UI.shareText),{type:a.name})+' #Emina20Under20';
+  canvas.toBlob(async b=>{if(!b)return;try{const f=new File([b],name,{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Emina 20 Under 20',text});return;}}catch(e){if(e&&e.name==='AbortError')return;}
     const dl=await getDL();if(dl){try{await dl.save({filename:name,data:b});return;}catch(e){if(e&&e.code==='declined')return;}}
     try{const u=URL.createObjectURL(b),l=document.createElement('a');l.href=u;l.download=name;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);}catch(e){}},'image/png');});
 

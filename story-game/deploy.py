@@ -30,6 +30,7 @@ def _include():
     files = ["index.html"]
     art = os.path.join(ROOT, "art")
     for base, _dirs, names in os.walk(art):
+        _dirs[:] = [d for d in _dirs if not d.startswith("_")]
         for f in sorted(names):
             if f.lower().endswith((".jpg", ".png", ".webp")) and not f.startswith("_") and f != "sheet.png":
                 files.append(os.path.relpath(os.path.join(base, f), ROOT))

@@ -1,0 +1,51 @@
+{
+ "name": "Emina 20 Under 20 · Explorer Summit",
+ "date": "[To confirm]",
+ "location": "[To confirm]",
+ "time": "[To confirm]",
+ "register": "https://bit.ly/Emina20Under20",
+ "stages": {
+  "MUS": {
+   "title": "Music & Fandom",
+   "speaker": "[To confirm]"
+  },
+  "BEA": {
+   "title": "Beauty & Expression",
+   "speaker": "Shaquila / Deana"
+  },
+  "ART": {
+   "title": "Art & Craft",
+   "speaker": "Owiliunic"
+  },
+  "SPO": {
+   "title": "Sport",
+   "speaker": "[To confirm]"
+  },
+  "STEM": {
+   "title": "STEM World",
+   "speaker": "[To confirm]"
+  },
+  "MOV": {
+   "title": "Movie & Stories",
+   "speaker": "Wregas Bhanuteja"
+  },
+  "IMP": {
+   "title": "Impact & Environment",
+   "speaker": "[To confirm]"
+  },
+  "FAS": {
+   "title": "Fashion & Style",
+   "speaker": "[To confirm]"
+  },
+  "PSY": {
+   "title": "Psychology & Wellbeing",
+   "speaker": "[To confirm]"
+  }
+ },
+ "interestStage": {
+  "PERFORMANCE": "MUS",
+  "CREATIVITY": "ART",
+  "COURAGE": "SPO",
+  "PURPOSE": "IMP"
+ }
+}
