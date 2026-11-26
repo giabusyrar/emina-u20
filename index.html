@@ -336,7 +336,7 @@ const EVENT={"name":"emina Explorer Summit","date":"27 November 2026","location"
 const FB={"c1":"#FFE9D6","c2":"#DCEFFF","c3":"#FFF1E6","c4":"#2E3A2E","c5":"#3A2535","c6":"#E6E0FF","c7":"#D8E4FF"};
 const SPRITES=[{"src":"art/char/hero.png","w":425,"h":640}];const SIMPLE=true;
 const TYPEIMG={"CL":"art/char/t_CL.png","CR":"art/char/t_CR.png","AC":"art/char/t_AC.png","CU":"art/char/t_CU.png","IP":"art/char/t_IP.png","ST":"art/char/t_ST.png"};
-const VER='697186';
+const VER='698681';
 const $=s=>document.querySelector(s);
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const SC={};STORY.scenes.forEach(s=>SC[s.id]=s);
@@ -594,6 +594,9 @@ let _bow;function bowImg(){return _bow!==undefined?Promise.resolve(_bow):loadImg
 function wrapY(t,x,y,mw,lh,align){cx.textAlign=align||'center';const ws=String(t).split(' ');let l='',yy=y;
   ws.forEach(q=>{const c=l+q+' ';if(cx.measureText(c).width>mw&&l){cx.fillText(l.trim(),x,yy);l=q+' ';yy+=lh;}else l=c;});
   cx.fillText(l.trim(),x,yy);return yy;}
+/* how many lines wrapY will produce for the same text, width and font */
+function wrapLines(t,mw){const ws=String(t).split(' ');let l='',n=1;
+  ws.forEach(q=>{const c=l+q+' ';if(cx.measureText(c).width>mw&&l){n++;l=q+' ';}else l=c;});return n;}
 function fitFont(t,max,min,mw,mk){let n=max;cx.font=mk(n);while(cx.measureText(t).width>mw&&n>min){n-=2;cx.font=mk(n);}return n;}
 async function buildCard(page){
   const a=TYPES[R.win];const W=1080,H=1920;
@@ -717,14 +720,28 @@ async function buildCard(page){
     y+=215;
     cx.fillStyle=INK;cx.font='800 36px '+SANS;cx.fillText(String(UI.booths).toUpperCase(),W/2,y);
     cx.fillStyle=INK2;cx.font='500 25px '+SANS;y=wrapY(TE(UI.boothsSub),W/2,y+40,W-180,32)+26;
-    const bwid=(W-140-20)/3,bh=190;
-    for(let i=0;i<R.booths.length&&i<3;i++){const b=R.booths[i],bc=BC[b]||{name:BOOTHS[b].name,icon:'sparkle',desc:BOOTHS[b].tag};const bx=70+i*(bwid+10);
+    const bwid=(W-140-20)/3;
+    /* The box was a fixed 190 tall, which the longer booth names and
+       descriptions outgrew: the text ran past the glass and YOUR STAGE PICKS
+       landed on top of it. Measure the wrapped lines first and let the tallest
+       of the three set the height, the way the page's CSS box already does.
+       26 is the gap above the name, reused under the description. */
+    const cards=R.booths.slice(0,3).map(b=>{const bc=BC[b]||{name:BOOTHS[b].name,icon:'sparkle',desc:BOOTHS[b].tag};
+      cx.font='800 24px '+SANS;const nameBot=44+(wrapLines(bc.name,bwid-20)-1)*28;
+      cx.font='500 20px '+SANS;const nD=wrapLines(TE(bc.desc),bwid-92);
+      return {bc,h:Math.max(nameBot+46+(nD-1)*25+6, nameBot+74)+26};});
+    const bh=Math.max(...cards.map(c=>c.h));
+    for(let i=0;i<cards.length;i++){const bc=cards[i].bc;const bx=70+i*(bwid+10);
       glass(bx,y,bwid,bh,22);
       cx.fillStyle=INK;cx.font='800 24px '+SANS;cx.textAlign='center';const ny=wrapY(bc.name,bx+bwid/2,y+44,bwid-20,28);
       const ii=await iconImg(bc.icon,MAG,44);if(ii)cx.drawImage(ii,bx+16,ny+30,44,44);
       cx.fillStyle=INK2;cx.font='500 20px '+SANS;wrapY(TE(bc.desc),bx+76,ny+46,bwid-92,25,'left');}
-    y+=bh+22;
-    cx.fillStyle=INK;cx.font='800 36px '+SANS;cx.textAlign='center';cx.fillText(String(UI.stages).toUpperCase(),W/2,y);
+    /* fillText places the baseline, so the heading has to clear the boxes by
+       its own ascent as well as the gap; 22 alone put its caps 4px inside the
+       glass. */
+    const fStages=36;
+    y+=bh+24+fStages*0.78;
+    cx.fillStyle=INK;cx.font='800 '+fStages+'px '+SANS;cx.textAlign='center';cx.fillText(String(UI.stages).toUpperCase(),W/2,y);
     cx.fillStyle=INK2;cx.font='500 25px '+SANS;y=wrapY(TE(UI.stagesSub),W/2,y+36,W-180,32)+16;
     /* Stage rows follow Emina20-phase2-3-rundown.psd. The card's row is 980 wide
        and the .psd's is 976, so the sizes below are that file's own numbers:
@@ -732,8 +749,6 @@ async function buildCard(page){
        137 tall, name chips 11 in a 16-tall pill, 1px 2/2 dotted rule. */
     const CX0=50, CW=W-100, RPAD=CW*0.036, GAP=0;
     const T1W=CW*0.466, CLW=CW*0.475, CLX=CX0+CW-CLW;
-    const nlines=(t,mw)=>{const ws=String(t).split(' ');let l='',n=1;
-      ws.forEach(w=>{const c=(l+' '+w).trim();if(cx.measureText(c).width>mw&&l){n++;l=w;}else l=c;});return n;};
     const wrapWords=(t,mw)=>{const ws=String(t).split(' ');const ls=[];let cur='';
       ws.forEach(w=>{const c=(cur?cur+' ':'')+w;if(cx.measureText(c).width>mw&&cur){ls.push(cur);cur=w;}else cur=c;});
       if(cur)ls.push(cur);return ls;};
@@ -775,7 +790,7 @@ async function buildCard(page){
         const chipRows=Math.max(1,...chips.map(c=>c.length));
         const tbaTxt=((st.tba||[]).length&&!st.tbaPhoto)?'TBA: '+st.tba.join(' / '):'';
         cx.font='600 '+fChip+'px '+SANS;
-        const bl=tbaTxt?nlines(tbaTxt,CLW):0;
+        const bl=tbaTxt?wrapLines(tbaTxt,CLW):0;
         const textH=fWhen*1.2+fTi*0.7+tl*liTi;
         const clusterH=tagH+CW*0.02+photoH-fChip*0.35+chipRows*chipH*1.25+(bl?fChip*0.5+bl*fChip*1.3:0);
         return {st,words,tl,names,tbaNames,polaW,colW,unitW,slot,chips,chipRows,tbaTxt,bl,h:Math.max(textH,clusterH)+RPAD*2};});
