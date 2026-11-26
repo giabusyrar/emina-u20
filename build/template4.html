@@ -204,9 +204,26 @@ button,input{font-family:inherit}
 .spk span{position:relative;z-index:1;width:fit-content;max-width:100%;margin:-.35em 0 0;padding:.18em .5em;
   border-radius:3px;background:#F6C9DD;color:#000;text-align:center;overflow-wrap:break-word;hyphens:none;
   font-weight:700;line-height:1.25;font-size:7px;font-size:clamp(7px,1.6cqw,10.5px)}
-/* the TBA polaroid is already a framed print: it keeps the drop shadow but
-   not the cyan cut-out outline the faces carry. */
-.spk.pola img{filter:drop-shadow(0 1px 2px rgba(43,30,42,.16))}
+/* The .psd pairs the TBA polaroid with the three names set to its RIGHT:
+   "TBA :" on a pink chip, then one name per line, the block centred on the
+   photo. The unit takes the width its longest name needs and the faces share
+   what is left, because at this size the names cannot shrink any further --
+   they are already on the 7px floor the chips use. The polaroid is a framed
+   print, so it keeps the drop shadow but not the cyan cut-out outline. */
+.st-photos.has-tba .spk{flex:1 1 0}
+/* beats the rule above on specificity: the unit keeps its content width while
+   the faces share what is left. */
+.st-photos.has-tba .spk.pola{flex:0 0 auto}
+.spk.pola{flex-direction:row;align-items:center;gap:2px}
+.spk.pola img{width:auto;filter:drop-shadow(0 1px 2px rgba(43,30,42,.16))}
+.tba-side{display:flex;flex-direction:column;align-items:center;white-space:nowrap;
+  text-transform:uppercase;font-weight:700;line-height:1.34;color:var(--ink);
+  font-size:7px;font-size:clamp(7px,1.6cqw,10.5px)}
+/* the name-chip rule above matches every span inside .spk, so the three names
+   have to opt out of it; only "TBA :" keeps the pink chip. */
+.tba-side span{background:none;padding:0;margin:0;border-radius:0;max-width:none;
+  font-size:inherit;line-height:inherit;color:inherit}
+.tba-side .tba-tag{padding:.14em .5em;border-radius:3px;background:#F6C9DD;color:#000}
 .stage .tba{text-align:center;font-weight:600;line-height:1.3;color:var(--ink2);margin:.4em 0 0;
   font-size:7px;font-size:clamp(7px,1.5cqw,10px)}
 
@@ -525,15 +542,18 @@ function showResult(){
     /* the .psd shows the MUS TBA trio as a polaroid beside the cut-out faces.
        It takes a slot in the line-up but carries no pink name chip, because
        the TBA line under the row already names the three. */
+    const tbaNames=(st.tbaPhoto&&(st.tba||[]).length)?st.tba:null;
     const slots=names.length+(st.tbaPhoto?1:0);
     const spk=names.map((nm,i)=>'<div class="spk">'+((ph[i])?'<img src="'+ph[i]+'?v='+VER+'" alt="">':'')+'<span>'+esc(nm)+'</span></div>').join('')
-      +(st.tbaPhoto?'<div class="spk pola"><img src="'+st.tbaPhoto+'?v='+VER+'" alt=""></div>':'');
+      +(st.tbaPhoto?'<div class="spk pola"><img src="'+st.tbaPhoto+'?v='+VER+'" alt="">'
+        +(tbaNames?'<div class="tba-side"><span class="tba-tag">TBA :</span>'
+          +tbaNames.map(nm=>'<span>'+esc(nm)+'</span>').join('')+'</div>':'')+'</div>':'');
     return '<div class="stage"><div class="st-txt">'
       +'<p class="st-when"><span>'+esc(st.time||'')+'</span><span>'+esc(st.cat||BOOTHS[pk].name)+'</span></p>'
       +'<div class="ti">'+hiTitle(st.title||'',st.hi)+'</div></div>'
       +'<div class="st-cluster"><span class="st-splabel">'+TE(UI.speakerTag)+'</span>'
-      +'<div class="st-photos" style="--n:'+Math.max(3,slots)+'">'+spk+'</div>'
-      +((st.tba||[]).length?'<div class="tba">TBA: '+esc(st.tba.join(' / '))+'</div>':'')
+      +'<div class="st-photos'+(st.tbaPhoto?' has-tba':'')+'" style="--n:'+Math.max(3,slots)+'">'+spk+'</div>'
+      +(((st.tba||[]).length&&!st.tbaPhoto)?'<div class="tba">TBA: '+esc(st.tba.join(' / '))+'</div>':'')
       +'</div></div>';}).join('');
   $('#g-free').textContent='✦ '+TE(UI.seeYou)+' ✦';
   $('#fine').textContent='1 of 6 Explorer types';
@@ -579,6 +599,8 @@ async function buildCard(page){
   const a=TYPES[R.win];const W=1080,H=1920;
   try{await document.fonts.ready;await Promise.all(['800 60px Fraunces','italic 500 40px Fraunces','400 36px Fraunces','800 30px "Plus Jakarta Sans"','600 30px "Plus Jakarta Sans"'].map(f=>document.fonts.load(f)));}catch(e){}
   const MAG='#EF0085',INK='#2B1E2A',INK2='#4A4A4A',SANS='"Plus Jakarta Sans",sans-serif';
+  // art/speakers/MUS-tba.png is 152x172; the label reads "TBA :" in the .psd
+  const POLA_AR=152/172, TBA_TAG='TBA :';
   const BC=EVENT.boothCatalog||{},STG=EVENT.stageCatalog||{};
   async function header(right){
     const el=await loadImg('art/kv/emina.png?v='+VER),lg=await loadImg('art/kv/logo-20u20.png?v='+VER);
@@ -740,17 +762,23 @@ async function buildCard(page){
         cx.font='800 '+fTi+'px '+SANS;
         const words=richSegs(st.title||'',st.hi), tl=richWrap(words,T1W).length;
         const names=st.speakers||[];
-        const slots=names.length+(st.tbaPhoto?1:0);   // the TBA polaroid takes one
         cx.font='700 '+fChip+'px '+SANS;
-        const slot=CLW/Math.max(3,slots);   // see .spk in the stylesheet
+        /* the TBA unit is the polaroid plus the name column beside it; it takes
+           the width it needs and the faces share the rest -- see .spk.pola */
+        const tbaNames=(st.tbaPhoto&&(st.tba||[]).length)?st.tba.map(n=>n.toUpperCase()):null;
+        const polaW=st.tbaPhoto?photoH*POLA_AR:0;
+        const colW=tbaNames?Math.max(...[TBA_TAG,...tbaNames].map(t=>cx.measureText(t).width))+fChip:0;
+        const unitW=st.tbaPhoto?polaW+fChip*0.2+colW:0;
+        const slot=unitW?(CLW-unitW)/Math.max(1,names.length)
+                        :CLW/Math.max(3,names.length);   // see .spk in the stylesheet
         const chips=names.map(nm=>wrapWords(nm,slot-fChip));
         const chipRows=Math.max(1,...chips.map(c=>c.length));
-        const tbaTxt=(st.tba||[]).length?'TBA: '+st.tba.join(' / '):'';
+        const tbaTxt=((st.tba||[]).length&&!st.tbaPhoto)?'TBA: '+st.tba.join(' / '):'';
         cx.font='600 '+fChip+'px '+SANS;
         const bl=tbaTxt?nlines(tbaTxt,CLW):0;
         const textH=fWhen*1.2+fTi*0.7+tl*liTi;
         const clusterH=tagH+CW*0.02+photoH-fChip*0.35+chipRows*chipH*1.25+(bl?fChip*0.5+bl*fChip*1.3:0);
-        return {st,words,tl,names,slots,chips,chipRows,tbaTxt,bl,h:Math.max(textH,clusterH)+RPAD*2};});
+        return {st,words,tl,names,tbaNames,polaW,colW,unitW,slot,chips,chipRows,tbaTxt,bl,h:Math.max(textH,clusterH)+RPAD*2};});
       total=rows.reduce((t,r)=>t+r.h,0);
       if(total<=ROOM||K<=0.6)break;
       K=Math.max(0.6,K*Math.max(0.85,ROOM/total));
@@ -778,20 +806,30 @@ async function buildCard(page){
       cx.fillStyle='#000';cx.font='800 '+fTag+'px '+SANS;cx.textAlign='center';
       cx.fillText(TE(UI.speakerTag).toUpperCase(),CLX+CLW/2,cy2+tagH/2+fTag*0.36);
       cy2+=tagH+CW*0.02;
-      const ph=st.photos||[], n=r.slots, slot=CLW/Math.max(3,n), pbase=cy2+photoH;
-      const gx=CLX+(CLW-slot*n)/2;   // the group stays centred in the cluster
+      const ph=st.photos||[], n=r.names.length, slot=r.slot, pbase=cy2+photoH;
+      const gx=CLX+(CLW-(slot*n+r.unitW))/2;   // the group stays centred in the cluster
+      if(r.unitW){const im=await loadImg(st.tbaPhoto+'?v='+VER);
+        const ux=gx+slot*n;
+        if(im)cx.drawImage(im,ux,pbase-photoH,r.polaW,photoH);
+        if(r.tbaNames){
+          // the .psd centres the four lines on the photo, "TBA :" on a pink chip
+          const lh=fChip*1.45, cxm=ux+r.polaW+fChip*0.2+r.colW/2;
+          let ly=pbase-photoH/2-lh*2;
+          cx.font='700 '+fChip+'px '+SANS;cx.textAlign='center';
+          const tw=cx.measureText(TBA_TAG).width+fChip*0.9;
+          cx.fillStyle='#F6C9DD';rr(cx,cxm-tw/2,ly+lh*0.1,tw,lh*0.9,Math.max(2,3*K));cx.fill();
+          cx.fillStyle='#000';cx.fillText(TBA_TAG,cxm,ly+lh*0.74);
+          cx.fillStyle=INK;
+          r.tbaNames.forEach((nm,i)=>cx.fillText(nm,cxm,ly+lh*(i+1)+lh*0.74));}}
       for(let j=0;j<n;j++){
         const sx=gx+j*slot;
-        const pola=j>=r.names.length;   // the last slot, when the session has a TBA photo
-        const src=pola?st.tbaPhoto:ph[j];
-        const im=src?await loadImg(src+'?v='+VER):null;
+        const im=ph[j]?await loadImg(ph[j]+'?v='+VER):null;
         if(im){const sc=Math.min(slot/im.width,photoH/im.height),dw=im.width*sc,dh=im.height*sc;
           const dx=sx+(slot-dw)/2;
           // the page's 1.5px cyan offset at its 343px row, scaled to this row
-          if(!pola){cx.save();cx.shadowColor='#A9E4FA';cx.shadowBlur=0;cx.shadowOffsetX=4.3*K;
-            cx.drawImage(im,dx,pbase-dh,dw,dh);cx.restore();}
+          cx.save();cx.shadowColor='#A9E4FA';cx.shadowBlur=0;cx.shadowOffsetX=4.3*K;
+          cx.drawImage(im,dx,pbase-dh,dw,dh);cx.restore();
           cx.drawImage(im,dx,pbase-dh,dw,dh);}
-        if(pola)continue;   // the TBA names live in the line under the row
         const ls=r.chips[j]||[];
         cx.font='700 '+fChip+'px '+SANS;
         const cw=Math.max(...ls.map(l=>cx.measureText(l).width))+fChip;
