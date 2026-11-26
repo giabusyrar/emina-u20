@@ -1,0 +1,262 @@
+:root{--tapicon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 11V5a2 2 0 0 1 4 0v6m0-2a2 2 0 0 1 4 0v3m0-1a2 2 0 0 1 4 0v4a6 6 0 0 1-6 6h-2a6 6 0 0 1-5-3l-2-4a2 2 0 0 1 3-2l1 1' fill='%23000'/%3E%3C/svg%3E");
+  --serif:Fraunces,Georgia,'Times New Roman',serif;--sans:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+  --ink:#2B1E2A;--ink2:#4A4A4A;--grey:#D9D9D9;--mag:#DA1884;--mag2:#B5126C;--pink:#F1BCD5;--pinkSoft:#FBE7F0;--yellow:#FFF7B2;--blue:#C8E3EC;
+  --panel:#FFFFFF;--line:#F1BCD5;--e-out:cubic-bezier(.25,1,.5,1);--e-move:cubic-bezier(.65,0,.35,1);--e-pop:cubic-bezier(.34,1.56,.64,1)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;background:#1b1226;font-family:var(--sans);color:var(--ink);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+button,input{font-family:inherit}
+#app{position:fixed;inset:0;margin:0 auto;max-width:460px;background:#fff;overflow:hidden}
+.screen{position:absolute;inset:0;display:none;flex-direction:column}
+.screen.on{display:flex}
+.lang{border:1.5px solid var(--pink);background:#fff;color:var(--mag);font:800 11px/1 var(--sans);letter-spacing:.14em;padding:7px 10px;border-radius:999px;cursor:pointer}
+/* ---------- welcome ---------- */
+#welcome{background:#fff;color:var(--ink);overflow:auto;padding:calc(14px + env(safe-area-inset-top,0px)) 20px calc(26px + env(safe-area-inset-bottom,0px))}
+.w-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.w-emina{height:22px;width:auto;display:block}
+.w-hero{margin:14px -6px 0;border-radius:18px;overflow:hidden;aspect-ratio:2.37/1;background:var(--pinkSoft);box-shadow:0 14px 34px rgba(218,24,132,.14)}
+.w-hero img{width:100%;height:100%;object-fit:cover;display:block}
+.w-kicker{margin:18px 0 0;font:800 10.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--mag)}
+#welcome h1{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(30px,8.6vw,40px);line-height:1;margin:8px 0 0;letter-spacing:-.02em;color:var(--ink)}
+#welcome h1 em{font-style:italic;color:var(--mag)}
+.w-intro{font-family:var(--serif);font-variation-settings:'SOFT' 60;font-size:16px;line-height:1.5;margin:12px 0 0;color:var(--ink)}
+.w-lead{font-size:13.5px;line-height:1.55;margin:12px 0 0;color:var(--ink2);padding:12px 14px;border-radius:14px;background:var(--pinkSoft)}
+.w-name{display:block;margin:16px 0 0}
+.w-name span{display:block;font:700 11px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mag);margin-bottom:6px}
+.w-name input{width:100%;border:1.5px solid var(--pink);border-radius:14px;padding:13px 14px;font:600 16px var(--sans);color:var(--ink);background:#fff;outline:none}
+.w-name input:focus{border-color:var(--mag);box-shadow:0 0 0 3px rgba(218,24,132,.12)}
+#startBtn{margin-top:16px;width:100%;border:none;border-radius:999px;padding:17px 20px;background:var(--mag);color:#fff;font:800 16px var(--sans);letter-spacing:.02em;cursor:pointer;box-shadow:0 14px 30px rgba(218,24,132,.28);transition:transform .15s var(--e-pop)}
+#startBtn:active{transform:scale(.98)}
+.w-fine{text-align:center;font-size:11.5px;color:var(--ink2);margin:12px 0 0}
+/* ---------- game ---------- */
+#game{background:var(--panel)}
+#stage{position:relative;flex:0 0 56%;overflow:hidden;background:var(--fb,#F1BCD5);transition:background .6s}
+@media (max-height:700px){#stage{flex-basis:50%}}
+#ground{position:absolute;left:0;right:0;bottom:0;height:16%;background:rgba(43,30,42,.08);pointer-events:none}
+#stage img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .75s var(--e-out)}
+#stage img.bg.on{opacity:1}
+#actorLayer{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+#chip{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:12px;padding:6px 11px;border-radius:999px;background:rgba(43,30,42,.55);color:#fff;font:500 11px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;transform:translateY(-4px);transition:opacity .5s,transform .5s var(--e-out)}
+#chip.on{opacity:1;transform:none}
+#chip b{font-weight:800;color:var(--pink);margin-right:6px}
+#fade{position:absolute;inset:0;background:#1b1226;opacity:0;transition:opacity .45s;pointer-events:none}
+#fade.on{opacity:1}
+#stage::after{content:'';position:absolute;left:0;right:0;bottom:0;height:36px;background:linear-gradient(to top,var(--panel),rgba(255,255,255,0));pointer-events:none}
+#panel{flex:1;display:flex;flex-direction:column;min-height:0;padding:12px 18px calc(14px + env(safe-area-inset-bottom,0px));position:relative}
+#box{flex:0 0 auto;position:relative;padding-right:18px}
+#who{display:inline-block;font:800 11.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;padding:4px 10px 3px;border-radius:999px;color:#fff;background:var(--who,#9B9BB5);margin:0 0 7px;opacity:0;transform:translateY(4px);transition:opacity .22s,transform .22s var(--e-out)}
+#who.on{opacity:1;transform:none}
+#txt{margin:0;font-family:var(--sans);font-size:clamp(15px,4.2vw,17px);line-height:1.5;font-weight:500;min-height:4.5em;text-wrap:pretty}
+#txt.narr{font-family:var(--serif);font-variation-settings:'SOFT' 60;font-weight:400;font-size:clamp(16.5px,4.6vw,18.5px);line-height:1.48;color:var(--ink2)}
+#txt.echo{font-weight:700;color:var(--mag)}
+#next{position:absolute;right:0;bottom:4px;width:12px;height:12px;opacity:0;transition:opacity .3s}
+#next.on{opacity:.8;animation:nod 1.1s ease-in-out infinite}
+#hint{position:absolute;left:0;right:0;bottom:-18px;margin:0;font-size:11px;color:#9b7f8e;letter-spacing:.04em;opacity:0;transition:opacity .4s}
+#hint.on{opacity:1}
+#hint.tut{bottom:-32px;font:700 12.5px var(--sans);color:#fff;background:var(--mag);display:inline-flex;align-items:center;gap:6px;left:auto;right:0;padding:7px 12px 7px 10px;border-radius:999px;animation:nod 1.1s ease-in-out infinite;box-shadow:0 8px 18px rgba(218,24,132,.25)}
+#hint.tut::before{content:'';width:13px;height:16px;background:#fff;-webkit-mask:var(--tapicon) center/contain no-repeat;mask:var(--tapicon) center/contain no-repeat}
+@keyframes nod{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+#choices{margin-top:auto;display:flex;flex-direction:column;gap:7px;opacity:0;transform:translateY(10px);transition:opacity .3s,transform .3s var(--e-out);pointer-events:none;overflow:auto;padding-top:10px}
+#choices.on{opacity:1;transform:none;pointer-events:auto}
+#choices.tut #optList{border-radius:16px;animation:tutring 1.4s ease-in-out infinite}
+@keyframes tutring{0%,100%{box-shadow:0 0 0 0 rgba(218,24,132,0)}50%{box-shadow:0 0 0 4px rgba(218,24,132,.2)}}
+#tip{margin:0 0 8px;padding:9px 12px;border-radius:12px;background:var(--pinkSoft);border:1.5px solid var(--line);font:500 12.5px/1.45 var(--sans);color:var(--ink2);display:none}
+#tip.on{display:block}
+#tip b{color:var(--mag);font-weight:700}
+#ask{font:800 11.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mag);margin:0 0 2px}
+.opt{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:10px 12px 10px 32px;font:600 14px/1.35 var(--sans);color:var(--ink);position:relative;cursor:pointer;transition:transform .15s var(--e-out),background .2s,opacity .3s,border-color .2s;opacity:0;transform:translateX(8px)}
+.opt.in{opacity:1;transform:none}
+.opt::before{content:'\203A';position:absolute;left:13px;top:6px;font:700 21px/1 var(--serif);color:var(--mag)}
+.opt:active{transform:scale(.985);background:var(--pinkSoft)}
+.opt.pick{background:var(--mag);color:#fff;border-color:var(--mag)}
+.opt.pick::before{color:#fff}
+.opt.dim{opacity:.3}
+.opt.single{text-align:center;padding:14px 16px;background:var(--mag);color:#fff;border-color:var(--mag);font-weight:800}
+.opt.single::before{content:''}
+/* actor rig */
+#actor{transition:transform 1.1s cubic-bezier(.3,0,.22,1)}
+#lean,#squash,#actorBob,#head,.arm,.lg,.eye,#mouth,#shadow,#emote{transform-box:fill-box}
+#lean,#squash,#actorBob,#head{transform-origin:50% 100%}
+#head{transition:transform .4s var(--e-out)}
+.arm{transform-origin:50% 0;transition:transform .38s var(--e-out)}
+.lg{transform-origin:50% 0;transition:transform .3s var(--e-out)}
+#legs{transition:opacity .2s}
+#shadow{transform-origin:50% 50%}
+.eye{transform-origin:50% 50%;animation:blink 4.4s ease-in-out infinite}
+#mouth{transform-origin:50% 0}
+.prop,#sitFeet{opacity:0;transition:opacity .25s}
+#actorBob{animation:idle 3.2s ease-in-out infinite;transition:transform .4s var(--e-out)}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}}
+@keyframes idle{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.025) scaleX(.99)}}
+/* emote bubble above the head */
+#emote{opacity:0;transform-origin:30% 100%;transition:opacity .15s}
+#emote .em{display:none}
+@keyframes empop{0%{transform:scale(.4) translateY(6px);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
+/* walk: waddle with the steps, arms swing opposite, body bobs (no lean: a round body tips, it does not lean) */
+.walking #actorBob{animation:bob .42s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0) rotate(-3.5deg) scaleY(1)}to{transform:translateY(-3px) rotate(3.5deg) scaleY(1.03)}}
+.walking .lgL{animation:stepL .42s ease-in-out infinite alternate}
+.walking .lgR{animation:stepR .42s ease-in-out infinite alternate}
+@keyframes stepL{from{transform:translateY(0) rotate(0)}to{transform:translateY(-4px) rotate(-14deg)}}
+@keyframes stepR{from{transform:translateY(-4px) rotate(14deg)}to{transform:translateY(0) rotate(0)}}
+.walking #armL{animation:swingA .42s ease-in-out infinite alternate}
+.walking #armR{animation:swingB .42s ease-in-out infinite alternate}
+@keyframes swingA{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
+@keyframes swingB{from{transform:rotate(18deg)}to{transform:rotate(-18deg)}}
+/* run: faster, higher, bigger swing, shadow shrinks in the air */
+.run #actorBob{animation:bobRun .26s ease-in-out infinite alternate!important}
+@keyframes bobRun{from{transform:translateY(0) rotate(-5deg) scaleY(.97) scaleX(1.03)}to{transform:translateY(-8px) rotate(5deg) scaleY(1.06) scaleX(.96)}}
+.run .lgL,.run .lgR{animation-duration:.26s!important}
+.run #armL{animation:swingAR .26s ease-in-out infinite alternate!important}
+.run #armR{animation:swingBR .26s ease-in-out infinite alternate!important}
+@keyframes swingAR{from{transform:rotate(-40deg)}to{transform:rotate(40deg)}}
+@keyframes swingBR{from{transform:rotate(40deg)}to{transform:rotate(-40deg)}}
+.run #shadow{animation:shadowRun .26s ease-in-out infinite alternate}
+@keyframes shadowRun{from{transform:scale(1)}to{transform:scale(.78);opacity:.1}}
+/* ---- actions after arriving (class act-* on #actor) ---- */
+.act-listen #emote,.act-craft #emote,.act-tidy #emote,.act-torch #emote,.act-paint #emote,.act-write #emote,.act-phone #emote,.act-call #emote,.act-talk #emote,.act-wave #emote,.act-mic #emote,.act-look #emote,.act-breathe #emote{opacity:1;animation:empop .4s var(--e-pop) both}
+.act-breathe #actorBob{animation:breathe 2.6s ease-in-out 1 both}
+@keyframes breathe{0%{transform:scale(1)}35%{transform:scaleY(1.09) scaleX(1.04) translateY(-2px)}55%{transform:scaleY(1.09) scaleX(1.04) translateY(-2px)}100%{transform:scale(1)}}
+.act-breathe #emZ{display:block;animation:rise 2.4s ease-out infinite}
+@keyframes rise{0%{transform:translateY(4px);opacity:0}30%{opacity:1}100%{transform:translateY(-6px);opacity:0}}
+/* sit like a plush: body down on the floor, feet out in front, arms resting */
+.act-sit #actorBob,.act-listen #actorBob,.act-craft #actorBob{animation:none;transform:translateY(6px) scaleY(.88) scaleX(1.1)}
+.act-sit #legs,.act-listen #legs,.act-craft #legs{opacity:0}
+.act-sit #sitFeet,.act-listen #sitFeet,.act-craft #sitFeet{opacity:1}
+.act-sit #armL{transform:rotate(14deg)}.act-sit #armR{transform:rotate(-14deg)}
+.act-sit #head{transform:translateY(1px)}
+.act-listen #head{animation:tilt 3.4s ease-in-out infinite}
+@keyframes tilt{0%,100%{transform:rotate(0)}50%{transform:rotate(9deg)}}
+.act-listen .eye{animation-duration:2.4s}
+.act-listen #armL{transform:rotate(-44deg)}.act-listen #armR{transform:rotate(44deg)}
+.act-listen #emNote{display:block;animation:floaty 1.6s ease-in-out infinite alternate}
+@keyframes floaty{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+.act-craft #armL{animation:busyA .5s ease-in-out infinite alternate}
+.act-craft #armR{animation:busyB .5s ease-in-out infinite alternate}
+@keyframes busyA{from{transform:rotate(-50deg)}to{transform:rotate(-32deg) translateY(-1px)}}
+@keyframes busyB{from{transform:rotate(32deg) translateY(-1px)}to{transform:rotate(52deg)}}
+.act-craft #head{transform:rotate(4deg) translateY(2px)}
+.act-craft #emFlower{display:block}
+/* tidy and torch: crouch down and up, arms reaching the floor */
+.act-tidy #actorBob,.act-torch #actorBob{animation:crouch 1.3s cubic-bezier(.45,0,.3,1) infinite}
+@keyframes crouch{0%,100%{transform:translateY(0) scaleY(1) scaleX(1)}42%,58%{transform:translateY(6px) scaleY(.84) scaleX(1.1)}}
+.act-tidy #armL,.act-torch #armL{animation:reachA 1.3s cubic-bezier(.45,0,.3,1) infinite}
+.act-tidy #armR{animation:reachB 1.3s cubic-bezier(.45,0,.3,1) infinite}
+@keyframes reachA{0%,100%{transform:rotate(0)}42%,58%{transform:rotate(-46deg) translateY(3px)}}
+@keyframes reachB{0%,100%{transform:rotate(0)}42%,58%{transform:rotate(46deg) translateY(3px)}}
+.act-tidy #emSpark{display:block;animation:twinkle .9s ease-in-out infinite alternate}
+@keyframes twinkle{from{transform:scale(.8) rotate(-8deg)}to{transform:scale(1.1) rotate(8deg)}}
+.act-torch #armR{transform:rotate(34deg)}.act-torch #pTorch,.act-torch #pBeam{opacity:1}
+.act-torch #emSpark{display:block}
+.act-paint #armR{animation:sweep .7s ease-in-out infinite alternate}
+@keyframes sweep{from{transform:rotate(-156deg)}to{transform:rotate(-84deg)}}
+.act-paint #pBrush{opacity:1}
+.act-paint #actorBob{animation:sway 1.4s ease-in-out infinite alternate}
+@keyframes sway{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+.act-paint #emSpark{display:block}
+.act-write #armR{animation:scribble .34s linear infinite}
+@keyframes scribble{0%{transform:rotate(44deg)}25%{transform:rotate(48deg) translate(1px,1px)}50%{transform:rotate(44deg) translate(2px,0)}75%{transform:rotate(40deg) translate(1px,-1px)}100%{transform:rotate(44deg)}}
+.act-write #pPen{opacity:1}.act-write #head{transform:rotate(8deg) translateY(2px)}
+.act-write #emPen{display:block;animation:wiggle .5s ease-in-out infinite alternate}
+@keyframes wiggle{from{transform:translateX(-1px)}to{transform:translateX(1px)}}
+.act-phone #armR{transform:rotate(-114deg)}.act-phone #pPhone{opacity:1}
+.act-phone #head{transform:rotate(6deg) translateY(1.5px)}
+.act-phone #actorBob{animation:idleS 1.6s ease-in-out infinite}
+@keyframes idleS{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.015) translateY(-1px)}}
+.act-phone #emHeart{display:block;animation:beat .9s ease-in-out infinite}
+@keyframes beat{0%,100%{transform:scale(1)}30%{transform:scale(1.25)}}
+.act-call #armR{transform:rotate(-160deg)}.act-call #pPhone{opacity:1}
+.act-call #head{transform:rotate(-7deg)}
+.act-call #mouth,.act-talk #mouth,.act-mic #mouth{animation:talk .3s ease-in-out infinite alternate}
+@keyframes talk{from{transform:scaleY(.6)}to{transform:scaleY(1.7)}}
+.act-call #emRing{display:block;animation:floaty 1s ease-in-out infinite alternate}
+.act-talk #armL{animation:gestA .6s ease-in-out infinite alternate}
+.act-talk #armR{animation:gestB .6s ease-in-out infinite alternate}
+@keyframes gestA{from{transform:rotate(-24deg)}to{transform:rotate(-66deg)}}
+@keyframes gestB{from{transform:rotate(56deg)}to{transform:rotate(18deg)}}
+.act-talk #head{animation:nodH 1.2s ease-in-out infinite}
+@keyframes nodH{0%,100%{transform:translateY(0)}50%{transform:translateY(1.6px) rotate(2deg)}}
+.act-talk #emTalk{display:block}
+#emTalk .d1,#emTalk .d2,#emTalk .d3{transform-box:fill-box;transform-origin:50% 50%;animation:dots 1s ease-in-out infinite}
+#emTalk .d2{animation-delay:.15s}#emTalk .d3{animation-delay:.3s}
+@keyframes dots{0%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-2.5px);opacity:1}}
+.act-wave #armR{animation:wave .45s ease-in-out infinite alternate}
+@keyframes wave{from{transform:rotate(-152deg)}to{transform:rotate(-180deg)}}
+.act-wave #actorBob{animation:bobS .45s ease-in-out infinite alternate}
+@keyframes bobS{from{transform:translateY(0)}to{transform:translateY(-2.5px)}}
+.act-wave #emBang{display:block;animation:beat .6s ease-in-out infinite}
+.act-mic #armR{transform:rotate(-128deg)}.act-mic #pMic{opacity:1}
+.act-mic #actorBob{animation:none;transform:rotate(-4deg)}
+.act-mic #armL{transform:rotate(44deg)}
+.act-mic #emWave{display:block;animation:beat .5s ease-in-out infinite}
+.act-look #head{animation:scan 1.8s ease-in-out infinite}
+@keyframes scan{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+.act-look #armL{transform:rotate(-56deg)}.act-look #armR{transform:rotate(56deg)}.act-look #pItem{opacity:1}
+.act-look #emQ{display:block;animation:floaty 1.2s ease-in-out infinite alternate}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01s!important}}
+/* ---------- reveal ---------- */
+#reveal{position:absolute;inset:0;z-index:50;display:none;align-items:center;justify-content:center;flex-direction:column;background:#1b1226;color:#fff;text-align:center;padding:24px}
+#reveal.on{display:flex}
+#flame{width:18px;height:18px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:#FFE08A;box-shadow:0 0 24px 8px rgba(255,224,138,.55);transform:scale(0);transition:transform .9s var(--e-out)}
+#flame.on{transform:scale(1)}
+#flood{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,var(--c2) 0,var(--c1) 48%,#1b1226 100%);opacity:0;transform:scale(.2);transition:opacity .52s,transform .52s var(--e-move)}
+#flood.on{opacity:1;transform:scale(1)}
+#rvKick{position:relative;font:700 12px var(--sans);letter-spacing:.2em;text-transform:uppercase;opacity:0;transition:opacity .4s}
+#rvKick.on{opacity:.85}
+#rvIcon{position:relative;font:400 44px/1 var(--serif);margin:10px 0 0;opacity:0;transform:scale(.6);transition:opacity .4s,transform .5s var(--e-pop)}
+#rvIcon.on{opacity:1;transform:none}
+#rvType{position:relative;font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(34px,10.5vw,54px);line-height:1.02;margin:8px 0 0;letter-spacing:-.01em;min-height:1.1em}
+#rvType .w{display:inline-block;white-space:nowrap}
+#rvType .w span{opacity:0;display:inline-block;transform:translateY(10px);transition:opacity .22s,transform .22s var(--e-out)}
+#rvType .w span.on{opacity:1;transform:none}
+#rvEn{position:relative;font:700 12px var(--sans);letter-spacing:.14em;text-transform:uppercase;opacity:0;margin:8px 0 0;transition:opacity .4s .1s}
+#rvEn.on{opacity:.8}
+#rvLine{position:relative;font-family:var(--serif);font-variation-settings:'SOFT' 60;font-weight:400;font-size:clamp(16px,4.4vw,19px);line-height:1.5;max-width:30ch;margin:22px 0 0;opacity:0;transform:translateY(8px);transition:opacity .4s,transform .4s var(--e-out)}
+#rvLine.on{opacity:.95;transform:none}
+#rvGo{position:relative;margin-top:34px;border:none;cursor:pointer;font:800 15px var(--sans);padding:14px 26px;border-radius:999px;background:#fff;color:var(--mag);opacity:0;transition:opacity .5s .3s}
+#rvGo.on{opacity:1}
+/* ---------- result ---------- */
+#result{position:absolute;inset:0;z-index:55;display:none;overflow:auto;background:#fff;color:var(--ink);padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(28px + env(safe-area-inset-bottom,0px))}
+#result.on{display:block}
+.r-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.r-top .camp{font:800 10px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink2);flex:1}
+.tabs{display:flex;gap:6px;background:var(--pinkSoft);padding:4px;border-radius:999px;margin-bottom:12px}
+.tab{flex:1;border:none;background:transparent;border-radius:999px;padding:10px 8px;font:800 12px var(--sans);letter-spacing:.04em;color:var(--mag);cursor:pointer}
+.tab.on{background:var(--mag);color:#fff;box-shadow:0 6px 16px rgba(218,24,132,.25)}
+.pg{display:none}.pg.on{display:block}
+.card{border-radius:22px;padding:18px 18px 20px;box-shadow:0 18px 40px rgba(43,30,42,.12)}
+.lbl{font:800 10.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--mag);margin:0 0 6px}
+.c-kick{font-family:var(--serif);font-variation-settings:'SOFT' 60;font-size:17px;color:var(--ink2);margin:10px 0 0}
+.c-name{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(26px,7.6vw,34px);line-height:1.05;margin:2px 0 0;letter-spacing:-.01em}
+.c-tag{font-family:var(--serif);font-variation-settings:'SOFT' 60;font-size:15.5px;line-height:1.5;margin:8px 0 0;color:var(--ink2)}
+.c-head{display:grid;grid-template-columns:1fr 112px;gap:12px;align-items:center}
+.c-m{width:112px;height:112px;border-radius:22px;background:rgba(255,255,255,.7);display:grid;place-items:center;overflow:hidden}
+.c-m img{width:92%;height:92%;object-fit:contain}
+.hr{height:1.5px;background:rgba(43,30,42,.1);margin:14px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:rgba(255,255,255,.75);border-radius:999px;padding:6px 10px;font:700 12.5px var(--sans);color:var(--ink)}
+.c-line{font:600 15px/1.45 var(--sans);margin:0;color:var(--ink)}
+.c-note{font-family:var(--serif);font-variation-settings:'SOFT' 60;font-style:italic;font-size:14.5px;line-height:1.5;margin:0;color:var(--ink2)}
+.g-hi{font-family:var(--serif);font-variation-settings:'SOFT' 100;font-weight:800;font-size:clamp(24px,7vw,30px);line-height:1.1;margin:0;color:var(--mag)}
+.g-sub{display:inline-block;margin:8px 0 0;padding:6px 12px;border-radius:999px;background:#fff;font-family:var(--serif);font-style:italic;font-size:15px;color:var(--mag)}
+.ev{margin:14px 0 0;background:#fff;border:1.5px solid var(--pink);border-radius:16px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:8px 14px;align-items:center}
+.ev b{font-family:var(--serif);font-variation-settings:'SOFT' 80;font-weight:700;font-size:16px;color:var(--mag);line-height:1.2}
+.ev .meta{font:600 12px/1.6 var(--sans);color:var(--ink2);white-space:nowrap}
+.ev .meta span{color:var(--mag);font-weight:800;margin-right:6px}
+.g-based{font:500 14px/1.5 var(--sans);margin:14px 0 0;color:var(--ink2)}
+.g-based b{color:var(--ink)}
+.ol{margin:6px 0 0;padding:0 0 0 20px;font:500 14.5px/1.5 var(--sans)}
+.ol li{margin:4px 0}.ol b{font-weight:800}
+.ol small{display:block;color:var(--ink2);font-size:12.5px}
+.g-free{margin:14px 0 0;padding:12px 14px;border-radius:14px;background:#fff;text-align:center;font-family:var(--serif);font-style:italic;font-size:14px;color:var(--mag)}
+.btns{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.btn{font:800 15px var(--sans);border:none;border-radius:999px;padding:15px 20px;min-height:52px;cursor:pointer;color:#fff;background:var(--mag);box-shadow:0 14px 30px rgba(218,24,132,.22)}
+.btn.ghost{background:#fff;color:var(--mag);border:2px solid var(--pink);box-shadow:none}
+.row{display:flex;gap:10px}.row .btn{flex:1}
+.fine{text-align:center;font-size:11.5px;color:var(--ink2);margin:12px 0 0}
+#modal{position:absolute;inset:0;z-index:60;display:none;background:rgba(27,18,38,.6);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:18px}
+#modal.on{display:flex}
+#modal .in{background:#fff;border-radius:24px;padding:16px;max-width:380px;width:100%;max-height:94vh;overflow:auto;position:relative}
+#cardImg{width:100%;border-radius:14px;display:block;aspect-ratio:9/16;background:var(--pinkSoft)}
+.mx{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;border:none;background:var(--pinkSoft);cursor:pointer;color:var(--mag);font-size:16px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.btn:disabled{opacity:.5;cursor:default}
