@@ -204,6 +204,9 @@ button,input{font-family:inherit}
 .spk span{position:relative;z-index:1;width:fit-content;max-width:100%;margin:-.35em 0 0;padding:.18em .5em;
   border-radius:3px;background:#F6C9DD;color:#000;text-align:center;overflow-wrap:break-word;hyphens:none;
   font-weight:700;line-height:1.25;font-size:7px;font-size:clamp(7px,1.6cqw,10.5px)}
+/* the TBA polaroid is already a framed print: it keeps the drop shadow but
+   not the cyan cut-out outline the faces carry. */
+.spk.pola img{filter:drop-shadow(0 1px 2px rgba(43,30,42,.16))}
 .stage .tba{text-align:center;font-weight:600;line-height:1.3;color:var(--ink2);margin:.4em 0 0;
   font-size:7px;font-size:clamp(7px,1.5cqw,10px)}
 
@@ -316,7 +319,7 @@ const EVENT={"name":"emina Explorer Summit","date":"27 November 2026","location"
 const FB={"c1":"#FFE9D6","c2":"#DCEFFF","c3":"#FFF1E6","c4":"#2E3A2E","c5":"#3A2535","c6":"#E6E0FF","c7":"#D8E4FF"};
 const SPRITES=[{"src":"art/char/hero.png","w":425,"h":640}];const SIMPLE=true;
 const TYPEIMG={"CL":"art/char/t_CL.png","CR":"art/char/t_CR.png","AC":"art/char/t_AC.png","CU":"art/char/t_CU.png","IP":"art/char/t_IP.png","ST":"art/char/t_ST.png"};
-const VER='695429';
+const VER='695482';
 const $=s=>document.querySelector(s);
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const SC={};STORY.scenes.forEach(s=>SC[s.id]=s);
@@ -519,12 +522,17 @@ function showResult(){
   $('#l-stages').textContent=UI.stages;$('#l-stages-sub').textContent=TE(UI.stagesSub);
   $('#g-stages').innerHTML=R.picks.map(pk=>{const st=STG[pk]||{};
     const names=st.speakers||[],ph=st.photos||[];
-    const spk=names.map((nm,i)=>'<div class="spk">'+((ph[i])?'<img src="'+ph[i]+'?v='+VER+'" alt="">':'')+'<span>'+esc(nm)+'</span></div>').join('');
+    /* the .psd shows the MUS TBA trio as a polaroid beside the cut-out faces.
+       It takes a slot in the line-up but carries no pink name chip, because
+       the TBA line under the row already names the three. */
+    const slots=names.length+(st.tbaPhoto?1:0);
+    const spk=names.map((nm,i)=>'<div class="spk">'+((ph[i])?'<img src="'+ph[i]+'?v='+VER+'" alt="">':'')+'<span>'+esc(nm)+'</span></div>').join('')
+      +(st.tbaPhoto?'<div class="spk pola"><img src="'+st.tbaPhoto+'?v='+VER+'" alt=""></div>':'');
     return '<div class="stage"><div class="st-txt">'
       +'<p class="st-when"><span>'+esc(st.time||'')+'</span><span>'+esc(st.cat||BOOTHS[pk].name)+'</span></p>'
       +'<div class="ti">'+hiTitle(st.title||'',st.hi)+'</div></div>'
       +'<div class="st-cluster"><span class="st-splabel">'+TE(UI.speakerTag)+'</span>'
-      +'<div class="st-photos" style="--n:'+Math.max(3,names.length)+'">'+spk+'</div>'
+      +'<div class="st-photos" style="--n:'+Math.max(3,slots)+'">'+spk+'</div>'
       +((st.tba||[]).length?'<div class="tba">TBA: '+esc(st.tba.join(' / '))+'</div>':'')
       +'</div></div>';}).join('');
   $('#g-free').textContent='✦ '+TE(UI.seeYou)+' ✦';
@@ -732,8 +740,9 @@ async function buildCard(page){
         cx.font='800 '+fTi+'px '+SANS;
         const words=richSegs(st.title||'',st.hi), tl=richWrap(words,T1W).length;
         const names=st.speakers||[];
+        const slots=names.length+(st.tbaPhoto?1:0);   // the TBA polaroid takes one
         cx.font='700 '+fChip+'px '+SANS;
-        const slot=CLW/Math.max(3,names.length);   // see .spk in the stylesheet
+        const slot=CLW/Math.max(3,slots);   // see .spk in the stylesheet
         const chips=names.map(nm=>wrapWords(nm,slot-fChip));
         const chipRows=Math.max(1,...chips.map(c=>c.length));
         const tbaTxt=(st.tba||[]).length?'TBA: '+st.tba.join(' / '):'';
@@ -741,7 +750,7 @@ async function buildCard(page){
         const bl=tbaTxt?nlines(tbaTxt,CLW):0;
         const textH=fWhen*1.2+fTi*0.7+tl*liTi;
         const clusterH=tagH+CW*0.02+photoH-fChip*0.35+chipRows*chipH*1.25+(bl?fChip*0.5+bl*fChip*1.3:0);
-        return {st,words,tl,names,chips,chipRows,tbaTxt,bl,h:Math.max(textH,clusterH)+RPAD*2};});
+        return {st,words,tl,names,slots,chips,chipRows,tbaTxt,bl,h:Math.max(textH,clusterH)+RPAD*2};});
       total=rows.reduce((t,r)=>t+r.h,0);
       if(total<=ROOM||K<=0.6)break;
       K=Math.max(0.6,K*Math.max(0.85,ROOM/total));
@@ -769,16 +778,20 @@ async function buildCard(page){
       cx.fillStyle='#000';cx.font='800 '+fTag+'px '+SANS;cx.textAlign='center';
       cx.fillText(TE(UI.speakerTag).toUpperCase(),CLX+CLW/2,cy2+tagH/2+fTag*0.36);
       cy2+=tagH+CW*0.02;
-      const ph=st.photos||[], n=r.names.length, slot=CLW/Math.max(3,n), pbase=cy2+photoH;
+      const ph=st.photos||[], n=r.slots, slot=CLW/Math.max(3,n), pbase=cy2+photoH;
       const gx=CLX+(CLW-slot*n)/2;   // the group stays centred in the cluster
-      for(let j=0;j<r.names.length;j++){
+      for(let j=0;j<n;j++){
         const sx=gx+j*slot;
-        const im=ph[j]?await loadImg(ph[j]+'?v='+VER):null;
+        const pola=j>=r.names.length;   // the last slot, when the session has a TBA photo
+        const src=pola?st.tbaPhoto:ph[j];
+        const im=src?await loadImg(src+'?v='+VER):null;
         if(im){const sc=Math.min(slot/im.width,photoH/im.height),dw=im.width*sc,dh=im.height*sc;
+          const dx=sx+(slot-dw)/2;
           // the page's 1.5px cyan offset at its 343px row, scaled to this row
-          cx.save();cx.shadowColor='#A9E4FA';cx.shadowBlur=0;cx.shadowOffsetX=4.3*K;
-          cx.drawImage(im,sx+(slot-dw)/2,pbase-dh,dw,dh);cx.restore();
-          cx.drawImage(im,sx+(slot-dw)/2,pbase-dh,dw,dh);}
+          if(!pola){cx.save();cx.shadowColor='#A9E4FA';cx.shadowBlur=0;cx.shadowOffsetX=4.3*K;
+            cx.drawImage(im,dx,pbase-dh,dw,dh);cx.restore();}
+          cx.drawImage(im,dx,pbase-dh,dw,dh);}
+        if(pola)continue;   // the TBA names live in the line under the row
         const ls=r.chips[j]||[];
         cx.font='700 '+fChip+'px '+SANS;
         const cw=Math.max(...ls.map(l=>cx.measureText(l).width))+fChip;
