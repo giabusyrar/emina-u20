@@ -1,0 +1,28 @@
+{
+  "name": "emina-explorer-quiz",
+  "private": true,
+  "scripts": {
+    "sync": "node scripts/sync.mjs",
+    "predev": "npm run sync",
+    "dev": "next dev",
+    "prebuild": "npm run sync",
+    "build": "next build",
+    "start": "next start",
+    "pretest": "npm run sync",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.11",
+    "@types/react": "^19.3.3",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.2"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

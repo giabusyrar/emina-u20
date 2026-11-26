@@ -1,7 +1,0 @@
-.env
-.env.*
-!.env.example
-bin/
-*.exe
-.claude/worktrees/
-.superpowers/

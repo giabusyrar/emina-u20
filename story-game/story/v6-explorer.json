@@ -32,6 +32,12 @@
   }
  },
  "ui": {
+  "ofTypes": {"id": "1 dari {n} tipe Explorer", "en": "1 of {n} Explorer types"},
+  "campaign": {"id": "20 Under 20 · Explorer Quiz", "en": "20 Under 20 · Explorer Quiz"},
+  "close": {"id": "Tutup", "en": "Close"},
+  "shareTitle": {"id": "Emina 20 Under 20", "en": "Emina 20 Under 20"},
+  "cardQuiz": {"id": "EMINA 20 UNDER 20  ·  EXPLORER QUIZ", "en": "EMINA 20 UNDER 20  ·  EXPLORER QUIZ"},
+  "cardSummit": {"id": "EMINA 20 UNDER 20  ·  EXPLORER SUMMIT", "en": "EMINA 20 UNDER 20  ·  EXPLORER SUMMIT"},
   "tap": {
    "id": "ketuk buat lanjut",
    "en": "tap to continue"
