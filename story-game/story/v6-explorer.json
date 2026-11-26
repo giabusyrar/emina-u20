@@ -9,26 +9,30 @@
   "en": "An interactive journey to discover what excites you, overcome your doubts, and explore what you could become."
  },
  "welcome": {
-  "kicker": "Emina 20 Under 20 · Made to Explore",
+  "kicker": "",
+  "greet": {
+   "id": "Hi, Explorer!",
+   "en": "Hi, Explorer!"
+  },
   "lead": {
-   "id": "7 chapter, 6 pertanyaan, satu cerita yang jalannya kamu yang nentuin. Di akhir kamu dapet tipe Explorer-mu, kartu buat di-share, dan 3 booth buat mulai jelajah di Explorer Summit.",
-   "en": "7 chapters, 6 questions, one story shaped by your choices. At the end you get your Explorer type, a card to share, and 3 booths to start exploring at the Explorer Summit."
+   "id": "What if you live with <b>fearless</b> in a day?<br>Are you ready to <b>explore</b>?",
+   "en": "What if you live with <b>fearless</b> in a day?<br>Are you ready to <b>explore</b>?"
   },
   "namePrompt": {
-   "id": "Panggil kamu siapa?",
-   "en": "What should we call you?"
+   "id": "Tapi dulu, panggil kamu siapa?",
+   "en": "But first, what should we call you?"
   },
   "namePh": {
-   "id": "nama kamu",
-   "en": "your name"
+   "id": "Ketik nama kamu....",
+   "en": "Type your name here...."
   },
   "cta": {
-   "id": "Mulai jelajah",
-   "en": "Start exploring"
+   "id": "Mulai jelajah!",
+   "en": "Start exploring!"
   },
   "fine": {
-   "id": "4 menit · 6 tipe Explorer · hasilnya bisa di-share",
-   "en": "4 minutes · 6 Explorer types · shareable result"
+   "id": "6 pertanyaan · sekitar 3 menit",
+   "en": "6 questions · about 3 minutes"
   }
  },
  "ui": {
@@ -37,8 +41,8 @@
    "en": "tap to continue"
   },
   "tip": {
-   "id": "<b>Tip:</b> pilih yang paling kamu banget. Nggak ada jawaban yang salah, dan dia bakal gerak sesuai pilihanmu.",
-   "en": "<b>Tip:</b> pick what feels most like you. There are no wrong answers, and she moves the way you choose."
+   "id": "<b>Tip:</b> pilih yang paling kamu banget. Nggak ada jawaban yang salah, tiap pilihan bikin ceritamu beda.",
+   "en": "<b>Tip:</b> pick what feels most like you. There are no wrong answers, and every choice shapes your story."
   },
   "kamu": {
    "id": "Kamu",
@@ -118,6 +122,54 @@
   "askCta": {
    "id": "Kamu Explorer yang mana?",
    "en": "Which Explorer are you?"
+  },
+  "identityTitle": {
+   "id": "Kamu adalah...",
+   "en": "You are..."
+  },
+  "quizResult": {
+   "id": "HASIL EXPLORER QUIZ",
+   "en": "EXPLORER QUIZ RESULT"
+  },
+  "nutshell": {
+   "id": "Singkatnya",
+   "en": "In a Nutshell"
+  },
+  "bestiesSub": {
+   "id": "Explorer lain yang paling nyambung sama kamu",
+   "en": "Other Explorers you are most in sync with"
+  },
+  "boothsSub": {
+   "id": "3 booth eksplorasi khusus buat kamu, dari rasa penasaranmu",
+   "en": "3 exploration booths picked just for you, based on your curiosity"
+  },
+  "stagesSub": {
+   "id": "3 sesi talkshow buat ngasih insight baru di perjalananmu",
+   "en": "3 talkshow sessions to spark new insights for your journey"
+  },
+  "startHere": {
+   "id": "EKSPLORASIMU MULAI DARI SINI!",
+   "en": "YOUR EXPLORATION STARTS HERE!"
+  },
+  "seeYou": {
+   "id": "SAMPAI KETEMU DI EXPLORER SUMMIT",
+   "en": "SEE YOU AT EXPLORER SUMMIT"
+  },
+  "summit": {
+   "id": "EXPLORER SUMMIT",
+   "en": "EXPLORER SUMMIT"
+  },
+  "withSpk": {
+   "id": "Bareng",
+   "en": "With"
+  },
+  "journey": {
+   "id": "PERJALANAN EKSPLORASIMU",
+   "en": "YOUR EXPLORATION JOURNEY"
+  },
+  "speakerTag": {
+   "id": "Speaker",
+   "en": "Speaker"
   }
  },
  "typeOrder": [
@@ -147,21 +199,21 @@
    "c2": "#C8E3EC",
    "soft": "#E6F2F8",
    "desc": {
-    "id": "Terinspirasi dari musik, cerita, dan budaya yang dirasain bareng-bareng.",
-    "en": "Inspired by music, stories & shared culture."
+    "id": "Kamu suka mengeksplorasi musik, cerita, dan karya yang bisa menghubungkan banyak orang.",
+    "en": "You love exploring music, stories, and creative works that connect people."
    },
    "tag": {
-    "id": "Si yang selalu tau lagu, cerita, dan tren mana yang lagi bikin semua orang nyambung!",
-    "en": "The one who always knows which song, story or trend is bringing everyone together!"
+    "id": "Selalu ada cerita di balik yang kamu suka.",
+    "en": "Every song, story, and scene means something."
    },
    "energy": {
-    "id": "Yang ngerasain beat-nya duluan sebelum orang lain.",
-    "en": "The one who feels the beat before everyone else does."
+    "id": "Yang selalu punya lagu, film, atau cerita buat direkomendasiin.",
+    "en": "The one who always has a song, movie, or story to recommend"
    },
    "sparks": [
-    "#AlwaysOnBeat",
+    "#CultureLover",
     "#StoryCollector",
-    "#SharedVibes"
+    "#SharedExperiences"
    ],
    "booths": [
     "MUS",
@@ -170,8 +222,14 @@
    ],
    "besties": [
     "CR",
-    "AC"
-   ]
+    "ST"
+   ],
+   "nutshell": {
+    "id": "Kamu suka nemuin cerita di balik musik, film, dan karya yang nyatuin orang.",
+    "en": "You love discovering the stories behind music, movies, and creative works that bring people together"
+   },
+   "bg": "#FFE8F3",
+   "bgImg": "art/kv/reveal-CL.jpg"
   },
   "CR": {
    "name": "The Creative Explorer",
@@ -180,21 +238,21 @@
    "c2": "#F1BCD5",
    "soft": "#FBE7F0",
    "desc": {
-    "id": "Mengubah ide jadi karya yang layak dibagiin.",
-    "en": "Turns ideas into creations worth sharing."
+    "id": "Kamu suka mengubah ide-ide random jadi sesuatu yang seru dan punya ciri khas kamu sendiri.",
+    "en": "You love turning random ideas into something exciting and uniquely yours."
    },
    "tag": {
-    "id": "Si paling penuh ide, yang bisa melihat sesuatu biasa jadi luar biasa!",
-    "en": "The one full of ideas, who sees the extraordinary in the ordinary!"
+    "id": "Ide random? Bisa jadi sesuatu!",
+    "en": "Your mind is always making something."
    },
    "energy": {
-    "id": "Yang bisa ngubah ide random jadi sesuatu yang keren.",
-    "en": "The one who turns random ideas into something amazing."
+    "id": "Yang tiba-tiba bilang “eh, aku punya ide!” di tengah apa pun.",
+    "en": "The one who says “Wait, I have an idea!” in the middle of everything"
    },
    "sparks": [
     "#FullOfIdeas",
     "#BornToCreate",
-    "#CuriousMind"
+    "#MakeItYourOwn"
    ],
    "booths": [
     "ART",
@@ -202,9 +260,15 @@
     "BEA"
    ],
    "besties": [
-    "CL",
+    "ST",
     "CU"
-   ]
+   ],
+   "nutshell": {
+    "id": "Kamu suka ngubah ide random jadi sesuatu yang seru dan khas kamu.",
+    "en": "You love turning random ideas into something exciting and uniquely yours"
+   },
+   "bg": "#C2E8FF",
+   "bgImg": "art/kv/reveal-CR.jpg"
   },
   "AC": {
    "name": "The Active Explorer",
@@ -213,21 +277,21 @@
    "c2": "#FFF3B8",
    "soft": "#FFF9E3",
    "desc": {
-    "id": "Selalu siap buat gerak dan tantangan baru.",
-    "en": "Always up for movement & new challenges."
+    "id": "Kamu suka tantangan baru dan nggak ragu buat nyobain hal yang belum pernah kamu lakukan.",
+    "en": "You love jumping into new challenges and trying things you've never done before."
    },
    "tag": {
-    "id": "Si yang nggak bisa diem, selalu pertama bilang ayo coba!",
-    "en": "The one who cannot sit still and is always first to say let us try!"
+    "id": "Daripada penasaran, mending cobain!",
+    "en": "Less thinking about it, more trying it."
    },
    "energy": {
-    "id": "Yang bilang ayo sebelum pertanyaannya selesai.",
-    "en": "The one who says yes before anyone finishes the question."
+    "id": "Yang bilang “cobain yuk!” sebelum yang lain selesai mikir.",
+    "en": "The one who says “Let's try!” before anyone else has decided"
    },
    "sparks": [
-    "#AlwaysMoving",
-    "#TryEverything",
-    "#NoFearMode"
+    "#AlwaysOnTheMove",
+    "#ChallengeAccepted",
+    "#JustTryIt"
    ],
    "booths": [
     "SPO",
@@ -235,9 +299,15 @@
     "IMP"
    ],
    "besties": [
-    "CL",
-    "IP"
-   ]
+    "IP",
+    "CL"
+   ],
+   "nutshell": {
+    "id": "Kamu suka nyemplung ke pengalaman baru, ambil tantangan, dan lihat ke mana arahnya.",
+    "en": "You love jumping into new experiences, taking on challenges, and seeing where they lead."
+   },
+   "bg": "#FCD6D7",
+   "bgImg": "art/kv/reveal-AC.jpg"
   },
   "CU": {
    "name": "The Curious Explorer",
@@ -246,21 +316,21 @@
    "c2": "#DCCBFB",
    "soft": "#F0EAFB",
    "desc": {
-    "id": "Suka nanya kenapa, nyoba, dan nemuin hal baru.",
-    "en": "Loves asking why, testing & discovering."
+    "id": "Kamu selalu penasaran sama cara sesuatu bekerja dan suka menemukan hal-hal baru.",
+    "en": "You're always curious about how things work and love discovering something new."
    },
    "tag": {
-    "id": "Si tukang nanya, yang nggak puas sebelum tau cara kerjanya!",
-    "en": "The one who keeps asking, and is never satisfied until they know how it works!"
+    "id": "Satu pertanyaan, seribu penasaran.",
+    "en": "One question leads to a hundred more."
    },
    "energy": {
-    "id": "Yang bongkar dulu cuma buat tau cara kerjanya.",
-    "en": "The one who takes things apart just to see how they work."
+    "id": "Yang ujung-ujungnya riset satu pertanyaan random berjam-jam.",
+    "en": "The one who somehow ends up researching a random question for hours"
    },
    "sparks": [
-    "#WhyThough",
-    "#TestAndLearn",
-    "#BrainOn"
+    "#CuriousMind",
+    "#LetsFindOut",
+    "#AlwaysWondering"
    ],
    "booths": [
     "STEM",
@@ -270,7 +340,13 @@
    "besties": [
     "CR",
     "IP"
-   ]
+   ],
+   "nutshell": {
+    "id": "Kamu suka cari tau cara kerja sesuatu dan nemuin hal yang belum pernah kamu tau.",
+    "en": "You love figuring out how things work and discovering things you never knew existed"
+   },
+   "bg": "#FEF0C9",
+   "bgImg": "art/kv/reveal-CU.jpg"
   },
   "IP": {
    "name": "The Impact Explorer",
@@ -279,16 +355,16 @@
    "c2": "#B8E6D6",
    "soft": "#E3F5EF",
    "desc": {
-    "id": "Pengin bikin hal kecil jadi berarti.",
-    "en": "Wants to make small things matter."
+    "id": "Kamu peduli sama hal-hal kecil dan suka mencari cara untuk membawa perubahan.",
+    "en": "You care about the little things and love finding ways to make a difference"
    },
    "tag": {
-    "id": "Si yang mulai dari hal kecil, tapi nggak pernah berhenti di situ!",
-    "en": "The one who starts small, but never stops there!"
+    "id": "Hal kecil juga bisa berarti besar.",
+    "en": "Small steps, meaningful changes."
    },
    "energy": {
-    "id": "Yang sadar siapa yang ketinggalan, terus balik jemput.",
-    "en": "The one who notices who got left behind, and goes back."
+    "id": "Yang sadar siapa yang ketinggalan, terus mastiin dia ikut.",
+    "en": "The one who notices who's being left out and makes sure they're included"
    },
    "sparks": [
     "#SmallStepsBigChange",
@@ -301,9 +377,15 @@
     "ART"
    ],
    "besties": [
-    "CU",
-    "AC"
-   ]
+    "AC",
+    "ST"
+   ],
+   "nutshell": {
+    "id": "Kamu peduli sama hal kecil dan suka cari cara buat bikin perubahan nyata.",
+    "en": "You care about the little things and love finding ways to make a real difference"
+   },
+   "bg": "#E5FED8",
+   "bgImg": "art/kv/reveal-IP.jpg"
   },
   "ST": {
    "name": "The Style Explorer",
@@ -312,21 +394,21 @@
    "c2": "#FFD1E3",
    "soft": "#FFEAF2",
    "desc": {
-    "id": "Mengekspresikan diri lewat penampilan dan estetika.",
-    "en": "Expresses identity through looks & aesthetics."
+    "id": "Kamu suka mengekspresikan diri lewat gaya, warna, dan detail kecil yang bikin semuanya lebih kamu.",
+    "en": "You love expressing yourself through your own style, colors, and little details."
    },
    "tag": {
-    "id": "Si yang bisa ngomong tanpa ngomong, lewat warna, gaya, dan detail!",
-    "en": "The one who speaks without speaking, through colour, style and detail!"
+    "id": "Gaya kamu, cara kamu bercerita.",
+    "en": "Your style speaks before you do."
    },
    "energy": {
-    "id": "Yang outfit-nya aja udah satu cerita.",
-    "en": "The one whose outfit is a whole story."
+    "id": "Yang bisa bikin outfit paling simpel jadi satu look utuh.",
+    "en": "The one who can turn the simplest outfit into a whole look"
    },
    "sparks": [
-    "#OwnYourLook",
-    "#AestheticMode",
-    "#MainCharacterFit"
+    "#ExpressYourself",
+    "#ItsAllInTheDetails",
+    "#OwnYourStyle"
    ],
    "booths": [
     "FAS",
@@ -336,7 +418,13 @@
    "besties": [
     "CR",
     "CL"
-   ]
+   ],
+   "nutshell": {
+    "id": "Buat kamu, gaya itu cara nunjukin siapa kamu, sampai ke detail terkecil.",
+    "en": "You see style as a way to express who you are, right down to the smallest details"
+   },
+   "bg": "#FFFFFF",
+   "bgImg": "art/kv/reveal-ST.jpg"
   }
  },
  "booths": {
@@ -369,7 +457,7 @@
    }
   },
   "STEM": {
-   "name": "STEM World",
+   "name": "STEM",
    "tag": {
     "id": "Utak-atik teknologi, coding, dan eksperimen",
     "en": "Tinker with tech, code, and experiments"
@@ -437,23 +525,17 @@
     "en": "The Invitation"
    },
    "img": "art/explorer/c1.jpg",
+   "theme": "light",
+   "panel": {
+    "top": "#FFF3F8"
+   },
    "floor": 0.86,
    "tutorial": true,
    "beats": [
     {
      "who": "",
-     "id": "Kamu bangun pagi ini dan nemu sebuah undangan misterius di meja.",
-     "en": "You wake up this morning and find a mysterious invitation on your desk."
-    },
-    {
-     "who": "",
-     "id": "Isinya cuma satu kalimat: Hari ini kamu boleh explore apa pun yang selama ini bikin kamu penasaran.",
-     "en": "It says one thing: Today, you can explore anything you have ever been curious about."
-    },
-    {
-     "who": "",
-     "id": "Di bawahnya, tulisan tangan kecil: Dari mana ceritamu mau dimulai?",
-     "en": "Below it, in small handwriting: Where will your story begin?"
+     "id": "Kamu bangun dan nemu sebuah undangan misterius di meja: “Hari ini kamu boleh explore apa pun yang bikin kamu penasaran. Yuk, mulai.”",
+     "en": "You wake up to find a mysterious invitation: “Today, you can explore anything you have ever been curious about. Let’s go.”"
     }
    ],
    "prompt": {
@@ -567,22 +649,17 @@
     "en": "The First Turn"
    },
    "img": "art/explorer/c2.jpg",
+   "theme": "dark",
+   "panel": {
+    "top": "#3A4179",
+    "bottom": "#373F79"
+   },
    "floor": 0.88,
    "beats": [
     {
      "who": "",
-     "id": "Kamu keluar rumah dan nemu jalanan yang penuh tempat menarik.",
-     "en": "You step outside onto a street full of exciting places."
-    },
-    {
-     "who": "",
-     "id": "Semua pintunya kebuka. Ada musik dari satu sisi, bau cat dari sisi lain, suara orang ketawa di ujung jalan.",
-     "en": "Every door is open. Music from one side, the smell of paint from another, laughter at the end of the street."
-    },
-    {
-     "who": "",
-     "id": "Tapi satu tempat langsung bikin kamu berhenti.",
-     "en": "But one place instantly makes you stop."
+     "id": "Kamu keluar dan nemu jalanan penuh tempat menarik. Semua pintunya kebuka, tapi satu langsung bikin kamu berhenti.",
+     "en": "You step outside onto a street full of exciting places. Every door is open, but one instantly catches your attention."
     }
    ],
    "prompt": {
@@ -696,17 +773,17 @@
     "en": "The Unexpected Challenge"
    },
    "img": "art/explorer/c3.jpg",
+   "theme": "dark",
+   "panel": {
+    "top": "#9F7880",
+    "bottom": "#985F7A"
+   },
    "floor": 0.88,
    "beats": [
     {
      "who": "",
-     "id": "Tiba-tiba ada pengumuman: challenge dadakan!",
-     "en": "Suddenly, an announcement: a surprise challenge!"
-    },
-    {
-     "who": "",
-     "id": "Kamu dikasih waktu buat bikin sesuatu, dengan cara kamu sendiri. Nggak ada aturan, nggak ada contekan.",
-     "en": "You get some time to create something, your own way. No rules, no template."
+     "id": "Tiba-tiba muncul challenge. Kamu punya waktu buat bikin sesuatu, dengan cara kamu sendiri.",
+     "en": "Suddenly, a challenge appears. You have time to create something entirely your own way."
     }
    ],
    "prompt": {
@@ -820,17 +897,13 @@
     "en": "The Moment of Doubt"
    },
    "img": "art/explorer/c4.jpg",
+   "theme": "dark",
    "floor": 0.9,
    "beats": [
     {
      "who": "",
-     "id": "Kamu udah milih challenge yang mau dicoba. Bahannya ada, waktunya ada.",
-     "en": "You have chosen the challenge you want to try. The materials are there, the time is there."
-    },
-    {
-     "who": "",
-     "id": "Tapi pas mau mulai, tiba-tiba ada satu pikiran yang bikin kamu berhenti.",
-     "en": "But just as you are about to start, one thought creeps in and stops you."
+     "id": "Pas mau mulai, tiba-tiba ada satu pikiran yang bikin kamu ragu.",
+     "en": "Just as you are about to start, one doubtful thought creeps in."
     }
    ],
    "prompt": {
@@ -906,7 +979,11 @@
      "doubt": "IMPACT",
      "leadsTo": "c5"
     }
-   ]
+   ],
+   "panel": {
+    "top": "#9B7F8D",
+    "bottom": "#CFA2B8"
+   }
   },
   {
    "id": "c5",
@@ -916,22 +993,13 @@
     "en": "The Spotlight Moment"
    },
    "img": "art/explorer/c5.jpg",
+   "theme": "light",
    "floor": 0.9,
    "beats": [
     {
      "who": "",
-     "id": "Di tengah ragu, kamu denger seseorang lagi cerita dari atas panggung.",
-     "en": "In the middle of your doubts, you hear someone sharing their story on stage."
-    },
-    {
-     "who": "",
-     "id": "Ternyata mereka juga pernah takut dan ragu, sebelum akhirnya berani nyoba.",
-     "en": "It turns out they were once afraid and uncertain too, before they found the courage to try."
-    },
-    {
-     "who": "",
-     "id": "Kamu dengerin sampai habis. Terus kamu mikir: mungkin aku juga bisa.",
-     "en": "You listen to the end. Then you think: maybe I can do it too."
+     "id": "Kamu denger seseorang cerita dari panggung. Ternyata mereka juga pernah takut, sebelum akhirnya berani nyoba.",
+     "en": "You hear someone share their story on stage. They were once afraid too, before they found the courage to try."
     }
    ],
    "prompt": {
@@ -1007,7 +1075,11 @@
      "interest": "PURPOSE",
      "leadsTo": "c6"
     }
-   ]
+   ],
+   "panel": {
+    "top": "#F8A8CD",
+    "bottom": "#FDC1DD"
+   }
   },
   {
    "id": "c6",
@@ -1017,17 +1089,13 @@
     "en": "Beyond Your Comfort Zone"
    },
    "img": "art/explorer/c6.jpg",
+   "theme": "light",
    "floor": 0.9,
    "beats": [
     {
      "who": "",
-     "id": "Setelah denger cerita tadi, kamu lanjut jalan.",
-     "en": "After that story, you continue your journey."
-    },
-    {
-     "who": "",
-     "id": "Sekarang ada satu pintu baru yang kebuka, ke sesuatu yang belum pernah kamu bayangin.",
-     "en": "Now a new door opens, to something you have never imagined before."
+     "id": "Sebuah pintu baru kebuka, ke sesuatu yang belum pernah kamu bayangin.",
+     "en": "A new door opens, to something you have never imagined before."
     }
    ],
    "prompt": {
@@ -1131,7 +1199,11 @@
      },
      "leadsTo": "c7"
     }
-   ]
+   ],
+   "panel": {
+    "top": "#E4BCD7",
+    "bottom": "#F1BBD5"
+   }
   },
   {
    "id": "c7",
@@ -1141,13 +1213,9 @@
     "en": "Your Exploration Begins"
    },
    "img": "art/explorer/c7.jpg",
+   "theme": "light",
    "floor": 0.9,
    "beats": [
-    {
-     "who": "",
-     "id": "Kamu udah sampai di akhir cerita. Tapi ternyata perjalanan kamu baru mau dimulai.",
-     "en": "You have reached the end of the story. But your real adventure is only just beginning."
-    },
     {
      "who": "",
      "id": "Setiap pilihan tadi bawa kamu ke sini. Siap liat ke mana eksplorasimu bakal pergi?",
@@ -1169,7 +1237,12 @@
      "react": [],
      "leadsTo": "ending"
     }
-   ]
+   ],
+   "panel": {
+    "top": "#F7D6E6",
+    "bottom": "#FCF1F6",
+    "img": "art/explorer/c7-foot.png"
+   }
   }
  ]
 }

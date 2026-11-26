@@ -42,6 +42,8 @@ TOKEN_CANDIDATES = (
     os.path.join(ROOT, ".vercel-token.local"),
     os.path.normpath(os.path.join(ROOT, "..", "..", "paragon-photobooth", ".vercel-token.local")),
     os.path.normpath(os.path.join(ROOT, "..", "..", "..", "paragon-photobooth", ".vercel-token.local")),
+    os.path.normpath(os.path.join(ROOT, "..", "..", "..", "foto booth", "paragon-photobooth", ".vercel-token.local")),
+    os.path.normpath(os.path.join(ROOT, "..", "..", "..", "foto booth", "Emina Blok M", ".vercel-token.local")),
 )
 
 

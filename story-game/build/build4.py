@@ -12,10 +12,18 @@ def main():
     if "--out" in sys.argv: out = os.path.join(ROOT, sys.argv[sys.argv.index("--out") + 1])
     story = json.load(open(os.path.join(S, "v6-explorer.json"), encoding="utf-8"))
     event = json.load(open(os.path.join(S, "event.json"), encoding="utf-8"))
-    pj = os.path.join(ROOT, "art", "char", "poses.json"); sprites = json.load(open(pj)) if os.path.exists(pj) else None
+    def png_size(fp):
+        with open(fp, "rb") as fh:
+            fh.read(16); import struct; return struct.unpack(">II", fh.read(8))
+    hero = os.path.join(ROOT, "art", "char", "hero.png")
+    simple = os.path.exists(hero)
+    if simple:
+        w, h = png_size(hero); sprites = [{"src": "art/char/hero.png", "w": w, "h": h}]
+    else:
+        pj = os.path.join(ROOT, "art", "char", "poses.json"); sprites = json.load(open(pj)) if os.path.exists(pj) else None
     typeimg = {k: "art/char/t_%s.png" % k for k in story["types"] if os.path.exists(os.path.join(ROOT, "art", "char", "t_%s.png" % k))}
     html = read(os.path.join(B, "template4.html"))
-    for tok, payload in (("/*__STORY__*/", js(story)), ("/*__EVENT__*/", js(event)), ("/*__FB__*/", js(FB)), ("/*__SPRITES__*/", js(sprites)), ("/*__TYPEIMG__*/", js(typeimg)), ("__VER__", str(int(time.time()))[-6:])):
+    for tok, payload in (("/*__STORY__*/", js(story)), ("/*__EVENT__*/", js(event)), ("/*__FB__*/", js(FB)), ("/*__SPRITES__*/", js(sprites)), ("/*__SIMPLE__*/", "true" if simple else "false"), ("/*__TYPEIMG__*/", js(typeimg)), ("__VER__", str(int(time.time()))[-6:])):
         if tok not in html: sys.exit("template is missing " + tok)
         html = html.replace(tok, payload)
     with open(out, "w", encoding="utf-8") as fh: fh.write(html)
