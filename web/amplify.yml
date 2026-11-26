@@ -1,5 +1,5 @@
 # Amplify Hosting build spec for this app. Paste it into App settings > Build settings (monorepo: set
-# AMPLIFY_MONOREPO_APP_ROOT=story-game/web). Paths are relative to story-game/web.
+# AMPLIFY_MONOREPO_APP_ROOT=web). Paths are relative to web.
 version: 1
 frontend:
   phases:

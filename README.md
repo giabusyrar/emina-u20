@@ -8,7 +8,7 @@ the pre-event Summit guide (3 booths + 3 stage picks).
 
 **Live (production):** https://emina-20-under-20.vercel.app
 **Claude preview:** https://claude.ai/artifact/44RHVwpwnryJ8B61TJVBPS
-**Repo:** `story-game/` in https://gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/emina-u20 (the repo root is the seagull-core-engine Go service). Run everything below from `story-game/`.
+**Repo:** https://gitlab.com/paragon-is/solution-delivery-operations/bbs-experiences/emina-u20 (this repo is only the quiz now). Run everything below from the repo root. The Next.js port lives in `web/` (`cd web && npm ci && npm run dev`); it reads `story/` and `art/` through `web/scripts/sync.mjs`.
 
 `index.html` is **generated**: `python3 build/build4.py` (engine `build/template4.html`, story `story/v6-explorer.json`, event config `story/event.json`).
 
