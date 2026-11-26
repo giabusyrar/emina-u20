@@ -38,13 +38,31 @@ def _include():
 INCLUDE_FILES = _include()
 SKIP_NAMES = {".DS_Store"}
 
-TOKEN_CANDIDATES = (
-    os.path.join(ROOT, ".vercel-token.local"),
-    os.path.normpath(os.path.join(ROOT, "..", "..", "paragon-photobooth", ".vercel-token.local")),
-    os.path.normpath(os.path.join(ROOT, "..", "..", "..", "paragon-photobooth", ".vercel-token.local")),
-    os.path.normpath(os.path.join(ROOT, "..", "..", "..", "foto booth", "paragon-photobooth", ".vercel-token.local")),
-    os.path.normpath(os.path.join(ROOT, "..", "..", "..", "foto booth", "Emina Blok M", ".vercel-token.local")),
+# The token lives beside this script, or is borrowed from one of the sibling
+# projects below so no credential is duplicated. Those are found by walking up
+# from ROOT rather than by a fixed number of "..": this script has already been
+# moved one level up once (story-game/ -> repo root), and counting levels is
+# what broke the lookup that time.
+_BORROW = (
+    ("paragon-photobooth", ".vercel-token.local"),
+    ("foto booth", "paragon-photobooth", ".vercel-token.local"),
+    ("foto booth", "Emina Blok M", ".vercel-token.local"),
 )
+
+
+def _token_candidates():
+    yield os.path.join(ROOT, ".vercel-token.local")
+    anc = ROOT
+    while True:
+        parent = os.path.dirname(anc)
+        if parent == anc:
+            return
+        anc = parent
+        for rel in _BORROW:
+            yield os.path.join(anc, *rel)
+
+
+TOKEN_CANDIDATES = tuple(_token_candidates())
 
 
 def token():
